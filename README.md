@@ -41,6 +41,19 @@ ShelterWise integrates Google's full cloud & developer ecosystem to eliminate da
    - Interactive evidence upload for photos (thermostat at 50°F, ceiling water damage) and legal PDFs (notice to landlord, 3-day notice to quit).
 7. **Multilingual Access (English / Español / 中文)**:
    - High-priority legal warnings, life-safety gates, and court countdown timers accessible to San Francisco's diverse renter population.
+8. **Interactive Case Builder & 4 Realistic Prefilled Scenarios**:
+   - Freeform editable intake narrative, address picker, date/time scheduler, household size, and income calculator.
+   - Preloaded with 4 authentic San Francisco cases:
+     - *Case 1 (Western Addition)*: Winter heating failure, 50°F indoor temperature, sick child, hearing Monday at 9am.
+     - *Case 2 (Mission District)*: Acute life-safety emergency, water dripping onto electrical breaker box with arcing.
+     - *Case 3 (Tenderloin)*: Toxic black mold, retaliatory heating shutoff under Cal. Civ. Code § 1942.5.
+     - *Case 4 (Chinatown SRO)*: Shared hallway sewage backup, elderly immigrant tenant, DBI Repair Bridge grant.
+9. **Reviewable & Editable Facts Table**:
+   - In Step 1, extracted facts are rendered in directly editable table cells (`contenteditable="true"`), allowing advocates to correct claims or add additional verified facts.
+10. **Automated 3-Minute Walkthrough**:
+   - A prominent **`▶ 3-Min Walkthrough`** header button autonomously advances through the complete 10-step demo script with automated vector search and brief verification.
+11. **Defense Brief Export**:
+   - Includes one-click **Print / Save Defense Brief PDF** and **Copy Brief to Clipboard** buttons for immediate court filing.
 
 ---
 
