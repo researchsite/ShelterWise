@@ -32,17 +32,15 @@ def _bool_check(value, name: str, yes: str, no: str, ask: str) -> ConditionCheck
     return ConditionCheck(condition=name, status="unknown", detail=ask)
 
 
-def _income_pct_ami(case: dict, ami_table: dict) -> float | None:
-    if case.get("income_pct_ami") is not None:
-        return float(case["income_pct_ami"])
-    income, size = case.get("annual_income_usd"), case.get("household_size")
-    ami = (ami_table or {}).get(size) or (ami_table or {}).get(str(size))
-    if income is not None and ami:
-        return 100.0 * float(income) / float(ami)
-    return None
+def _income_limit(limits: dict, pct: float, size) -> float | None:
+    """Published MOHCD limit for this AMI tier and household size, or None if not in the chart."""
+    tier = (limits or {}).get(int(pct)) or (limits or {}).get(str(int(pct)))
+    if not tier or size is None:
+        return None
+    return tier.get(int(size)) or tier.get(str(int(size)))
 
 
-def check_condition(cond: dict, case: dict, evidence: dict, ami_table: dict) -> ConditionCheck:
+def check_condition(cond: dict, case: dict, evidence: dict, limits: dict) -> ConditionCheck:
     t = cond["type"]
     if t == "residential_tenant":
         return _bool_check(case.get("is_residential_tenant"), t, "Residential tenant.",
@@ -62,14 +60,22 @@ def check_condition(cond: dict, case: dict, evidence: dict, ami_table: dict) -> 
                               detail="No open case found nearby. Ask if she has her own DBI case number; "
                                      "if not, file a 311 inspection request.")
     if t == "income_max_pct_ami":
-        pct = _income_pct_ami(case, ami_table)
-        limit = float(cond["value"])
-        if pct is None:
-            return ConditionCheck(condition=t, status="unknown",
-                                  detail=f"Confirm household income is at or below {limit:.0f}% AMI (MOHCD chart).")
-        status = "met" if pct <= limit else "not_met"
-        return ConditionCheck(condition=t, status=status,
-                              detail=f"Household income about {pct:.0f}% AMI vs limit {limit:.0f}%.")
+        limit_pct = float(cond["value"])
+        if case.get("income_pct_ami") is not None:
+            pct = float(case["income_pct_ami"])
+            return ConditionCheck(condition=t, status="met" if pct <= limit_pct else "not_met",
+                                  detail=f"Household income about {pct:.0f}% AMI vs limit {limit_pct:.0f}%.")
+        income, size = case.get("annual_income_usd"), case.get("household_size")
+        cap = _income_limit(limits, limit_pct, size)
+        if income is not None and cap:
+            status = "met" if float(income) <= cap else "not_met"
+            return ConditionCheck(condition=t, status=status,
+                                  detail=f"Income ${float(income):,.0f} vs {limit_pct:.0f}% AMI limit ${cap:,.0f} "
+                                         f"for a household of {size}.")
+        hint = f" (household of {size} is not in the chart)" if income is not None and size else ""
+        return ConditionCheck(condition=t, status="unknown",
+                              detail=f"Confirm household income is at or below {limit_pct:.0f}% AMI "
+                                     f"(MOHCD chart){hint}.")
     if t == "medical_or_wage_loss":
         return _bool_check(case.get("medical_or_wage_loss"), t, "Medical leave or wage loss reported.",
                            "No medical leave or wage loss.", "Ask about acute medical leave or wage loss.")
@@ -91,14 +97,14 @@ def check_condition(cond: dict, case: dict, evidence: dict, ami_table: dict) -> 
 def check_relief_eligibility(case: dict, evidence: dict, repo: Repo | None = None) -> list[dict]:
     repo = repo or get_repo()
     rules = load_rules()
-    ami_table = rules.get("ami_100pct_by_household_size") or {}
+    limits = rules.get("income_limits_usd") or {}
     days = case.get("days_to_hearing")
     verdicts = []
     for b in repo.bulletins():
         spec = rules["programs"].get(b["bulletin_id"])
         if not spec:
             continue
-        checks = [check_condition(c, case, evidence, ami_table) for c in spec["conditions"]]
+        checks = [check_condition(c, case, evidence, limits) for c in spec["conditions"]]
         if any(c.status == "not_met" for c in checks):
             verdict = "INELIGIBLE"
         elif all(c.status == "met" for c in checks):

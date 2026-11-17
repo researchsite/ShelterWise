@@ -107,7 +107,7 @@ Our UI renders `state.brief` (JSON) as a **brief card** next to the chat. In `ad
 |---|---|
 | "Why did you drop the warehouse boiler one?" | `explain_exclusion("DECOY-SANF-01")` → "commercial property, no residential tenants" |
 | "She has her own DBI case number" | The relief check runs again: Prop F and the DBI Bridge become **ELIGIBLE** |
-| "2-person household, about $45k a year" | Income is checked against AMI: ERAP becomes **ELIGIBLE**. This needs the official MOHCD AMI chart in `funds_sf.yaml`; until then income stays "to confirm" (never guessed) |
+| "2-person household, about $45k a year" | Income is checked against the 2026 MOHCD limits in `funds_sf.yaml` ($45k is under the $103,750 80% limit for 2 people): ERAP becomes **ELIGIBLE**. Household sizes not in the chart stay "to confirm" (never guessed) |
 | "How many open heat complaints are in this tract?" | BigQuery MCP query |
 | *(no open record near the block)* | Hands off to `inspection_request_drafter`: drafts a 311 request plus a photo checklist, and points to ERAP/MEDA meanwhile |
 
