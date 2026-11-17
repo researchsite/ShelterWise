@@ -150,8 +150,10 @@ def run_triage(req: TriageRequest):
         logger.error(f"Triage error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-def state_to_blocks(state: Dict[str, Any]) -> list:
+def state_to_blocks(state: Optional[Dict[str, Any]]) -> list:
     blocks = []
+    if not state or not isinstance(state, dict):
+        return blocks
     
     intake = state.get("intake", state.get("intake_facts", {}))
     if isinstance(intake, dict) and intake:
@@ -222,7 +224,7 @@ def chat_endpoint(req: ChatRequest):
     try:
         target_case = req.case_id or req.session_id or "SF-1042"
         store = FirestoreStore()
-        case_state = store.get_case(target_case) if target_case else {}
+        case_state = (store.get_case(target_case) or {}) if target_case else {}
 
         # If this is an initial intake message and no case exists yet, run fast full triage
         msg_lower = req.message.lower()
