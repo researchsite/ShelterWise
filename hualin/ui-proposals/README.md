@@ -46,3 +46,20 @@ Also click: the **Why?** buttons on the excluded cards, the "Answer to unlock mo
 the suggestion buttons under each reply, and **view trace** / **{ } response JSON**.
 
 **Note:** the mock routes by keyword. Run prompt 1 first, and refresh the page to reset the fund state.
+
+## Color system
+
+Themes (switch in the top bar, saved in the browser): **Courthouse** (default: navy + brass on warm paper,
+serif headings), **Civic** (teal + terracotta), **Original** (first prototype). Themes change surfaces and
+brand colors only. **Status colors never change**, so they always mean the same thing, and every one is
+paired with an icon and a text label (never color alone):
+
+| Token | Meaning | Used for |
+|---|---|---|
+| `--crit` ⚡ | Life-safety only | Wet panel / gas / fire banner (the only solid-red surface) |
+| `--urg` ⏱ | Deadline / act today | Hearing countdown, "call today" |
+| `--warn` ◐ | Conditional / needs review | Fund "Conditional", attorney review, DRAFT, review notices |
+| `--ok` ✓ | Eligible / corroborated | Kept 311 record, eligible funds, "likely applies" |
+| `--info` ℹ | Neutral record / fact | Record status, tenant-reported facts |
+| `--grey` 🔒 | Locked / excluded / unknown / not yet | Decoys, gated funds, unknown facts, §1942.4 "not yet" |
+| `--audit` 🛡 | Isolated equity audit | Aggregate-only metro audit card |
