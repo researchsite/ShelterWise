@@ -1,6 +1,7 @@
 """Tests for Member 3 ADK multi-agent tree hierarchy and specialists."""
 
 import unittest
+from google.adk.sessions import InMemorySessionService
 from shelterwise_agent.agent import (
     shelterwise_navigator,
     root_agent,
@@ -18,6 +19,8 @@ from shelterwise_agent.agent import (
     draft_311_complaint,
 )
 from shelterwise_agent.mcp.bigquery_mcp import get_bigquery_mcp_toolset
+from shelterwise_agent import SESSION_SERVICE, create_runner, get_session_service
+
 
 class TestTriagePipeline(unittest.TestCase):
 
@@ -66,10 +69,33 @@ class TestTriagePipeline(unittest.TestCase):
         self.assertIsNotNone(toolset)
 
     def test_runner_with_in_memory_session(self):
-        """Verify create_runner instantiates Runner backed by InMemorySessionService."""
-        from shelterwise_agent import create_runner
-        runner = create_runner()
-        self.assertIsNotNone(runner)
+        """Verify create_runner shares singleton InMemorySessionService and avoids state key collisions."""
+        runner1 = create_runner()
+        runner2 = create_runner()
+        self.assertIsNotNone(runner1)
+        self.assertIsInstance(SESSION_SERVICE, InMemorySessionService)
+        self.assertIs(get_session_service(), SESSION_SERVICE)
+        self.assertIs(runner1.session_service, SESSION_SERVICE)
+        self.assertIs(runner2.session_service, SESSION_SERVICE)
+
+        # Ensure LlmAgent output_keys never overwrite structured tool state dicts
+        reserved_tool_state_keys = {
+            "intake_facts",
+            "evidence_pack",
+            "raw_policy_pack",
+            "tract_context",
+            "stabilization_brief",
+        }
+        pipeline_agents = [
+            intake_structurer_agent,
+            habitability_vector_agent,
+            statute_and_bulletin_agent,
+            tract_displacement_agent,
+            eligibility_and_brief_agent,
+        ]
+        for ag in pipeline_agents:
+            self.assertNotIn(ag.output_key, reserved_tool_state_keys)
+
 
 if __name__ == "__main__":
     unittest.main()

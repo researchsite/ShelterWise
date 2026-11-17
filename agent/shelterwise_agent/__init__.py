@@ -1,5 +1,8 @@
-"""ShelterWise Multi-Agent Package."""
-from shelterwise_agent.agent import (
+"""ShelterWise ADK Agent Tree Package."""
+
+from .agent import (
+    APP_NAME,
+    SESSION_SERVICE,
     root_agent,
     shelterwise_navigator_ag,
     case_triage_pipeline_ag,
@@ -27,9 +30,13 @@ from shelterwise_agent.agent import (
     equity_audit_agent,
     hazard_311_drafter_agent,
     create_runner,
+    get_runner,
+    get_session_service,
 )
 
 __all__ = [
+    "APP_NAME",
+    "SESSION_SERVICE",
     "root_agent",
     "shelterwise_navigator_ag",
     "case_triage_pipeline_ag",
@@ -56,4 +63,6 @@ __all__ = [
     "equity_audit_agent",
     "hazard_311_drafter_agent",
     "create_runner",
+    "get_runner",
+    "get_session_service",
 ]

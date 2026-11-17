@@ -1,7 +1,12 @@
 # ShelterWise — Google ADK Multi-Agent + BigQuery Vector Search + Firestore (Cloud Shell & Cloud Run)
+# Recommended install in Cloud Shell:
+#   python3 -m venv .venv && source .venv/bin/activate
+#   pip install -r agent/requirements.txt
+
+# Core Agent Framework & Gemini SDK (includes MCPToolset & ADK Web / Runner)
 google-adk>=0.1.0
-google-genai>=0.1.0
 mcp>=1.0.0
+google-genai>=0.1.0
 
 # Databases & Auth (BigQuery AI.EMBED / VECTOR_SEARCH + Firestore Transactional Store)
 google-cloud-bigquery>=3.25.0
