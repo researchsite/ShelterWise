@@ -237,15 +237,26 @@ def serve_ui_snapshot():
             return FileResponse(p, media_type="image/png")
     return JSONResponse({"error": "Snapshot image not found"}, status_code=404)
 
-# Mount Google Stitch design system static assets
+# Mount Google Stitch design system static assets & showcase
 stitch_dirs = [
     os.path.join(BASE_DIR, "frontend", "stitch"),
     os.path.join(PROJECT_ROOT, "frontend", "stitch"),
 ]
 for sd in stitch_dirs:
     if os.path.exists(sd):
-        app.mount("/stitch", StaticFiles(directory=sd), name="stitch")
+        app.mount("/stitch", StaticFiles(directory=sd, html=True), name="stitch")
         break
+
+
+@app.get("/stitch", response_class=HTMLResponse)
+def serve_stitch_page():
+    for sd in stitch_dirs:
+        idx = os.path.join(sd, "index.html")
+        if os.path.exists(idx):
+            with open(idx, "r", encoding="utf-8") as f:
+                return f.read()
+    return "<h1>Google Stitch Design System</h1><p>Tokens available at /stitch/tokens.css</p>"
+
 
 
 @app.get("/", response_class=HTMLResponse)

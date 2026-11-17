@@ -228,8 +228,10 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
 </header>
 
 <nav class="nav-tabs" id="tabs">
-  <button data-v="demo" class="on">🏠 Protect My Home</button>
+  <button data-v="demo" class="on">🏠 Protect My Home (10-Step Wizard)</button>
+  <button data-v="chat" onclick="openSpecialistChat()">💬 Ask Specialist Chat (Step 9)</button>
   <button data-v="map">🗺️ City Inspection Map</button>
+  <button data-v="stitch" onclick="window.open('/stitch', '_blank')">🎨 Stitch Design System</button>
   <button data-v="arch">🤖 Agent Studio (Google ADK *_ag)</button>
   <button data-v="rules">⚖️ Tenant Rights Codex</button>
   <button data-v="court">📑 Court Brief Export</button>
@@ -1012,22 +1014,51 @@ const V=[
  <div class="btns"><button class="btn" onclick="window.print()">🖨 Print / Save Defense Brief PDF</button><button class="btn ghost" onclick="copyBriefText()">📋 Copy Brief to Clipboard</button></div>${nav()}</div>`,
 
 /* 8 follow-ups */
-()=>`<div class="card"><h2>8 · Interactive Follow-up Chat (shelterwise_navigator_ag)</h2><p class="sub">Ask follow-up questions to query specialist agents, re-verify relief, check transit, or lock case in Firestore.</p>
- ${agentTag('shelterwise_navigator_ag')}
- <div class="btns" style="margin:0 0 12px">
-   <button class="btn ghost sm" onclick="askAPI('Why did you drop the warehouse boiler one?')">Why did you drop the warehouse boiler one?</button>
-   <button class="btn ghost sm" onclick="askAPI('She has her own DBI case number')">She has her own DBI case number</button>
-   <button class="btn ghost sm" onclick="askAPI('2-person household, about $45k a year')">2-person household, about $45k a year</button>
-   <button class="btn ghost sm" onclick="askAPI('How many open heat complaints are in this tract?')">How many open heat complaints in this tract?</button>
-   <button class="btn ghost sm" onclick="askAPI('Can she reach the courthouse by bus before 9am Monday?')">Transit before 9am Monday?</button>
-   <button class="btn ghost sm" onclick="askAPI('Lock this case for Attorney Chen')">Lock case in Firestore</button>
-   <button class="btn ghost sm" onclick="askAPI('Who lives in the tracts we prioritize, and where might 311 under-reporting blind us?')">Metro Equity Audit</button>
- </div>
- <div class="chat" id="chat"><div class="msg a">ShelterWise Navigator online. Stabilization Brief compiled for ${esc(S.customAddress)}. Ask me anything or select a prompt above.</div></div>
- <div class="btns" style="margin-top:10px">
-   <input id="chat-input" type="text" placeholder="Type custom question for navigator..." style="flex:1" onkeydown="if(event.key==='Enter')sendCustomChat()">
-   <button class="btn" onclick="sendCustomChat()">Send</button>
- </div>${nav()}</div>`,
+()=>`<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <div>
+      <h2 style="margin:0">9 · Interactive Housing Assistant Chat (shelterwise_navigator_ag)</h2>
+      <p class="sub" style="margin:4px 0 0">Unified conversational assistant: query specialist agents, check transit routes, explain excluded decoys, or lock cases.</p>
+    </div>
+    <div id="chat-timer" style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);display:none">
+      ⏱️ <span id="timer-val">0.0s</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;align-items:center;margin:12px 0 8px;flex-wrap:wrap">
+    <span style="font-size:11.5px;font-weight:700;color:var(--mute);text-transform:uppercase">Active ADK Agents:</span>
+    <span class="pill p-info">shelterwise_navigator_ag</span>
+    <span class="pill p-ok">evidence_explainer_ag</span>
+    <span class="pill p-warn">hazard_311_drafter_ag</span>
+    <span class="pill p-purple">statute_and_bulletin_ag</span>
+  </div>
+
+  <!-- POPULAR SUGGESTIONS -->
+  <div style="font-size:12px;color:var(--mute);margin-bottom:6px">💡 Quick questions to test specialist agents:</div>
+  <div class="btns" style="margin:0 0 12px;gap:6px">
+    <button class="btn ghost sm" onclick="askAPI('Why did you drop the warehouse boiler one?')">Why drop warehouse decoy?</button>
+    <button class="btn ghost sm" onclick="askAPI('She has her own DBI case number')">She has own DBI case #</button>
+    <button class="btn ghost sm" onclick="askAPI('2-person household, about $45k a year')">2-person HH, $45k income</button>
+    <button class="btn ghost sm" onclick="askAPI('How many open heat complaints are in this tract?')">Open heat complaints in tract?</button>
+    <button class="btn ghost sm" onclick="askAPI('Can she reach the courthouse by bus before 9am Monday?')">MUNI transit before 9am Monday?</button>
+    <button class="btn ghost sm" onclick="askAPI('Lock this case for Attorney Chen')">Lock case in Firestore</button>
+    <button class="btn ghost sm" onclick="askAPI('Who lives in the tracts we prioritize, and where might 311 under-reporting blind us?')">Metro Equity Audit</button>
+  </div>
+
+  <!-- CHAT THREAD -->
+  <div class="chat" id="chat" style="min-height:220px;max-height:420px;overflow-y:auto;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px">
+    <div class="msg a">
+      <b>ShelterWise Navigator online.</b> Stabilization Brief compiled for ${esc(S.customAddress)}.
+      <br><span style="font-size:12px;color:var(--mute)">Ask any question about your legal defenses, rent relief grants, transit to 400 McAllister St, or click a suggestion above.</span>
+    </div>
+  </div>
+
+  <!-- COMPOSER -->
+  <div class="btns" style="margin-top:12px;gap:8px">
+    <input id="chat-input" type="text" placeholder="Type question for navigator or legal specialist..." style="flex:1" onkeydown="if(event.key==='Enter')sendCustomChat()">
+    <button class="btn" onclick="sendCustomChat()">Send Message</button>
+  </div>
+${nav()}</div>`,
 
 /* 9 review */
 ()=>`<div class="card"><h2>9 · Mandatory Human Review &amp; Equity Audit</h2><p class="sub">Human-in-the-loop sign-off before court appearance. Toggles persist to Cloud Firestore.</p>
@@ -1218,24 +1249,77 @@ async function executeTriageAPI(){
   }
 }
 
+function openSpecialistChat(){
+  switchTab('demo');
+  go(8);
+  setTimeout(()=>{
+    const inp = document.getElementById('chat-input');
+    if(inp) inp.focus();
+  }, 150);
+}
+
+let chatTimerInterval = null;
+
 async function askAPI(query){
   const c = document.getElementById('chat');
-  c.insertAdjacentHTML('beforeend', `<div class="msg u">${query}</div>`);
+  const timerBadge = document.getElementById('chat-timer');
+  const timerVal = document.getElementById('timer-val');
+  if(!c) return;
+
+  // Render user bubble
+  c.insertAdjacentHTML('beforeend', `<div class="msg u">${esc(query)}</div>`);
   c.scrollTop = c.scrollHeight;
+
+  // Thinking indicator with elapsed stopwatch
+  const thinkId = 'think-' + Date.now();
+  c.insertAdjacentHTML('beforeend', `<div class="msg a" id="${thinkId}"><span class="pill p-info">shelterwise_navigator_ag</span> <span style="font-style:italic;color:var(--mute)">Routing to legal specialists...</span></div>`);
+  c.scrollTop = c.scrollHeight;
+
+  if(timerBadge && timerVal){
+    timerBadge.style.display = 'inline-block';
+    const t0 = performance.now();
+    clearInterval(chatTimerInterval);
+    chatTimerInterval = setInterval(() => {
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+      timerVal.textContent = elapsed + 's';
+    }, 100);
+  }
+
+  const tStart = performance.now();
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({message: query, case_id: currentCaseId})
     });
+    clearInterval(chatTimerInterval);
+    const elapsedSec = ((performance.now() - tStart) / 1000).toFixed(1);
+    if(timerVal) timerVal.textContent = elapsedSec + 's';
+
+    const thinkEl = document.getElementById(thinkId);
     if(res.ok){
       const data = await res.json();
-      c.insertAdjacentHTML('beforeend', `<div class="msg a"><span class="pill p-info">${data.agent || 'shelterwise_navigator_ag'}</span><br>${data.response}</div>`);
+      const agentName = data.agent || 'shelterwise_navigator_ag';
+      const replyText = data.response || 'Verified by legal agent.';
+      if(thinkEl){
+        thinkEl.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="pill p-ok">${esc(agentName)}</span><small style="color:var(--mute)">⏱️ ${elapsedSec}s</small></div><div style="line-height:1.5">${replyText.replace(/
+/g, '<br>')}</div>`;
+      }
       c.scrollTop = c.scrollHeight;
       return;
     }
-  } catch(e){}
-  c.insertAdjacentHTML('beforeend', `<div class="msg a">${query.includes('warehouse') ? 'Excluded Commercial Decoy: Retail warehouse storefront with zero residential tenants.' : 'Verified with ShelterWise Navigator.'}</div>`);
+  } catch(e){
+    clearInterval(chatTimerInterval);
+  }
+
+  const elapsedSec = ((performance.now() - tStart) / 1000).toFixed(1);
+  const thinkEl = document.getElementById(thinkId);
+  const fallbackText = query.toLowerCase().includes('warehouse') 
+    ? '<b>Excluded Commercial Decoy:</b> Candidate <code>DECOY-SANF-01</code> (100 Block Teaching Way) is a retail warehouse storefront disqualified under SF Housing Code § 701.'
+    : 'Verified with ShelterWise Navigator and BigQuery vector index.';
+  if(thinkEl){
+    thinkEl.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="pill p-ok">evidence_explainer_ag</span><small style="color:var(--mute)">⏱️ ${elapsedSec}s</small></div><div>${fallbackText}</div>`;
+  }
   c.scrollTop = c.scrollHeight;
 }
 

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Google Stitch Design System Showcase – ShelterWise Civic Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/stitch/tokens.css">
+<link rel="stylesheet" href="/stitch/components.css">
+<script src="/stitch/components.js"></script>
+<style>
+body {
+  margin: 0;
+  font-family: var(--stitch-font-family);
+  background: var(--stitch-bg);
+  color: var(--stitch-text-primary);
+  line-height: 1.6;
+}
+.showcase-header {
+  background: var(--stitch-surface);
+  border-bottom: 1px solid var(--stitch-border);
+  padding: 24px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--stitch-shadow-card);
+}
+.showcase-header h1 {
+  margin: 0;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.showcase-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+.section {
+  background: var(--stitch-surface);
+  border: 1px solid var(--stitch-border);
+  border-radius: var(--stitch-radius-lg);
+  padding: 28px;
+  margin-bottom: 32px;
+  box-shadow: var(--stitch-shadow-card);
+}
+.section h2 {
+  margin-top: 0;
+  font-size: 20px;
+  border-bottom: 2px solid var(--stitch-brand-soft);
+  padding-bottom: 10px;
+  color: var(--stitch-brand);
+}
+.grid-tokens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.token-card {
+  border: 1px solid var(--stitch-border);
+  border-radius: var(--stitch-radius-md);
+  padding: 16px;
+  background: var(--stitch-surface-elevated);
+}
+.token-swatch {
+  height: 48px;
+  border-radius: var(--stitch-radius-sm);
+  margin-bottom: 10px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.slider-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: var(--stitch-brand-soft);
+  border-radius: var(--stitch-radius-md);
+}
+.slider-control input[type=range] {
+  flex: 1;
+}
+.interactive-canvas {
+  padding: 20px;
+  border: 1px dashed var(--stitch-border);
+  border-radius: var(--stitch-radius-md);
+  background: var(--stitch-bg);
+  margin-top: 12px;
+}
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+</style>
+</head>
+<body>
+
+<header class="showcase-header">
+  <div>
+    <h1>🎨 Google Stitch Design System <span class="stitch-badge stitch-badge-brand">v2.0 Civic Tech</span></h1>
+    <small style="color:var(--stitch-text-muted)">Living Component Library &amp; Storybook for ShelterWise</small>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="/" class="stitch-btn stitch-btn-ghost">🏠 Back to ShelterWise</a>
+    <button class="stitch-btn stitch-btn-danger" onclick="StitchComponents.toggleDistressMode()">🚨 Toggle Distress Mode</button>
+  </div>
+</header>
+
+<div id="stitch-distress-banner" class="stitch-distress-banner" style="display:none">
+  <div>
+    <strong>🚨 EMERGENCY DISTRESS MODE ACTIVE</strong> — High-contrast trauma-informed view.
+    <br>If facing immediate displacement or lock-out within 48 hours, call legal aid immediately.
+  </div>
+  <a href="tel:4155553842" class="stitch-distress-call-btn">📞 Call EDC: (415) 555-EVIC</a>
+</div>
+
+<main class="showcase-container">
+
+  <!-- INTRO -->
+  <div class="section">
+    <h2>Architecture Overview: Google Stitch for Public-Interest Tech</h2>
+    <p>
+      The <b>Google Stitch Design System</b> in ShelterWise establishes a component-driven, trauma-informed architecture.
+      When low-income tenants facing eviction arrive at this platform, they are often in acute crisis. Stitch replaces cold, dense technical tables with calm, reassuring, highly legible components with clear calls to action and instant distress overrides.
+    </p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px">
+      <div style="flex:1;min-width:240px;background:var(--stitch-brand-soft);padding:14px;border-radius:8px">
+        <b>5 Tiers</b>: Tokens → Atoms → Molecules → Organisms → Templates
+      </div>
+      <div style="flex:1;min-width:240px;background:var(--stitch-ok-soft);padding:14px;border-radius:8px">
+        <b>WCAG AAA</b>: Verified color contrast &gt; 7:1 for critical legal notifications
+      </div>
+      <div style="flex:1;min-width:240px;background:var(--stitch-warn-soft);padding:14px;border-radius:8px">
+        <b>Trauma-Informed</b>: Distress mode overrides for cognitive overload
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 1: TOKENS -->
+  <div class="section">
+    <h2>Tier 1: Semantic Design Tokens</h2>
+    <p>Semantic color tokens adapt dynamically between default civic-teal mode and high-visibility distress mode:</p>
+    <div class="grid-tokens">
+      <div class="token-card">
+        <div class="token-swatch" style="background:var(--stitch-brand)"></div>
+        <b>--stitch-brand</b>
+        <small style="display:block;color:var(--stitch-text-muted)">Civic Blue: #1a73e8</small>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:var(--stitch-ok)"></div>
+        <b>--stitch-ok</b>
+        <small style="display:block;color:var(--stitch-text-muted)">Verified Green: #137333</small>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:var(--stitch-warn)"></div>
+        <b>--stitch-warn</b>
+        <small style="display:block;color:var(--stitch-text-muted)">Caution Amber: #b06000</small>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:var(--stitch-danger)"></div>
+        <b>--stitch-danger</b>
+        <small style="display:block;color:var(--stitch-text-muted)">Emergency Red: #c5221f</small>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:var(--stitch-surface);border:2px solid var(--stitch-border)"></div>
+        <b>--stitch-surface</b>
+        <small style="display:block;color:var(--stitch-text-muted)">Clean Panel: #ffffff</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 2: ATOMS -->
+  <div class="section">
+    <h2>Tier 2: Stitch Atoms (Badges &amp; Buttons)</h2>
+    <p>Every atom conveys unambiguous legal status:</p>
+    
+    <h3>Statutory Badges</h3>
+    <div class="badge-row">
+      <span class="stitch-badge stitch-badge-brand">🏛️ City Hall 311 Citation</span>
+      <span class="stitch-badge stitch-badge-ok">✅ Verified Habitability Breach</span>
+      <span class="stitch-badge stitch-badge-warn">⚠️ 35-Day Repair Clock Ticking</span>
+      <span class="stitch-badge stitch-badge-danger">🚨 Acute Life-Safety Hazard</span>
+      <span class="stitch-badge stitch-badge-purple">⚖️ Prop F Universal Counsel</span>
+    </div>
+
+    <h3>Action Buttons</h3>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px">
+      <button class="stitch-btn stitch-btn-primary">Generate Court Brief</button>
+      <button class="stitch-btn stitch-btn-ghost">Review Citations</button>
+      <button class="stitch-btn stitch-btn-danger">Trigger Distress Mode</button>
+    </div>
+  </div>
+
+  <!-- TIER 3: MOLECULES -->
+  <div class="section">
+    <h2>Tier 3: Civic-Tech Molecules (Interactive Demos)</h2>
+    <p>Test each interactive component in real time using the controls below:</p>
+
+    <!-- 1. HABITABILITY CLOCK -->
+    <h3>1. HabitabilityClockPill (Cal. Civ. Code § 1942.4)</h3>
+    <p>Landlords have 35 days to fix cited housing violations before rent collection is legally barred:</p>
+    <div class="slider-control">
+      <label><b>Elapsed Days:</b> <span id="days-val">42</span></label>
+      <input type="range" id="days-slider" min="5" max="70" value="42" oninput="updateClockDemo(this.value)">
+    </div>
+    <div class="interactive-canvas" id="clock-demo"></div>
+
+    <!-- 2. RELIEF FUNDING METER -->
+    <h3 style="margin-top:28px">2. ReliefFundingMeter (MOHCD ERAP &amp; MEDA Grants)</h3>
+    <p>Evaluates tenant rental arrears against the $12,000 maximum emergency relief grant:</p>
+    <div class="slider-control">
+      <label><b>Back-Rent Arrears:</b> $<span id="arrears-val">4,200</span></label>
+      <input type="range" id="arrears-slider" min="500" max="16000" step="100" value="4200" oninput="updateReliefDemo(this.value)">
+    </div>
+    <div class="interactive-canvas" id="relief-demo"></div>
+
+    <!-- 3. DECOY REJECTION CARD -->
+    <h3 style="margin-top:28px">3. DecoyRejectionCard (Responsible AI Municipal Filter)</h3>
+    <p>Explains in plain English why irrelevant records are rejected so legal briefs stay credible:</p>
+    <div class="interactive-canvas">
+      <div class="stitch-decoy-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b><code>DECOY-SANF-01</code> Commercial Storefront &amp; Cafe</b>
+          <span class="stitch-badge stitch-badge-danger">⛔ Excluded Decoy</span>
+        </div>
+        <p style="margin:8px 0 0;font-size:13px;color:var(--stitch-text-muted)">
+          <b>Filter Rule:</b> Commercial Property Disqualification under SF Housing Code § 701.
+          <br><b>Plain-English Rationale:</b> This citation applies to a commercial coffee roaster, not a residential home. Presenting commercial citations in residential eviction court could damage the tenant's defense credibility.
+        </p>
+      </div>
+    </div>
+
+    <!-- 4. GEO PROXIMITY RADAR -->
+    <h3 style="margin-top:28px">4. GeoProximityRadar (Evidentiary Perimeter)</h3>
+    <p>Measures tenant building proximity to corroborated municipal citations:</p>
+    <div class="interactive-canvas" id="radar-demo"></div>
+  </div>
+
+  <!-- TIER 4: ORGANISMS -->
+  <div class="section">
+    <h2>Tier 4: Organisms (California 28-Line Pleading Paper)</h2>
+    <p>Authentic California Superior Court legal pleading format with exact line numbering for court filings:</p>
+    <div class="interactive-canvas">
+      <div class="stitch-pleading-paper">
+        <div class="stitch-pleading-col">
+          1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28
+        </div>
+        <div class="stitch-pleading-content">
+          <p style="margin:0;font-weight:700">SAN FRANCISCO TENANT DEFENSE INITIATIVE</p>
+          <p style="margin:0">400 McAllister Street, San Francisco, CA 94102</p>
+          <p style="margin:0">Telephone: (415) 555-EVIC</p>
+          <br>
+          <center><b>SUPERIOR COURT OF THE STATE OF CALIFORNIA<br>COUNTY OF SAN FRANCISCO – UNLIMITED CIVIL JURISDICTION</b></center>
+          <br>
+          <p>DEFENDANT'S AFFIRMATIVE DEFENSE PURSUANT TO CAL. CIV. CODE § 1942.4<br>
+          1. Landlord demanded rent while cited by SF DBI for chronic lack of heat.<br>
+          2. Statutory 35-day repair window elapsed without remediation.<br>
+          3. Landlord is barred from demanding possession or rent as a matter of law.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function updateClockDemo(val){
+  document.getElementById('days-val').textContent = val;
+  const el = document.getElementById('clock-demo');
+  el.innerHTML = StitchComponents.renderHabitabilityClock(parseInt(val, 10));
+}
+function updateReliefDemo(val){
+  document.getElementById('arrears-val').textContent = Number(val).toLocaleString();
+  const el = document.getElementById('relief-demo');
+  el.innerHTML = StitchComponents.renderReliefFundingMeter(parseFloat(val), 12000);
+}
+function initShowcase(){
+  updateClockDemo(42);
+  updateReliefDemo(4200);
+  const radar = document.getElementById('radar-demo');
+  if(radar){
+    radar.innerHTML = StitchComponents.renderProximityRadar(12, 400);
+  }
+}
+window.addEventListener('DOMContentLoaded', initShowcase);
+</script>
+</body>
+</html>
