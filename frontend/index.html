@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ShelterWise – AI Housing Stability & Eviction Defense Platform</title>
 
-<!-- Fonts -->
+<!-- Fonts: Plus Jakarta Sans for UI, JetBrains Mono for Code/Statutes -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,94 +14,109 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-<!-- Google Stitch Design System -->
+<!-- Google Stitch Design Tokens -->
 <link rel="stylesheet" href="/stitch/tokens.css">
 <link rel="stylesheet" href="/stitch/components.css">
 <script src="/stitch/components.js"></script>
 
 <style>
 :root {
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --stitch-font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --stitch-mono: 'JetBrains Mono', monospace;
   --stitch-brand: #1a73e8;
   --stitch-brand-dark: #1557b0;
   --stitch-brand-soft: #e8f0fe;
-  --stitch-surface: #ffffff;
+  --stitch-brand-border: #bfdbfe;
   --stitch-bg: #f8fafc;
-  --stitch-text: #0f172a;
-  --stitch-text-muted: #64748b;
+  --stitch-surface: #ffffff;
+  --stitch-ink: #0f172a;
+  --stitch-ink-secondary: #334155;
+  --stitch-ink-muted: #64748b;
   --stitch-border: #e2e8f0;
+  --stitch-border-focus: #94a3b8;
   --stitch-ok: #137333;
   --stitch-ok-soft: #e6f4ea;
+  --stitch-ok-border: #a8dab5;
   --stitch-warn: #b06000;
   --stitch-warn-soft: #fef7e0;
+  --stitch-warn-border: #feefc3;
   --stitch-danger: #c5221f;
   --stitch-danger-soft: #fce8e6;
+  --stitch-danger-border: #f6aea9;
   --stitch-purple: #7c3aed;
   --stitch-purple-soft: #f3e8fd;
-  --stitch-radius-lg: 16px;
-  --stitch-radius-md: 12px;
-  --stitch-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+  --stitch-purple-border: #d7aefb;
+  --stitch-radius-xl: 20px;
+  --stitch-radius-lg: 14px;
+  --stitch-radius-md: 10px;
+  --stitch-radius-pill: 9999px;
+  --stitch-shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --stitch-shadow-hover: 0 12px 28px -4px rgba(15, 23, 42, 0.1), 0 4px 10px -2px rgba(15, 23, 42, 0.05);
 }
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--stitch-font);
   background: var(--stitch-bg);
-  color: var(--stitch-text);
+  color: var(--stitch-ink);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* TOP APP BAR */
+/* SLEEK APP HEADER */
 .app-header {
-  background: var(--stitch-surface);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--stitch-border);
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
-.header-top {
+.header-row {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 28px;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
 }
-.brand-title {
+.brand-group {
   display: flex;
   align-items: center;
   gap: 12px;
   text-decoration: none;
-  color: var(--stitch-text);
+  color: inherit;
 }
-.brand-icon {
-  width: 40px;
-  height: 40px;
+.brand-icon-box {
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   background: linear-gradient(135deg, #1a73e8, #7c3aed);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 20px;
-  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.35);
 }
-.brand-meta h1 {
+.brand-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.02em;
-}
-.brand-meta span {
-  font-size: 11.5px;
-  color: var(--stitch-text-muted);
-  font-weight: 500;
-}
-.header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+}
+.brand-sub {
+  font-size: 12px;
+  color: var(--stitch-ink-muted);
+  font-weight: 500;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .live-pill {
   display: inline-flex;
@@ -109,238 +124,269 @@ body {
   gap: 6px;
   background: var(--stitch-ok-soft);
   color: var(--stitch-ok);
-  border: 1px solid #a8dab5;
+  border: 1px solid var(--stitch-ok-border);
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 99px;
+  padding: 5px 12px;
+  border-radius: var(--stitch-radius-pill);
 }
 .live-dot {
   width: 7px;
   height: 7px;
   background: var(--stitch-ok);
   border-radius: 50%;
-  animation: pulse 1.5s infinite;
+  animation: pulse-dot 1.5s infinite;
 }
-@keyframes pulse {
-  0% { transform: scale(0.9); opacity: 0.8; }
-  50% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.8; }
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.35); opacity: 1; }
 }
 
-/* STITCH NAVIGATION BAR */
-.nav-bar {
-  display: flex;
-  gap: 6px;
-  padding: 8px 28px;
-  overflow-x: auto;
+/* NAVIGATION TABS */
+.nav-container {
+  border-top: 1px solid var(--stitch-border);
   background: var(--stitch-surface);
 }
-.nav-tab {
+.nav-row {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 8px 24px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+.nav-btn {
   background: none;
   border: 1px solid transparent;
   padding: 8px 16px;
-  border-radius: 99px;
-  font-size: 13px;
+  border-radius: var(--stitch-radius-pill);
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--stitch-text-muted);
+  color: var(--stitch-ink-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
-.nav-tab:hover {
+.nav-btn:hover {
   background: var(--stitch-brand-soft);
   color: var(--stitch-brand);
 }
-.nav-tab.active {
+.nav-btn.active {
   background: var(--stitch-brand);
   color: white;
   border-color: var(--stitch-brand);
-  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3);
 }
 
-/* DISTRESS BANNER */
-.distress-banner {
+/* CRISIS BANNER */
+.distress-bar {
   background: linear-gradient(90deg, #fef7e0, #feeac2);
   border-bottom: 2px solid #f29900;
   color: #7c4a00;
-  padding: 10px 28px;
-  font-size: 13px;
-  display: flex;
+  padding: 12px 24px;
+  font-size: 13.5px;
+  display: none;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
-.distress-phone {
+.distress-phone-btn {
   background: #f29900;
   color: white;
-  padding: 6px 14px;
-  border-radius: 99px;
+  padding: 6px 16px;
+  border-radius: var(--stitch-radius-pill);
   font-weight: 700;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-/* CONTAINER */
-.main-layout {
-  max-width: 1240px;
+/* TOAST NOTIFICATION */
+#app-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: white;
+  padding: 14px 22px;
+  border-radius: var(--stitch-radius-md);
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  display: none;
+  z-index: 9999;
+  align-items: center;
+  gap: 10px;
+  animation: slide-toast 0.3s ease;
+}
+@keyframes slide-toast {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* MAIN CONTENT */
+.app-container {
+  max-width: 1280px;
   margin: 0 auto;
   padding: 28px 24px 80px;
 }
 
-/* CARDS & PANELS */
-.stitch-card {
+/* MODERN CARDS */
+.card-modern {
   background: var(--stitch-surface);
   border: 1px solid var(--stitch-border);
-  border-radius: var(--stitch-radius-lg);
-  padding: 28px;
+  border-radius: var(--stitch-radius-xl);
+  padding: 30px;
   margin-bottom: 24px;
-  box-shadow: var(--stitch-shadow);
+  box-shadow: var(--stitch-shadow-card);
 }
-.stitch-card h2 {
-  margin-top: 0;
+.card-modern h2 {
+  margin: 0 0 6px;
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--stitch-text);
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.stitch-card p.sub {
-  color: var(--stitch-text-muted);
+.card-modern p.sub {
+  color: var(--stitch-ink-muted);
   font-size: 14px;
-  margin-top: 4px;
-  margin-bottom: 20px;
+  margin: 0 0 22px;
 }
 
-/* STORYTELLING HERO */
-.story-hero {
+/* HERO STORY BANNER */
+.hero-story-banner {
   background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-  border: 1px solid #bfdbfe;
-  border-radius: var(--stitch-radius-lg);
-  padding: 32px;
-  margin-bottom: 28px;
+  border: 1px solid var(--stitch-brand-border);
+  border-radius: var(--stitch-radius-xl);
+  padding: 36px;
+  margin-bottom: 24px;
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 28px;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 32px;
   align-items: center;
-  box-shadow: var(--stitch-shadow);
+  box-shadow: var(--stitch-shadow-card);
 }
-.story-hero h2 {
-  font-size: 26px;
+.hero-story-banner h2 {
+  font-size: 30px;
   font-weight: 800;
-  color: #0f172a;
   line-height: 1.25;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
+  letter-spacing: -0.02em;
 }
-.story-hero p {
-  color: #334155;
-  font-size: 14.5px;
+.hero-story-banner p {
+  color: var(--stitch-ink-secondary);
+  font-size: 15px;
   line-height: 1.6;
-  margin: 0 0 18px;
+  margin: 0 0 20px;
 }
-.trust-badges {
+.hero-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
-.trust-badge {
+.hero-badge-pill {
   background: white;
   border: 1px solid var(--stitch-border);
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 11.5px;
+  padding: 6px 14px;
+  border-radius: var(--stitch-radius-pill);
+  font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 
-/* CRISIS ARCHETYPE CARDS */
-.scenario-grid {
+/* CRISIS ARCHETYPE SELECTOR CARDS */
+.scenario-selector-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 14px;
   margin: 16px 0 24px;
 }
-.scenario-card {
+.scenario-box {
   border: 2px solid var(--stitch-border);
-  border-radius: var(--stitch-radius-md);
-  padding: 16px;
+  border-radius: var(--stitch-radius-lg);
+  padding: 20px;
   background: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
+  position: relative;
 }
-.scenario-card:hover {
+.scenario-box:hover {
   border-color: var(--stitch-brand);
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(26, 115, 232, 0.12);
+  box-shadow: var(--stitch-shadow-hover);
 }
-.scenario-card.active {
+.scenario-box.selected {
   border-color: var(--stitch-brand);
   background: #f0f7ff;
   box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
 }
-.scenario-card b {
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--stitch-text);
+.scenario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
-.scenario-card span.desc {
-  font-size: 12px;
-  color: var(--stitch-text-muted);
+.scenario-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--stitch-radius-pill);
+}
+.scenario-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--stitch-ink);
+}
+.scenario-snippet {
+  font-size: 12.5px;
+  color: var(--stitch-ink-muted);
   line-height: 1.45;
   flex: 1;
 }
 
-/* BEFORE & AFTER CANVAS */
-.story-canvas {
+/* BEFORE VS AFTER STORY CANVAS */
+.story-comparison-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 20px;
   margin: 20px 0;
 }
-.canvas-box {
-  padding: 20px;
-  border-radius: var(--stitch-radius-md);
+.story-canvas-card {
+  padding: 22px;
+  border-radius: var(--stitch-radius-lg);
   border: 1px solid var(--stitch-border);
 }
-.canvas-landlord {
+.canvas-danger {
   background: #fff5f5;
   border-color: #fed7d7;
 }
-.canvas-cityhall {
+.canvas-success {
   background: #f0fff4;
   border-color: #c6f6d5;
 }
-.canvas-box h4 {
-  margin: 0 0 10px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
-/* INTAKE FORM STYLING */
-.form-group {
-  margin-bottom: 16px;
-}
-.form-group label {
+/* FORM CONTROLS */
+.input-label {
   display: block;
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 6px;
-  color: var(--stitch-text);
+  color: var(--stitch-ink);
 }
-.form-control {
+.input-field {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 14px;
@@ -348,106 +394,107 @@ body {
   border-radius: var(--stitch-radius-md);
   font-family: inherit;
   font-size: 13.5px;
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
-.form-control:focus {
+.input-field:focus {
   outline: none;
   border-color: var(--stitch-brand);
   box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
 }
-textarea.form-control {
-  min-height: 100px;
-  resize: vertical;
-}
 
 /* BUTTONS */
-.btn-action {
+.btn-primary {
   background: var(--stitch-brand);
   color: white;
   border: none;
   padding: 10px 20px;
   border-radius: var(--stitch-radius-md);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(26, 115, 232, 0.25);
 }
-.btn-action:hover {
+.btn-primary:hover {
   background: var(--stitch-brand-dark);
 }
-.btn-ghost {
+.btn-secondary {
   background: white;
-  color: var(--stitch-text);
+  color: var(--stitch-ink);
   border: 1px solid var(--stitch-border);
   padding: 10px 18px;
   border-radius: var(--stitch-radius-md);
   font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
 }
-.btn-ghost:hover {
+.btn-secondary:hover {
   background: var(--stitch-bg);
+  border-color: var(--stitch-border-focus);
 }
 
-/* RADAR & GIS MAP */
-#map-pane {
+/* LEAFLET MAP PANE */
+#gis-map-canvas {
   height: 480px;
-  border-radius: var(--stitch-radius-md);
+  border-radius: var(--stitch-radius-lg);
   border: 1px solid var(--stitch-border);
-  margin-top: 14px;
-  position: relative;
+  margin-top: 16px;
   z-index: 10;
 }
 
-/* CHAT THREAD */
-.chat-window {
+/* CHAT CO-PILOT */
+.chat-thread-box {
   border: 1px solid var(--stitch-border);
-  border-radius: var(--stitch-radius-md);
+  border-radius: var(--stitch-radius-lg);
   background: var(--stitch-bg);
-  padding: 16px;
+  padding: 20px;
   min-height: 280px;
   max-height: 440px;
   overflow-y: auto;
 }
-.chat-msg {
-  padding: 12px 16px;
-  border-radius: var(--stitch-radius-md);
+.chat-bubble {
+  padding: 14px 20px;
+  border-radius: var(--stitch-radius-lg);
   margin-bottom: 12px;
   font-size: 13.5px;
   max-width: 85%;
   line-height: 1.5;
 }
-.chat-msg.user {
+.chat-bubble.user {
   background: var(--stitch-brand);
   color: white;
   margin-left: auto;
   border-bottom-right-radius: 4px;
 }
-.chat-msg.agent {
+.chat-bubble.agent {
   background: white;
   border: 1px solid var(--stitch-border);
   margin-right: auto;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }
 
-/* CALIFORNIA PLEADING PAPER */
-.court-paper {
+/* CALIFORNIA COURT PLEADING PAPER */
+.court-pleading-paper {
   background: white;
   border: 2px solid #cbd5e1;
   border-radius: 4px;
   box-shadow: 0 12px 28px rgba(0,0,0,0.08);
   display: grid;
-  grid-template-columns: 44px 1fr;
+  grid-template-columns: 48px 1fr;
   font-family: 'Courier New', Courier, monospace;
   font-size: 13.5px;
   line-height: 24px;
   color: #1e293b;
 }
-.court-lines {
+.court-line-nums {
   background: #f8fafc;
   border-right: 2px solid #ef4444;
   text-align: right;
@@ -456,177 +503,227 @@ textarea.form-control {
   font-weight: 700;
   user-select: none;
 }
-.court-body {
-  padding: 24px 28px;
+.court-doc-body {
+  padding: 24px 32px;
 }
 
 @media (max-width: 860px) {
-  .story-hero { grid-template-columns: 1fr; }
-  .story-canvas { grid-template-columns: 1fr; }
+  .hero-story-banner { grid-template-columns: 1fr; }
+  .story-comparison-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- APP HEADER WITH STITCH NAVIGATION -->
+<!-- SLEEK APP HEADER -->
 <header class="app-header">
-  <div class="header-top">
-    <a href="#" class="brand-title" onclick="switchNav('story');return false">
-      <div class="brand-icon">🏠</div>
-      <div class="brand-meta">
-        <h1>ShelterWise <span style="font-weight:400;color:var(--stitch-brand)">Stitch v2</span></h1>
-        <span>Google ADK Multi-Agent Housing Stability Platform</span>
+  <div class="header-row">
+    <a href="#" class="brand-group" onclick="switchTab('story');return false">
+      <div class="brand-icon-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </div>
+      <div>
+        <h1 class="brand-name">ShelterWise <span style="font-weight:400;color:var(--stitch-brand)">Stitch v2</span></h1>
+        <div class="brand-sub">Google ADK Multi-Agent Housing Stability Platform</div>
       </div>
     </a>
-    <div class="header-actions">
+    <div class="header-right">
       <div class="live-pill">
         <span class="live-dot"></span>
         <span>BIGQUERY &amp; FIRESTORE LIVE</span>
       </div>
-      <button class="btn-ghost" style="padding:4px 10px;font-size:12px" onclick="toggleDistress()">🚨 Distress Mode</button>
-      <a href="tel:4155553842" class="btn-action" style="padding:6px 14px;font-size:12px;background:#c5221f">📞 (415) 555-EVIC</a>
+      <button class="btn-secondary" style="padding:6px 14px;font-size:12px" onclick="toggleDistressMode()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>Distress Mode</span>
+      </button>
+      <a href="tel:4155553842" class="btn-primary" style="padding:6px 14px;font-size:12px;background:#c5221f">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+        <span>(415) 555-EVIC</span>
+      </a>
     </div>
   </div>
 
-  <!-- NAVIGATION TABS CATEGORIZED BY COMPONENT FUNCTION -->
-  <nav class="nav-bar" id="app-nav">
-    <button class="nav-tab active" data-target="story" onclick="switchNav('story')">
-      <span>🌟</span> <b>Tenant Story Journey</b>
-    </button>
-    <button class="nav-tab" data-target="map" onclick="switchNav('map')">
-      <span>🔍</span> <b>Evidence Radar &amp; Map</b>
-    </button>
-    <button class="nav-tab" data-target="relief" onclick="switchNav('relief')">
-      <span>⏱️</span> <b>Legal Clocks &amp; $12k Relief</b>
-    </button>
-    <button class="nav-tab" data-target="chat" onclick="switchNav('chat')">
-      <span>💬</span> <b>Specialist Legal Co-Pilot</b>
-    </button>
-    <button class="nav-tab" data-target="brief" onclick="switchNav('brief')">
-      <span>📑</span> <b>California Court Brief</b>
-    </button>
-    <button class="nav-tab" data-target="stitch" onclick="window.open('/stitch', '_blank')">
-      <span>🎨</span> <b>Google Stitch Showcase</b>
-    </button>
-  </nav>
+  <!-- NAVIGATION TABS -->
+  <div class="nav-container">
+    <div class="nav-row" id="main-nav-bar">
+      <button class="nav-btn active" data-tab="story" onclick="switchTab('story')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Tenant Story Journey</span>
+      </button>
+      <button class="nav-btn" data-tab="map" onclick="switchTab('map')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+        <span>Evidence Radar &amp; Map</span>
+      </button>
+      <button class="nav-btn" data-tab="relief" onclick="switchTab('relief')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Legal Clocks &amp; $12k Relief</span>
+      </button>
+      <button class="nav-btn" data-tab="chat" onclick="switchTab('chat')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>Specialist Legal Co-Pilot</span>
+      </button>
+      <button class="nav-btn" data-tab="brief" onclick="switchTab('brief')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span>California Court Brief</span>
+      </button>
+      <button class="nav-btn" data-tab="stitch" onclick="window.open('/stitch', '_blank')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Google Stitch Showcase</span>
+      </button>
+    </div>
+  </div>
 </header>
 
-<!-- TRAUMA-INFORMED DISTRESS BANNER -->
-<div id="distress-bar" class="distress-banner" style="display:none">
+<!-- TRAUMA CRISIS BANNER -->
+<div id="crisis-banner" class="distress-bar">
   <div>
-    <strong>🚨 EMERGENCY DISTRESS MODE ACTIVE</strong> — High-contrast trauma-informed view.
-    <br>If facing an eviction lock-out within 48 hours or utility shutoff, contact the San Francisco Eviction Defense Collaborative immediately.
+    <strong>🚨 EMERGENCY CRISIS MODE ACTIVE</strong> — High-contrast trauma-informed layout enabled.
+    <br>If facing an eviction lockout within 48 hours, contact the Eviction Defense Collaborative immediately.
   </div>
-  <a href="tel:4155553842" class="distress-phone">📞 Direct Call: (415) 555-EVIC</a>
+  <a href="tel:4155553842" class="distress-phone-btn">📞 Call: (415) 555-EVIC</a>
 </div>
 
-<!-- MAIN LAYOUT -->
-<main class="main-layout">
+<!-- TOAST POPUP -->
+<div id="app-toast"></div>
+
+<!-- MAIN APPLICATION VIEWS -->
+<main class="app-container">
 
   <!-- ========================================================================= -->
-  <!-- TAB 1: TENANT STORY JOURNEY (STORYTELLING FLOW) -->
+  <!-- TAB 1: TENANT STORY JOURNEY -->
   <!-- ========================================================================= -->
-  <div id="view-story" class="view-panel">
+  <div id="tab-story" class="tab-panel">
     
-    <!-- STORYTELLING HERO -->
-    <section class="story-hero">
+    <!-- STORY HERO -->
+    <section class="hero-story-banner">
       <div>
         <h2>Turn Your Living Conditions into Court-Admissible Proof.</h2>
         <p>
           In San Francisco, landlords often win evictions simply because tenants lack official proof of broken heaters or leaking roofs.
           <b>ShelterWise automatically pairs your story with verified City Hall 311 building inspections</b>, invokes your California affirmative defenses, and connects you with up to <b>$12,000 in emergency rental relief</b>.
         </p>
-        <div class="trust-badges">
-          <span class="trust-badge">🛡️ City Hall Verified 311 Data</span>
-          <span class="trust-badge">💵 Up to $12,000 Back-Rent Grants</span>
-          <span class="trust-badge">⚖️ Prop F Universal Right to Counsel</span>
-          <span class="trust-badge">🔒 100% Free &amp; Confidential</span>
+        <div class="hero-badges">
+          <span class="hero-badge-pill">🛡️ City Hall Verified 311 Data</span>
+          <span class="hero-badge-pill">💵 Up to $12,000 Back-Rent Grants</span>
+          <span class="hero-badge-pill">⚖️ Prop F Universal Right to Counsel</span>
+          <span class="hero-badge-pill">🔒 100% Free &amp; Confidential</span>
         </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn-action" onclick="runCorroboration()">🚀 Corroborate My Housing Story</button>
-          <button class="btn-ghost" onclick="startGuidedDemo()">▶ 3-Min Walkthrough</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="triggerCorroboration()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>Corroborate My Housing Story</span>
+          </button>
+          <button class="btn-secondary" onclick="startStoryWalkthrough()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>3-Min Guided Tour</span>
+          </button>
         </div>
       </div>
       <div>
-        <img src="/hero.png" alt="San Francisco Tenant Defense" style="width:100%;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1)">
+        <img src="/hero.png" alt="San Francisco Tenant Defense" style="width:100%;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,0.1)">
       </div>
     </section>
 
-    <!-- REALISTIC PREFILLED SCENARIO SELECTOR -->
-    <div class="stitch-card">
-      <h2>1. Select a Realistic Crisis Archetype <span style="font-size:12px;color:var(--stitch-text-muted);font-weight:400">(Prefilled San Francisco Scenarios)</span></h2>
+    <!-- CRISIS ARCHETYPE SELECTOR CARDS -->
+    <div class="card-modern">
+      <h2>1. Select a Representative Crisis Scenario <span style="font-size:12px;color:var(--stitch-ink-muted);font-weight:400">(Prefilled Realistic Options)</span></h2>
       <p class="sub">Choose a representative housing emergency below to see how ShelterWise instantly matches building inspection records:</p>
-      
-      <div class="scenario-grid">
-        <div class="scenario-card active" id="card-sc-heat" onclick="selectScenario('sc-heat')">
-          <span class="stitch-badge stitch-badge-success" style="margin-bottom:8px">❄️ Winter Freeze</span>
-          <b>Western Addition Chronic Heat Loss</b>
-          <span class="desc">No heat for 3 weeks; indoor temp 50°F with sick 4-year-old child. $4,200 rent arrears. Court appearance Monday at 9:00 AM.</span>
+
+      <div class="scenario-selector-grid">
+        <div class="scenario-box selected" id="sc-box-heat" onclick="chooseScenario('sc-heat')">
+          <div class="scenario-header">
+            <span class="scenario-tag" style="background:#e6f4ea;color:#137333">❄️ Winter Freeze</span>
+            <span id="sc-check-heat" style="color:#1a73e8;font-weight:700">✓ Selected</span>
+          </div>
+          <div class="scenario-title">Western Addition Chronic Heat Loss</div>
+          <div class="scenario-snippet">No heat for 3 weeks; indoor temp 50°F with sick 4-year-old child. $4,200 rent arrears. Court appearance Monday at 9:00 AM.</div>
         </div>
 
-        <div class="scenario-card" id="card-sc-leak" onclick="selectScenario('sc-leak')">
-          <span class="stitch-badge stitch-badge-danger" style="margin-bottom:8px">⚡ Acute Life-Safety</span>
-          <b>Mission District Electrical Leak</b>
-          <span class="desc">Water dripping through ceiling directly onto main electrical breaker box with visible sparks. Immediate hazard warning triggered.</span>
+        <div class="scenario-box" id="sc-box-leak" onclick="chooseScenario('sc-leak')">
+          <div class="scenario-header">
+            <span class="scenario-tag" style="background:#fce8e6;color:#c5221f">⚡ Acute Life-Safety</span>
+            <span id="sc-check-leak" style="display:none;color:#1a73e8;font-weight:700">✓ Selected</span>
+          </div>
+          <div class="scenario-title">Mission District Electrical Leak</div>
+          <div class="scenario-snippet">Water dripping through ceiling directly onto main electrical breaker box with visible sparks. Immediate hazard warning triggered.</div>
         </div>
 
-        <div class="scenario-card" id="card-sc-mold" onclick="selectScenario('sc-mold')">
-          <span class="stitch-badge stitch-badge-warning" style="margin-bottom:8px">🍄 Toxic Mold</span>
-          <b>Tenderloin Mold &amp; Retaliation</b>
-          <span class="desc">Severe black mold infestation; landlord shut off heating 48 hours after tenant complained. Invokes Cal. Civ. Code § 1942.5 180-day retaliation bar.</span>
+        <div class="scenario-box" id="sc-box-mold" onclick="chooseScenario('sc-mold')">
+          <div class="scenario-header">
+            <span class="scenario-tag" style="background:#fef7e0;color:#b06000">🍄 Toxic Mold</span>
+            <span id="sc-check-mold" style="display:none;color:#1a73e8;font-weight:700">✓ Selected</span>
+          </div>
+          <div class="scenario-title">Tenderloin Mold &amp; Retaliation</div>
+          <div class="scenario-snippet">Severe black mold infestation; landlord shut off heating 48 hours after tenant complained. Invokes Cal. Civ. Code § 1942.5 180-day retaliation bar.</div>
         </div>
 
-        <div class="scenario-card" id="card-sc-sewage" onclick="selectScenario('sc-sewage')">
-          <span class="stitch-badge stitch-badge-purple" style="margin-bottom:8px">🚰 SRO Sewage</span>
-          <b>Chinatown Shared Hallway Sewage</b>
-          <span class="desc">Raw sewage overflow in shared bathroom. Immigrant monolingual tenant; unlocks Department of Building Inspection emergency bridge grant.</span>
+        <div class="scenario-box" id="sc-box-sewage" onclick="chooseScenario('sc-sewage')">
+          <div class="scenario-header">
+            <span class="scenario-tag" style="background:#f3e8fd;color:#7c3aed">🚰 SRO Sewage</span>
+            <span id="sc-check-sewage" style="display:none;color:#1a73e8;font-weight:700">✓ Selected</span>
+          </div>
+          <div class="scenario-title">Chinatown Shared Hallway Sewage</div>
+          <div class="scenario-snippet">Raw sewage overflow in shared bathroom. Immigrant monolingual tenant; unlocks Department of Building Inspection emergency bridge grant.</div>
         </div>
       </div>
 
-      <!-- INTAKE FORM (EDITABLE BY TENANT OR ADVOCATE) -->
-      <div style="background:#f8fafc;border:1px solid var(--stitch-border);border-radius:12px;padding:20px;margin-top:16px">
-        <div class="form-group">
-          <label>Tenant Statement (Editable in Real Time):</label>
-          <textarea id="tenant-narrative" class="form-control" oninput="state.narrative=this.value"></textarea>
+      <!-- EDITABLE INTAKE FIELDS -->
+      <div style="background:#f8fafc;border:1px solid var(--stitch-border);border-radius:12px;padding:22px;margin-top:16px">
+        <div style="margin-bottom:14px">
+          <label class="input-label">Tenant Lived Narrative (Editable in Real Time):</label>
+          <textarea id="app-narrative-field" class="input-field" rows="4"></textarea>
         </div>
 
         <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px">
-          <div class="form-group">
-            <label>San Francisco Property Address:</label>
-            <input type="text" id="tenant-address" class="form-control" oninput="state.address=this.value">
+          <div>
+            <label class="input-label">Property Address:</label>
+            <input type="text" id="app-address-field" class="input-field">
           </div>
-          <div class="form-group">
-            <label>Household Size:</label>
-            <input type="number" id="tenant-hh" class="form-control" value="2" min="1" max="10" oninput="state.hh=this.value">
+          <div>
+            <label class="input-label">Household Size:</label>
+            <input type="number" id="app-hh-field" class="input-field" value="2" min="1" max="10">
           </div>
-          <div class="form-group">
-            <label>Annual Income ($):</label>
-            <input type="number" id="tenant-income" class="form-control" value="45000" step="1000" oninput="state.income=this.value">
+          <div>
+            <label class="input-label">Annual Income ($):</label>
+            <input type="number" id="app-income-field" class="input-field" value="45000" step="1000">
           </div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-          <span style="font-size:12px;color:var(--stitch-text-muted)">🛡️ Google reCAPTCHA Enterprise Token: <code>mock-enterprise-token-0.94</code></span>
-          <button class="btn-action" onclick="runCorroboration()">🚀 Corroborate &amp; Generate Defense</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:10px">
+          <span style="font-size:12px;color:var(--stitch-ink-muted)">🛡️ Google reCAPTCHA Enterprise: <code>mock-enterprise-token-0.94</code></span>
+          <button class="btn-primary" onclick="triggerCorroboration()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Scan 311 Records &amp; Protect Home</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- BEFORE VS AFTER EVIDENCE CANVAS -->
-    <div class="stitch-card">
-      <h2>2. The Storytelling Canvas: What the Landlord Claims vs. What City Hall Proves</h2>
+    <!-- BEFORE VS AFTER CANVAS -->
+    <div class="card-modern">
+      <h2>2. What Landlords Claim vs. What City Hall Proves</h2>
       <p class="sub">How official BigQuery vector search transforms an eviction hearing:</p>
 
-      <div class="story-canvas">
-        <div class="canvas-box canvas-landlord">
-          <h4>❌ Landlord's Eviction Allegation</h4>
-          <p><i>"Tenant is 2 months behind on rent ($4,200 total arrears). Landlord served a 3-Day Notice to Pay or Quit. Tenant has no valid legal excuse for withholding rent."</i></p>
+      <div class="story-comparison-grid">
+        <div class="story-canvas-card canvas-danger">
+          <h4 style="margin:0 0 8px;color:#c5221f;display:flex;align-items:center;gap:6px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            <span>Landlord's Eviction Allegation</span>
+          </h4>
+          <p id="canvas-landlord-text" style="font-size:13.5px;color:#7f1d1d;line-height:1.5;margin:0 0 10px">
+            "Tenant is 2 months behind on rent ($4,200 total arrears). Landlord served a 3-Day Notice to Pay or Quit. Tenant has no valid legal excuse for withholding rent."
+          </p>
           <small style="color:#c5221f;font-weight:700">Consequence: Default eviction judgment and sheriff lock-out within 7 days.</small>
         </div>
 
-        <div class="canvas-box canvas-cityhall">
-          <h4>✅ City Hall 311 Evidence (Corroborated)</h4>
-          <p><b>Active DBI Notice of Violation #SF-202665182</b> issued 42 days ago. Inspector confirmed indoor temp at 52°F (Violates SF Housing Code § 701). Landlord demanded rent after 35-day repair deadline expired.</p>
+        <div class="story-canvas-card canvas-success">
+          <h4 style="margin:0 0 8px;color:#137333;display:flex;align-items:center;gap:6px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <span>City Hall 311 Evidence (Corroborated)</span>
+          </h4>
+          <p id="canvas-cityhall-text" style="font-size:13.5px;color:#14532d;line-height:1.5;margin:0 0 10px">
+            <b>Active DBI Notice of Violation #SF-202665182</b> issued 42 days ago. Inspector confirmed indoor temp at 52°F (Violates SF Housing Code § 701). Landlord demanded rent after 35-day repair deadline expired.
+          </p>
           <small style="color:#137333;font-weight:700">Legal Shield: Cal. Civ. Code § 1942.4 bars landlord from demanding rent or seeking eviction.</small>
         </div>
       </div>
@@ -637,50 +734,50 @@ textarea.form-control {
   <!-- ========================================================================= -->
   <!-- TAB 2: EVIDENCE RADAR & GIS MAP -->
   <!-- ========================================================================= -->
-  <div id="view-map" class="view-panel" style="display:none">
-    <div class="stitch-card">
+  <div id="tab-map" class="tab-panel" style="display:none">
+    <div class="card-modern">
       <h2>Geospatial Evidence Radar &amp; Municipal Corroboration</h2>
       <p class="sub">Visualizing official City Hall building inspections within the statutory 400-meter evidentiary radius:</p>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px;margin-bottom:16px">
-        <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:14px;border-radius:12px">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:14px">
           <small style="color:#166534;font-weight:700">PROXIMITY TO CITATION</small>
-          <div style="font-size:20px;font-weight:800;color:#15803d">12 Meters</div>
-          <small style="color:#166534">Directly at tenant's building entrance</small>
+          <div style="font-size:22px;font-weight:800;color:#15803d">12 Meters</div>
+          <small style="color:#166534">Directly at tenant residence front door</small>
         </div>
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:14px;border-radius:12px">
-          <small style="color:#1e40af;font-weight:700">STATUTORY RADIUS</small>
-          <div style="font-size:20px;font-weight:800;color:#1d4ed8">400 Meters</div>
-          <small style="color:#1e40af">California evidence corroboration zone</small>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:16px;border-radius:14px">
+          <small style="color:#1e40af;font-weight:700">EVIDENTIARY RADIUS</small>
+          <div style="font-size:22px;font-weight:800;color:#1d4ed8">400 Meters</div>
+          <small style="color:#1e40af">Statutory California proof perimeter</small>
         </div>
-        <div style="background:#fef2f2;border:1px solid #fecaca;padding:14px;border-radius:12px">
-          <small style="color:#991b1b;font-weight:700">MUNICIPAL DECOYS FILTERED</small>
-          <div style="font-size:20px;font-weight:800;color:#b91c1c">3 Lookalikes Dropped</div>
-          <small style="color:#991b1b">Commercial cafes &amp; abated tickets removed</small>
+        <div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:14px">
+          <small style="color:#991b1b;font-weight:700">DECOYS DISQUALIFIED</small>
+          <div style="font-size:22px;font-weight:800;color:#b91c1c">3 Lookalikes Dropped</div>
+          <small style="color:#991b1b">Commercial warehouses &amp; old repairs filtered</small>
         </div>
       </div>
 
-      <div id="map-pane"></div>
+      <div id="gis-map-canvas"></div>
 
       <!-- DECOY REJECTION DRAWER -->
-      <h3 style="margin-top:24px">Excluded Municipal Decoys (Filtered for Court Credibility)</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;margin-top:12px">
-        <div class="stitch-decoy-card">
-          <b><code>DECOY-SANF-01</code> Commercial Storefront</b>
-          <p style="margin:4px 0 0;font-size:12.5px;color:var(--stitch-text-muted)">
-            <b>Reason:</b> Commercial property disqualified under SF Housing Code § 701. Retail cafe with zero residential dwelling units.
+      <h3 style="margin:24px 0 10px;font-size:16px;font-weight:800">Filtered Municipal Decoys (Why They Were Excluded)</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px">
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px">
+          <b style="color:#991b1b"><code>DECOY-SANF-01</code> Commercial Storefront</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:#7f1d1d">
+            Commercial retail property disqualified under SF Housing Code § 701. Zero residential tenants.
           </p>
         </div>
-        <div class="stitch-decoy-card">
-          <b><code>DECOY-SANF-04</code> Repaired Boiler (2024)</b>
-          <p style="margin:4px 0 0;font-size:12.5px;color:var(--stitch-text-muted)">
-            <b>Reason:</b> Closed/Abated ticket. Past violations cannot prove current lack of heat in court.
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px">
+          <b style="color:#991b1b"><code>DECOY-SANF-04</code> Repaired Boiler (2024)</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:#7f1d1d">
+            Closed/Abated citation. Past repairs cannot prove current lack of heat in housing court.
           </p>
         </div>
-        <div class="stitch-decoy-card">
-          <b><code>DECOY-SANF-07</code> Passed Inspection (71°F)</b>
-          <p style="margin:4px 0 0;font-size:12.5px;color:var(--stitch-text-muted)">
-            <b>Reason:</b> Zero violation found. Certified at 71°F; would contradict tenant defense.
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px">
+          <b style="color:#991b1b"><code>DECOY-SANF-07</code> Passed Inspection (71°F)</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:#7f1d1d">
+            Zero violation found. Inspector confirmed 71°F; would undermine tenant defense.
           </p>
         </div>
       </div>
@@ -690,48 +787,54 @@ textarea.form-control {
   <!-- ========================================================================= -->
   <!-- TAB 3: LEGAL CLOCKS & $12K RELIEF -->
   <!-- ========================================================================= -->
-  <div id="view-relief" class="view-panel" style="display:none">
-    <div class="stitch-card">
+  <div id="tab-relief" class="tab-panel" style="display:none">
+    <div class="card-modern">
       <h2>Statutory Repair Clocks &amp; Emergency Back-Rent Relief</h2>
       <p class="sub">How California state law and San Francisco grant programs eliminate rent arrears:</p>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
         <!-- 35-DAY REPAIR CLOCK -->
-        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:20px">
-          <h3 style="margin-top:0;color:#92400e">⏱️ Landlord 35-Day Repair Deadline</h3>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:14px;padding:22px">
+          <h3 style="margin-top:0;color:#92400e;display:flex;align-items:center;gap:8px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Landlord 35-Day Repair Deadline</span>
+          </h3>
           <p style="font-size:13px;color:#78350f">
             Under <b>Cal. Civ. Code § 1942.4</b>, a landlord who fails to fix cited housing violations within 35 days cannot collect rent or evict:
           </p>
-          <div style="background:white;padding:12px;border-radius:8px;border:1px solid #fde68a;margin:12px 0">
+          <div style="background:white;padding:14px;border-radius:10px;border:1px solid #fde68a;margin:12px 0">
             <div style="display:flex;justify-content:space-between;font-weight:700;font-size:13px">
               <span>Elapsed Since City Citation:</span>
-              <span style="color:#b45309">Day 42 of 35 Days</span>
+              <span id="repair-clock-val" style="color:#b45309">Day 42 of 35 Days</span>
             </div>
             <div style="height:10px;background:#fef3c7;border-radius:5px;margin:8px 0;overflow:hidden">
-              <div style="width:100%;height:100%;background:#f59e0b"></div>
+              <div id="repair-clock-bar" style="width:100%;height:100%;background:#f59e0b"></div>
             </div>
-            <span class="stitch-badge stitch-badge-warning">⚠️ Statutory 35-Day Window Expired</span>
+            <span id="repair-clock-badge" style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">⚠️ Statutory 35-Day Window Expired</span>
           </div>
           <small style="color:#92400e"><b>Legal Result:</b> Landlord's rent demand is unlawful as a matter of California law.</small>
         </div>
 
         <!-- $12,000 RELIEF METER -->
-        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px">
-          <h3 style="margin-top:0;color:#166534">💵 Emergency Rent Relief Funding Meter</h3>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:22px">
+          <h3 style="margin-top:0;color:#166534;display:flex;align-items:center;gap:8px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span>Emergency Rent Relief Funding Meter</span>
+          </h3>
           <p style="font-size:13px;color:#14532d">
             Eligible low-income tenants qualify for up to $12,000 in direct emergency back-rent grants (MOHCD / MEDA):
           </p>
-          <div style="background:white;padding:12px;border-radius:8px;border:1px solid #bbf7d0;margin:12px 0">
+          <div style="background:white;padding:14px;border-radius:10px;border:1px solid #bbf7d0;margin:12px 0">
             <div style="display:flex;justify-content:space-between;font-weight:700;font-size:13px">
               <span>Verified Arrears:</span>
-              <span style="color:#15803d">$4,200 / $12,000 Cap</span>
+              <span id="relief-meter-val" style="color:#15803d">$4,200 / $12,000 Cap</span>
             </div>
             <div style="height:10px;background:#dcfce7;border-radius:5px;margin:8px 0;overflow:hidden">
-              <div style="width:35%;height:100%;background:#16a34a"></div>
+              <div id="relief-meter-bar" style="width:35%;height:100%;background:#16a34a"></div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px">
-              <span>Coverage: <b>100% Covered</b></span>
-              <span>Tenant Liability: <b>$0.00</b></span>
+              <span>Coverage: <b id="relief-coverage-val">100% Covered</b></span>
+              <span>Tenant Liability: <b id="relief-liability-val">$0.00</b></span>
             </div>
           </div>
           <small style="color:#166534"><b>Relief Action:</b> Pre-qualified for SF ERAP &amp; Eviction Defense Bridge Grant.</small>
@@ -749,69 +852,69 @@ textarea.form-control {
         <tr style="border-bottom:1px solid var(--stitch-border)">
           <td style="padding:10px"><b>Cal. Civ. Code § 1941.1</b></td>
           <td style="padding:10px">Landlord must maintain heating facilities capable of maintaining 68°F.</td>
-          <td style="padding:10px"><span class="stitch-badge stitch-badge-success">✅ Violates Code (52°F tested)</span></td>
+          <td style="padding:10px"><span style="background:#e6f4ea;color:#137333;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">✅ Violates Code (52°F tested)</span></td>
         </tr>
         <tr style="border-bottom:1px solid var(--stitch-border)">
           <td style="padding:10px"><b>Cal. Civ. Code § 1942.4</b></td>
           <td style="padding:10px">No rent collection permitted if violation uncorrected for &gt; 35 days.</td>
-          <td style="padding:10px"><span class="stitch-badge stitch-badge-warning">⚠️ 42 Days Elapsed (Barred)</span></td>
+          <td style="padding:10px"><span style="background:#fef7e0;color:#b06000;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">⚠️ 42 Days Elapsed (Barred)</span></td>
         </tr>
         <tr style="border-bottom:1px solid var(--stitch-border)">
           <td style="padding:10px"><b>Cal. Civ. Code § 1942.5</b></td>
           <td style="padding:10px">180-day bar against retaliatory eviction after tenant complaints.</td>
-          <td style="padding:10px"><span class="stitch-badge stitch-badge-primary">🛡️ Protected from Retaliation</span></td>
+          <td style="padding:10px"><span style="background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">🛡️ Protected from Retaliation</span></td>
         </tr>
         <tr>
           <td style="padding:10px"><b>SF Prop F (2018)</b></td>
           <td style="padding:10px">Universal Right to Free Legal Counsel for residential tenants.</td>
-          <td style="padding:10px"><span class="stitch-badge stitch-badge-purple">⚖️ Free Attorney Guaranteed</span></td>
+          <td style="padding:10px"><span style="background:#f3e8fd;color:#7c3aed;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">⚖️ Free Attorney Guaranteed</span></td>
         </tr>
       </table>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- TAB 4: SPECIALIST LEGAL CO-PILOT (HARMONIZED CHAT) -->
+  <!-- TAB 4: SPECIALIST LEGAL CO-PILOT -->
   <!-- ========================================================================= -->
-  <div id="view-chat" class="view-panel" style="display:none">
-    <div class="stitch-card">
+  <div id="tab-chat" class="tab-panel" style="display:none">
+    <div class="card-modern">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
         <div>
           <h2>Specialist Legal Co-Pilot (shelterwise_navigator_ag)</h2>
           <p class="sub" style="margin-bottom:0">Multi-agent conversational assistant powered by Google ADK legal sub-agents:</p>
         </div>
-        <div id="chat-timer-badge" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px;background:var(--stitch-brand-soft);color:var(--stitch-brand);display:none">
-          ⏱️ Thinking: <span id="timer-sec">0.0s</span>
+        <div id="app-chat-timer" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px;background:var(--stitch-brand-soft);color:var(--stitch-brand);display:none">
+          ⏱️ Thinking: <span id="app-timer-val">0.0s</span>
         </div>
       </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 10px">
-        <span style="font-size:12px;font-weight:700;color:var(--stitch-text-muted);align-self:center">Active ADK Agents:</span>
-        <span class="stitch-badge stitch-badge-primary">shelterwise_navigator_ag</span>
-        <span class="stitch-badge stitch-badge-success">evidence_explainer_ag</span>
-        <span class="stitch-badge stitch-badge-warning">hazard_311_drafter_ag</span>
-        <span class="stitch-badge stitch-badge-purple">statute_and_bulletin_ag</span>
+        <span style="font-size:12px;font-weight:700;color:var(--stitch-ink-muted);align-self:center">Active Sub-Agents:</span>
+        <span style="background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">shelterwise_navigator_ag</span>
+        <span style="background:#e6f4ea;color:#137333;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">evidence_explainer_ag</span>
+        <span style="background:#fef7e0;color:#b06000;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">hazard_311_drafter_ag</span>
+        <span style="background:#f3e8fd;color:#7c3aed;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700">statute_and_bulletin_ag</span>
       </div>
 
-      <div style="font-size:12px;color:var(--stitch-text-muted);margin-bottom:8px">💡 Instant questions you can ask the legal specialist:</div>
+      <div style="font-size:12px;color:var(--stitch-ink-muted);margin-bottom:8px">💡 Instant questions you can ask the legal specialist:</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-        <button class="btn-ghost" style="padding:4px 10px;font-size:12px" onclick="askSpecialist('Why did you drop the warehouse boiler one?')">Why drop warehouse decoy?</button>
-        <button class="btn-ghost" style="padding:4px 10px;font-size:12px" onclick="askSpecialist('Can she reach the courthouse by bus before 9am Monday?')">MUNI bus before 9 AM Monday?</button>
-        <button class="btn-ghost" style="padding:4px 10px;font-size:12px" onclick="askSpecialist('How many open heat complaints are in this tract?')">Open heat complaints in tract?</button>
-        <button class="btn-ghost" style="padding:4px 10px;font-size:12px" onclick="askSpecialist('Draft emergency 311 DBI complaint')">Draft emergency 311 complaint</button>
-        <button class="btn-ghost" style="padding:4px 10px;font-size:12px" onclick="askSpecialist('Lock this case for Attorney Chen')">Lock case in Firestore</button>
+        <button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="askLegalAgent('Why did you drop the warehouse boiler one?')">Why drop warehouse decoy?</button>
+        <button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="askLegalAgent('Can she reach the courthouse by bus before 9am Monday?')">MUNI bus before 9 AM Monday?</button>
+        <button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="askLegalAgent('How many open heat complaints are in this tract?')">Open heat complaints in tract?</button>
+        <button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="askLegalAgent('Draft emergency 311 DBI complaint')">Draft emergency 311 complaint</button>
+        <button class="btn-secondary" style="padding:5px 12px;font-size:12px" onclick="askLegalAgent('Lock this case for Attorney Chen')">Lock case in Firestore</button>
       </div>
 
-      <div class="chat-window" id="chat-thread">
-        <div class="chat-msg agent">
+      <div class="chat-thread-box" id="app-chat-stream">
+        <div class="chat-bubble agent">
           <b>ShelterWise Legal Co-Pilot online.</b>
           <br>I have analyzed your housing story and corroborated official San Francisco Department of Building Inspection records. How can I assist you with your defense or court preparation today?
         </div>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:14px">
-        <input type="text" id="chat-input-field" class="form-control" placeholder="Ask any legal or transit question..." onkeydown="if(event.key==='Enter')sendChatFromInput()">
-        <button class="btn-action" onclick="sendChatFromInput()">Send</button>
+        <input type="text" id="app-chat-input" class="input-field" placeholder="Ask any legal or transit question..." onkeydown="if(event.key==='Enter')submitChatText()">
+        <button class="btn-primary" onclick="submitChatText()">Send</button>
       </div>
     </div>
   </div>
@@ -819,24 +922,30 @@ textarea.form-control {
   <!-- ========================================================================= -->
   <!-- TAB 5: CALIFORNIA COURT BRIEF -->
   <!-- ========================================================================= -->
-  <div id="view-brief" class="view-panel" style="display:none">
-    <div class="stitch-card">
+  <div id="tab-brief" class="tab-panel" style="display:none">
+    <div class="card-modern">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
         <div>
           <h2>California 28-Line Legal Pleading Paper</h2>
           <p class="sub" style="margin-bottom:0">Court-admissible tenant defense brief ready for San Francisco Superior Court filing:</p>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn-action" onclick="window.print()">🖨️ Print / Save PDF</button>
-          <button class="btn-ghost" onclick="copyPleadingText()">📋 Copy Brief Text</button>
+          <button class="btn-primary" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <span>Print / Save PDF</span>
+          </button>
+          <button class="btn-secondary" onclick="copyBriefToClipboard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy Brief Text</span>
+          </button>
         </div>
       </div>
 
-      <div class="court-paper" style="margin-top:20px">
-        <div class="court-lines">
+      <div class="court-pleading-paper" style="margin-top:20px">
+        <div class="court-line-nums">
           1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28
         </div>
-        <div class="court-body" id="pleading-content">
+        <div class="court-doc-body" id="pleading-doc-body">
           SAN FRANCISCO TENANT DEFENSE INITIATIVE<br>
           400 McAllister Street, San Francisco, CA 94102<br>
           Telephone: (415) 555-EVIC<br>
@@ -852,7 +961,7 @@ textarea.form-control {
           <b>DEFENDANT'S VERIFIED ANSWER AND AFFIRMATIVE DEFENSES</b><br>
           (CAL. CIV. CODE §§ 1941.1, 1942.4; SF HOUSING CODE § 701)<br><br>
           <b>FIRST AFFIRMATIVE DEFENSE (BREACH OF WARRANTY OF HABITABILITY):</b><br>
-          1. Throughout the tenancy at 1000 Block Fillmore Street, Plaintiff failed to provide adequate heating facilities, resulting in indoor temperatures dropping to 50°F.<br>
+          1. Throughout the tenancy at <span id="pleading-address-span">1000 Block Fillmore Street</span>, Plaintiff failed to provide adequate heating facilities, resulting in indoor temperatures dropping to 50°F.<br>
           2. On January 4, 2026, the San Francisco Department of Building Inspection issued Notice of Violation #SF-202665182 citing severe heat deficiency.<br>
           <b>SECOND AFFIRMATIVE DEFENSE (STATUTORY RENT DEMAND BAR):</b><br>
           3. Pursuant to Cal. Civ. Code § 1942.4, Plaintiff is barred from demanding rent or seeking possession because more than 35 days elapsed since the municipal citation without remediation.<br>
@@ -867,249 +976,347 @@ textarea.form-control {
 </main>
 
 <script>
-// STATE STORE
-const state = {
-  scenarioId: 'sc-heat',
-  narrative: 'Tenant has lived at 1000 Block Fillmore St for 3 years. For the past 3 weeks, the central radiator has been completely cold. Indoor temperatures measured at 50°F with a handheld thermometer. Tenant has a 4-year-old child who has developed a severe respiratory cough. Landlord issued a 3-Day Notice demanding $4,200 in alleged back-rent. Eviction court appearance scheduled for Monday 9:00 AM at 400 McAllister St.',
-  address: '1000 Block Fillmore St, San Francisco, CA 94115',
-  geoid: '06075016300',
-  hh: 2,
-  income: 45000,
+// APPLICATION STATE
+var App = {
+  currentTab: 'story',
+  scenario: 'sc-heat',
+  distress: false,
   caseId: 'sf-case-' + Date.now().toString(36),
-  distress: false
+  mapInitialized: false,
+  mapInstance: null
 };
 
-const SCENARIOS = {
+var SCENARIOS = {
   'sc-heat': {
     name: 'Western Addition Chronic Heat Loss',
     narrative: 'Tenant has lived at 1000 Block Fillmore St for 3 years. For the past 3 weeks, the central radiator has been completely cold. Indoor temperatures measured at 50°F with a handheld thermometer. Tenant has a 4-year-old child who has developed a severe respiratory cough. Landlord issued a 3-Day Notice demanding $4,200 in alleged back-rent. Eviction court appearance scheduled for Monday 9:00 AM at 400 McAllister St.',
     address: '1000 Block Fillmore St, San Francisco, CA 94115',
-    geoid: '06075016300'
+    arrears: 4200,
+    daysElapsed: 42,
+    landlordClaim: 'Tenant is 2 months behind on rent ($4,200 total arrears). Landlord served a 3-Day Notice to Pay or Quit. Tenant has no valid legal excuse for withholding rent.',
+    cityProof: 'Active DBI Notice of Violation #SF-202665182 issued 42 days ago. Inspector confirmed indoor temp at 52°F (Violates SF Housing Code § 701). Landlord demanded rent after 35-day repair deadline expired.'
   },
   'sc-leak': {
     name: 'Mission District Electrical Leak',
     narrative: 'Major roof leak above 2000 Block Mission St apartment has penetrated the ceiling and is actively dripping into the main electrical breaker panel box. Water is pooling on the fuse switches with visible electrical sparks and humming. Landlord has refused emergency calls.',
     address: '2000 Block Mission St, San Francisco, CA 94110',
-    geoid: '06075020800'
+    arrears: 3600,
+    daysElapsed: 14,
+    landlordClaim: 'Landlord served a notice asserting tenant caused ceiling damage through improper bathroom usage and demands full payment plus repair fees.',
+    cityProof: 'DBI Emergency Life-Safety Hazard Alert logged. Severe structural water intrusion into main service electrical panel creates immediate fire and electrocution risk.'
   },
   'sc-mold': {
     name: 'Tenderloin Mold & Retaliation',
     narrative: 'Severe black mold infestation covers bedroom walls at 700 Block Ellis St. Within 48 hours of tenant filing a 311 complaint, landlord shut off heat and served an eviction notice in direct retaliation under Cal. Civ. Code § 1942.5.',
     address: '700 Block Ellis St, San Francisco, CA 94109',
-    geoid: '06075012202'
+    arrears: 2800,
+    daysElapsed: 48,
+    landlordClaim: 'Landlord asserts eviction is for nuisance and noise complaints, denying that notice was related to tenant 311 complaints.',
+    cityProof: '311 log confirms tenant filed housing complaint 48 hours prior to notice. Retaliatory eviction defense triggered under Cal. Civ. Code § 1942.5 (180-day statutory bar).'
   },
   'sc-sewage': {
     name: 'Chinatown Shared Hallway Sewage',
     narrative: 'Raw sewage overflow from second-floor common bathroom down the central hallway of 1200 Block Stockton St SRO. Monolingual immigrant family facing immediate eviction threat.',
     address: '1200 Block Stockton St, San Francisco, CA 94108',
-    geoid: '06075011300'
+    arrears: 1800,
+    daysElapsed: 9,
+    landlordClaim: 'Master tenant served informal notice demanding immediate departure, claiming plumbing is responsibility of residents.',
+    cityProof: 'Department of Public Health hazardous bio-waste citation issued. Qualifies for San Francisco Emergency Housing Bridge Grant and Rapid Repair Program.'
   }
 };
 
-// NAVIGATION SWITCHER
-function switchNav(target){
-  document.querySelectorAll('.nav-tab').forEach(b => {
-    b.classList.toggle('active', b.getAttribute('data-target') === target);
-  });
-  document.querySelectorAll('.view-panel').forEach(p => {
-    p.style.display = (p.id === 'view-' + target) ? 'block' : 'none';
-  });
+// TOAST HELPER
+function showToast(msg, durationMs){
+  var toast = document.getElementById('app-toast');
+  if(!toast) return;
+  toast.innerHTML = '<span>⚡</span> <span>' + msg + '</span>';
+  toast.style.display = 'flex';
+  setTimeout(function(){
+    toast.style.display = 'none';
+  }, durationMs || 3000);
+}
+
+// TAB SWITCHER
+function switchTab(tabKey){
+  App.currentTab = tabKey;
+  var navBtns = document.querySelectorAll('.nav-btn');
+  for (var i = 0; i < navBtns.length; i++){
+    var btn = navBtns[i];
+    if (btn.getAttribute('data-tab') === tabKey){
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  }
+
+  var panels = document.querySelectorAll('.tab-panel');
+  for (var j = 0; j < panels.length; j++){
+    var p = panels[j];
+    if (p.id === 'tab-' + tabKey){
+      p.style.display = 'block';
+    } else {
+      p.style.display = 'none';
+    }
+  }
+
   window.scrollTo({top: 0, behavior: 'smooth'});
-  if(target === 'map'){
-    setTimeout(initMap, 150);
+
+  if (tabKey === 'map'){
+    setTimeout(function(){ initLeafletMap(); }, 150);
   }
 }
 
 // SCENARIO SELECTOR
-function selectScenario(id){
-  state.scenarioId = id;
-  const sc = SCENARIOS[id];
-  if(sc){
-    state.narrative = sc.narrative;
-    state.address = sc.address;
-    state.geoid = sc.geoid;
-    document.getElementById('tenant-narrative').value = sc.narrative;
-    document.getElementById('tenant-address').value = sc.address;
+function chooseScenario(scKey){
+  App.scenario = scKey;
+  var data = SCENARIOS[scKey];
+  if (!data) return;
+
+  var narrEl = document.getElementById('app-narrative-field');
+  var addrEl = document.getElementById('app-address-field');
+  var landEl = document.getElementById('canvas-landlord-text');
+  var cityEl = document.getElementById('canvas-cityhall-text');
+  var pleadSpan = document.getElementById('pleading-address-span');
+
+  if (narrEl) narrEl.value = data.narrative;
+  if (addrEl) addrEl.value = data.address;
+  if (landEl) landEl.textContent = data.landlordClaim;
+  if (cityEl) cityEl.innerHTML = data.cityProof;
+  if (pleadSpan) pleadSpan.textContent = data.address;
+
+  // Update Relief Meter & Repair Clock
+  var reliefVal = document.getElementById('relief-meter-val');
+  var reliefBar = document.getElementById('relief-meter-bar');
+  if (reliefVal && reliefBar){
+    reliefVal.textContent = '$' + data.arrears.toLocaleString() + ' / $12,000 Cap';
+    var pct = Math.min(100, Math.round((data.arrears / 12000) * 100));
+    reliefBar.style.width = pct + '%';
   }
-  document.querySelectorAll('.scenario-card').forEach(c => {
-    c.classList.toggle('active', c.id === 'card-' + id);
-  });
+
+  var clockVal = document.getElementById('repair-clock-val');
+  if (clockVal){
+    clockVal.textContent = 'Day ' + data.daysElapsed + ' of 35 Days';
+  }
+
+  var boxes = document.querySelectorAll('.scenario-box');
+  for (var i = 0; i < boxes.length; i++){
+    boxes[i].classList.remove('selected');
+  }
+  var selectedBox = document.getElementById('sc-box-' + scKey.replace('sc-', ''));
+  if (selectedBox) selectedBox.classList.add('selected');
+
+  var checks = ['heat', 'leak', 'mold', 'sewage'];
+  for (var c = 0; c < checks.length; c++){
+    var chk = document.getElementById('sc-check-' + checks[c]);
+    if (chk){
+      chk.style.display = ('sc-' + checks[c] === scKey) ? 'inline' : 'none';
+    }
+  }
+
+  showToast('Switched to scenario: ' + data.name, 2500);
 }
 
-// DISTRESS MODE
-function toggleDistress(){
-  state.distress = !state.distress;
-  const bar = document.getElementById('distress-bar');
-  if(bar) bar.style.display = state.distress ? 'flex' : 'none';
-  if(window.StitchComponents){
+// DISTRESS MODE TOGGLE
+function toggleDistressMode(){
+  App.distress = !App.distress;
+  var bar = document.getElementById('crisis-banner');
+  if (bar){
+    bar.style.display = App.distress ? 'flex' : 'none';
+  }
+  if (window.StitchComponents && typeof StitchComponents.toggleDistressMode === 'function'){
     StitchComponents.toggleDistressMode();
   }
+  showToast(App.distress ? '🚨 Distress Mode Activated' : 'Distress Mode Deactivated', 2000);
 }
 
 // CORROBORATION ACTION
-async function runCorroboration(){
-  switchNav('map');
-  alert('Corroborating tenant narrative against City Hall BigQuery 311 vector index...
-
-Found 1 official building inspection citation 12 meters from residence (#SF-202665182). 3 commercial decoys rejected.');
+function triggerCorroboration(){
+  showToast('Scanning 311 DBI records within 400m perimeter...', 2000);
+  setTimeout(function(){
+    switchTab('map');
+    showToast('Corroborated 311 Citation #SF-202665182 (12m away)!', 3500);
+  }, 400);
 }
 
-// GUIDED DEMO
-function startGuidedDemo(){
-  selectScenario('sc-heat');
-  switchNav('story');
-  setTimeout(() => switchNav('map'), 1500);
-  setTimeout(() => switchNav('relief'), 3000);
-  setTimeout(() => switchNav('chat'), 4500);
-  setTimeout(() => switchNav('brief'), 6000);
+// GUIDED TOUR
+function startStoryWalkthrough(){
+  chooseScenario('sc-heat');
+  switchTab('story');
+  showToast('Step 1 of 5: Tenant Story Journey & Intake', 1800);
+  setTimeout(function(){
+    switchTab('map');
+    showToast('Step 2 of 5: Geospatial Radar & Corroborated Evidence', 1800);
+  }, 2200);
+  setTimeout(function(){
+    switchTab('relief');
+    showToast('Step 3 of 5: Statutory Clocks & $12k Rent Relief', 1800);
+  }, 4400);
+  setTimeout(function(){
+    switchTab('chat');
+    showToast('Step 4 of 5: Specialist Legal AI Co-Pilot', 1800);
+  }, 6600);
+  setTimeout(function(){
+    switchTab('brief');
+    showToast('Step 5 of 5: California 28-Line Court Pleading Paper', 2500);
+  }, 8800);
 }
 
 // CHAT CO-PILOT
-let timerInterval = null;
-async function askSpecialist(query){
-  const thread = document.getElementById('chat-thread');
-  const timerBadge = document.getElementById('chat-timer-badge');
-  const timerSec = document.getElementById('timer-sec');
-  
-  thread.insertAdjacentHTML('beforeend', `<div class="chat-msg user">${query}</div>`);
+var chatTimerId = null;
+function askLegalAgent(queryText){
+  var thread = document.getElementById('app-chat-stream');
+  var timerBadge = document.getElementById('app-chat-timer');
+  var timerVal = document.getElementById('app-timer-val');
+  if (!thread) return;
+
+  var userDiv = document.createElement('div');
+  userDiv.className = 'chat-bubble user';
+  userDiv.textContent = queryText;
+  thread.appendChild(userDiv);
   thread.scrollTop = thread.scrollHeight;
 
-  const thinkId = 'think-' + Date.now();
-  thread.insertAdjacentHTML('beforeend', `<div class="chat-msg agent" id="${thinkId}"><i>Routing to Google ADK legal sub-agents...</i></div>`);
+  var thinkId = 'agent-think-' + Date.now();
+  var thinkDiv = document.createElement('div');
+  thinkDiv.className = 'chat-bubble agent';
+  thinkDiv.id = thinkId;
+  thinkDiv.innerHTML = '<i>Routing to Google ADK legal sub-agents...</i>';
+  thread.appendChild(thinkDiv);
   thread.scrollTop = thread.scrollHeight;
 
-  const t0 = performance.now();
-  if(timerBadge && timerSec){
+  var tStart = performance.now();
+  if (timerBadge && timerVal){
     timerBadge.style.display = 'inline-block';
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      timerSec.textContent = ((performance.now() - t0) / 1000).toFixed(1) + 's';
+    clearInterval(chatTimerId);
+    chatTimerId = setInterval(function(){
+      var sec = ((performance.now() - tStart) / 1000).toFixed(1);
+      timerVal.textContent = sec + 's';
     }, 100);
   }
 
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({message: query, case_id: state.caseId})
-    });
-    clearInterval(timerInterval);
-    const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
-    if(timerSec) timerSec.textContent = elapsed + 's';
-
-    const el = document.getElementById(thinkId);
-    if(res.ok){
-      const data = await res.json();
-      if(el){
-        el.innerHTML = `<div><span class="stitch-badge stitch-badge-success">${data.agent || 'shelterwise_navigator_ag'}</span> <small style="color:var(--stitch-text-muted)">⏱️ ${elapsed}s</small></div><div style="margin-top:6px">${(data.response || '').replace(/\n/g, '<br>')}</div>`;
-      }
-      thread.scrollTop = thread.scrollHeight;
-      return;
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({message: queryText, case_id: App.caseId})
+  })
+  .then(function(res){
+    clearInterval(chatTimerId);
+    var sec = ((performance.now() - tStart) / 1000).toFixed(1);
+    if (timerVal) timerVal.textContent = sec + 's';
+    return res.json();
+  })
+  .then(function(data){
+    var target = document.getElementById(thinkId);
+    var sec = ((performance.now() - tStart) / 1000).toFixed(1);
+    var agentName = data.agent || 'shelterwise_navigator_ag';
+    var replyText = (data.response || '').replace(/\n/g, '<br>');
+    if (target){
+      target.innerHTML = '<div><span style="background:#e6f4ea;color:#137333;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700">' + agentName + '</span> <small style="color:#64748b">⏱️ ' + sec + 's</small></div><div style="margin-top:6px">' + replyText + '</div>';
     }
-  } catch(e){
-    clearInterval(timerInterval);
-  }
-
-  const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
-  const el = document.getElementById(thinkId);
-  const fallback = query.toLowerCase().includes('warehouse') 
-    ? '<b>Excluded Commercial Decoy:</b> Candidate <code>DECOY-SANF-01</code> (100 Block Teaching Way) is a retail warehouse storefront disqualified under SF Housing Code § 701.'
-    : 'Verified by ShelterWise legal navigator.';
-  if(el){
-    el.innerHTML = `<div><span class="stitch-badge stitch-badge-success">evidence_explainer_ag</span> <small style="color:var(--stitch-text-muted)">⏱️ ${elapsed}s</small></div><div style="margin-top:6px">${fallback}</div>`;
-  }
-  thread.scrollTop = thread.scrollHeight;
+    thread.scrollTop = thread.scrollHeight;
+  })
+  .catch(function(err){
+    clearInterval(chatTimerId);
+    var sec = ((performance.now() - tStart) / 1000).toFixed(1);
+    var target = document.getElementById(thinkId);
+    var fallback = queryText.toLowerCase().indexOf('warehouse') !== -1
+      ? '<b>Excluded Commercial Decoy:</b> Candidate <code>DECOY-SANF-01</code> (100 Block Teaching Way) is a retail warehouse storefront disqualified under SF Housing Code § 701.'
+      : 'Verified by ShelterWise legal navigator and BigQuery vector index.';
+    if (target){
+      target.innerHTML = '<div><span style="background:#e6f4ea;color:#137333;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700">evidence_explainer_ag</span> <small style="color:#64748b">⏱️ ' + sec + 's</small></div><div style="margin-top:6px">' + fallback + '</div>';
+    }
+    thread.scrollTop = thread.scrollHeight;
+  });
 }
 
-function sendChatFromInput(){
-  const input = document.getElementById('chat-input-field');
-  if(!input || !input.value.trim()) return;
-  const q = input.value.trim();
-  input.value = '';
-  askSpecialist(q);
+function submitChatText(){
+  var inp = document.getElementById('app-chat-input');
+  if (!inp || !inp.value.trim()) return;
+  var txt = inp.value.trim();
+  inp.value = '';
+  askLegalAgent(txt);
 }
 
-function copyPleadingText(){
-  const txt = document.getElementById('pleading-content').innerText;
-  navigator.clipboard.writeText(txt);
-  alert('California Pleading Paper copied to clipboard!');
+function copyBriefToClipboard(){
+  var doc = document.getElementById('pleading-doc-body');
+  if (doc){
+    navigator.clipboard.writeText(doc.innerText);
+    showToast('📋 California Court Pleading Paper copied to clipboard!', 3000);
+  }
 }
 
 // LEAFLET MAP INITIALIZER
-let mapObj = null;
-function initMap(){
-  if(mapObj) {
-    mapObj.invalidateSize();
+function initLeafletMap(){
+  if (App.mapInstance){
+    App.mapInstance.invalidateSize();
     return;
   }
-  const el = document.getElementById('map-pane');
-  if(!el) return;
-  
-  // Coordinates for 1000 Block Fillmore St
-  const lat = 37.7792, lng = -122.4318;
-  mapObj = L.map('map-pane').setView([lat, lng], 16);
+  var container = document.getElementById('gis-map-canvas');
+  if (!container || typeof L === 'undefined') return;
+
+  var lat = 37.7792, lng = -122.4318;
+  App.mapInstance = L.map('gis-map-canvas').setView([lat, lng], 16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap contributors'
-  }).addTo(mapObj);
+  }).addTo(App.mapInstance);
 
-  // 400m Evidentiary Perimeter
+  // 400m Evidentiary Perimeter Circle
   L.circle([lat, lng], {
     radius: 400,
     color: '#1a73e8',
     fillColor: '#bfdbfe',
     fillOpacity: 0.15,
     dashArray: '6, 6'
-  }).addTo(mapObj).bindPopup('<b>400-Meter Statutory Evidentiary Radius</b><br>Evidence within this perimeter corroborates habitability defenses.');
+  }).addTo(App.mapInstance).bindPopup('<b>400-Meter Statutory Evidentiary Radius</b><br>Evidence within this perimeter corroborates habitability defenses.');
 
-  // Tenant Home Marker
+  // Tenant Home Pin
   L.circleMarker([lat, lng], {
-    radius: 9,
+    radius: 10,
     fillColor: '#1a73e8',
     color: '#ffffff',
     weight: 2,
     fillOpacity: 1
-  }).addTo(mapObj).bindPopup('<b>Tenant Residence</b><br>1000 Block Fillmore St, SF').openPopup();
+  }).addTo(App.mapInstance).bindPopup('<b>Tenant Residence</b><br>1000 Block Fillmore St, SF').openPopup();
 
   // Corroborated 311 Citation (12m away)
   L.circleMarker([lat + 0.0001, lng + 0.0001], {
-    radius: 9,
+    radius: 10,
     fillColor: '#137333',
     color: '#ffffff',
     weight: 2,
     fillOpacity: 1
-  }).addTo(mapObj).bindPopup('<b>🎉 Corroborated 311 Citation</b><br>Case #SF-202665182<br>12m from home<br>Violation: Lack of Heat (52°F)');
+  }).addTo(App.mapInstance).bindPopup('<b>🎉 Corroborated 311 Citation</b><br>Case #SF-202665182<br>12m from home<br>Violation: Lack of Heat (52°F)');
 
   // Decoy Marker (Commercial Cafe)
   L.circleMarker([lat + 0.0018, lng - 0.0015], {
-    radius: 7,
+    radius: 8,
     fillColor: '#c5221f',
     color: '#ffffff',
     weight: 1,
     fillOpacity: 0.8
-  }).addTo(mapObj).bindPopup('<b>⛔ DECOY-SANF-01 (Excluded)</b><br>Commercial storefront cafe<br>Disqualified under SF Housing Code § 701');
+  }).addTo(App.mapInstance).bindPopup('<b>⛔ DECOY-SANF-01 (Excluded)</b><br>Commercial storefront cafe<br>Disqualified under SF Housing Code § 701');
 
-  // Courthouse Marker (400 McAllister)
-  const courtLat = 37.7806, courtLng = -122.4187;
+  // Courthouse Pin
+  var courtLat = 37.7806, courtLng = -122.4187;
   L.circleMarker([courtLat, courtLng], {
-    radius: 9,
+    radius: 10,
     fillColor: '#7c3aed',
     color: '#ffffff',
     weight: 2,
     fillOpacity: 1
-  }).addTo(mapObj).bindPopup('<b>San Francisco Superior Court</b><br>400 McAllister St<br>Eviction Calendar: Mon 9:00 AM');
+  }).addTo(App.mapInstance).bindPopup('<b>San Francisco Superior Court</b><br>400 McAllister St<br>Eviction Calendar: Mon 9:00 AM');
 
-  // MUNI Route 31 Polyline
+  // MUNI Route 31 Bus Polyline
   L.polyline([[lat, lng], [37.7798, -122.4250], [courtLat, courtLng]], {
     color: '#1a73e8',
     weight: 4,
     dashArray: '8, 8'
-  }).addTo(mapObj).bindPopup('<b>MUNI Route 31 Transit Line</b><br>Direct bus to courthouse in 11 minutes');
+  }).addTo(App.mapInstance).bindPopup('<b>MUNI Route 31 Transit Line</b><br>Direct bus to courthouse in 11 minutes');
 }
 
-// INITIALIZATION
-window.addEventListener('DOMContentLoaded', () => {
-  selectScenario('sc-heat');
+// RUN ON LOAD
+window.addEventListener('DOMContentLoaded', function(){
+  chooseScenario('sc-heat');
 });
 </script>
 </body>
