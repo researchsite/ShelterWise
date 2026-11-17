@@ -1,6 +1,6 @@
 # ShelterWise UI prototypes
 
-Open `chat.html` in a browser (main UI). `index.html` links the 6 earlier screen proposals.
+Open `chat.html` in a browser. It is the single main UI. (Earlier 6-screen proposals were removed; see git history before this commit.)
 Everything runs on a **mock backend** with sample data; no server is needed.
 
 ## 📌 Note: proposed backend contract (DRAFT, to confirm with the team)
