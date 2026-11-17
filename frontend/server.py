@@ -94,6 +94,19 @@ def state_to_blocks(state: Dict[str, Any], events: List[Dict[str, Any]]) -> List
                 "memo_markdown": brief
             })
 
+    # 6. If no structured blocks yet, surface live agent synthesis
+    if not blocks:
+        for k, title in [("intake_facts", "📝 Intake Assessment"),
+                         ("policy_pack", "⚖️ Policy & Relief Assessment"),
+                         ("evidence_pack", "🔎 Evidence Search Details")]:
+            val = state.get(k)
+            if isinstance(val, str) and len(val.strip()) > 25:
+                blocks.append({
+                    "type": "markdown",
+                    "title": title,
+                    "content": val.strip()
+                })
+
     return blocks
 
 class FrontendHandler(http.server.SimpleHTTPRequestHandler):
