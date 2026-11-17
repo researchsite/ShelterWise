@@ -165,9 +165,11 @@
 <aside class="mappane" aria-label="Map">
   <div class="maptools"><b>🗺 Map</b><span class="muted">San Francisco · public records</span><span class="sp"></span>
     <label><input type="checkbox" onchange="SWMap.toggle('pts',this.checked)"> All SF 311 records</label>
-    <label><input type="checkbox" onchange="SWMap.toggle('shade',this.checked)"> Shade tracts by rent burden</label></div>
+    <label><input type="checkbox" onchange="SWMap.toggle('shade',this.checked)"> Shade tracts by rent burden</label>
+    <button class="btn ghost" onclick="SWMap.toggleKeyPrompt()" title="Add or edit Google Maps API key" style="padding:2px 8px;font-size:11px;margin-left:6px;border:1px solid #cbd5e1">🔑 Key</button>
+  </div>
   <div id="mapkey" hidden><div class="msg">🔑 <b>No Google Maps API key.</b> The map runs in development mode (watermarked). Put your key in <code>config.local.js</code> (git-ignored) or paste it here. It's saved only in this browser.</div>
-    <div class="row"><input type="text" id="keyinp" placeholder="AIza…" aria-label="Google Maps API key"><button class="btn primary" onclick="SWMap.saveKey()">Use key</button><button class="btn ghost" onclick="mapkey.hidden=true">Dismiss</button></div></div>
+    <div class="row"><input type="text" id="keyinp" placeholder="AIza…" aria-label="Google Maps API key"><button class="btn primary" onclick="SWMap.saveKey()">Use key</button><button class="btn ghost" onclick="SWMap.dismissKey()">Dismiss</button></div></div>
   <div id="map"></div>
   <div class="mapfoot"><div id="maplegend"><span>Send a case and its locations appear here: the tenant's 100-block, matching 311 records, excluded look-alikes, the tract and the courthouse route.</span></div><div id="routenote"></div></div>
 </aside>
