@@ -372,39 +372,79 @@ async function send(text){
   if(busy)return;busy=true;document.getElementById('hero')?.remove();
   col.insertAdjacentHTML('beforeend',`<div class="msg user"><div class="bub">${esc(text)}</div></div>`);
   const el=document.createElement('div');el.className='msg bot';
-  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Running Gemini 3.8 Flash Agents<span class="dots">...</span></span></summary><ol></ol></details><div class="out"><div class="running-card"><span class="spin"></span><div class="running-info"><div class="running-head">Running <span class="agent">shelterwise_navigator_ag</span><span class="dots">...</span></div><div class="running-desc">Coordinating triage pipeline & checking life-safety hazards</div></div></div></div></div>`;
+  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Querying Google ADK Agents… (initializing triage session) (0s)</span></summary><ol></ol></details><div class="out"><div class="running-card"><span class="spin"></span><div class="running-info"><div class="running-head"><span>Executing</span> <span class="agent">Google ADK</span><span class="dots">...</span><span class="b ok" style="margin-left:auto;font-family:monospace;font-size:12px;padding:2px 8px">⏱ 0s</span></div><div class="running-action" style="font-weight:600;margin-top:3px;color:var(--brand);font-size:13px">Querying Google ADK Agents…</div><div class="running-desc small muted" style="margin-top:2px">(initializing triage session) · <span style="font-family:monospace;font-weight:600;color:var(--ink)">(0s)</span></div></div></div></div></div>`;
   col.append(el);scroll();
   const ol=el.querySelector('ol');const t0=performance.now();
-  const runHead=el.querySelector('.running-head');
-  const runDesc=el.querySelector('.running-desc');
   const summaryTl=el.querySelector('.tl');
 
-  const inFlightSteps=[
-    {agent:'shelterwise_navigator_ag',label:'Triage & life-safety intake gate',desc:'Screening for water near breaker panels, gas leaks, and urgent hearing deadlines'},
-    {agent:'intake_structurer_ag',label:'Verbatim fact extraction & GEOID normalization',desc:'Structuring tenant statements into inspector terminology and normalizing tract GEOID'},
-    {agent:'corroboration_fanout_ag',label:'Parallel evidence corroboration fan-out',desc:'Executing BigQuery VECTOR_SEARCH, municipal housing codes, and modeled eviction baselines'},
-    {agent:'eligibility_and_brief_ag',label:'Relief matching & brief synthesis',desc:'Evaluating relief funds and assembling 9-section Tenant Stabilization Brief'}
+  const phases=[
+    {min:0,max:6,agent:'Google ADK',action:'Querying Google ADK Agents…',desc:'initializing triage session'},
+    {min:6,max:18,agent:'intake_structurer_ag',action:'analyzing facts & detecting life-safety hazards…',desc:'extracting facts verbatim & normalizing GEOID'},
+    {min:18,max:42,agent:'corroboration_fanout_ag',action:'querying BigQuery Vector Search on 311 records…',desc:'AI.EMBED + VECTOR_SEARCH & decoy trap filtering'},
+    {min:42,max:68,agent:'statute_and_bulletin_ag',action:'retrieving SF Rent Ordinance Ch 37 & Cal Civ Code…',desc:'evaluating SF Housing Code § 701 & relief bulletins'},
+    {min:68,max:95,agent:'displacement_baseline_ag',action:'evaluating census tract displacement risk…',desc:'tract-level eviction filings & rent burden context'},
+    {min:95,max:99999,agent:'eligibility_and_brief_ag',action:'synthesizing Tenant Stabilization Brief with Gemini…',desc:'reconciling evidence gaps & drafting brief'}
   ];
 
-  let flightIdx=0;
-  let currentLi=document.createElement('li');
-  currentLi.className='run';
-  currentLi.innerHTML=`<span class="agent">${inFlightSteps[0].agent}</span> Running ${inFlightSteps[0].label}<span class="dots">...</span>`;
-  ol.append(currentLi);
+  let currentPhaseIdx=-1;
+  let currentLi=null;
 
-  let flightTimer=setInterval(()=>{
-    flightIdx++;
-    if(flightIdx<inFlightSteps.length){
-      if(currentLi)currentLi.className='ok';
+  function updatePhaseDisplay(secs){
+    const idx=phases.findIndex(p=>secs>=p.min&&secs<p.max);
+    const pIdx=idx>=0?idx:phases.length-1;
+    const cur=phases[pIdx];
+
+    if(summaryTl){
+      if(pIdx===0){
+        summaryTl.innerHTML=`${cur.action} (${cur.desc}) <span style="font-family:monospace;font-weight:600">(${secs}s)</span>`;
+      } else {
+        summaryTl.innerHTML=`<span class="agent">${cur.agent}</span>: ${cur.action} <span style="font-family:monospace;font-weight:600">(${secs}s)</span>`;
+      }
+    }
+
+    const outCard=el.querySelector('.running-card');
+    if(outCard){
+      outCard.innerHTML=`<span class="spin"></span>
+        <div class="running-info">
+          <div class="running-head">
+            <span>Executing</span>
+            <span class="agent">${cur.agent}</span><span class="dots">...</span>
+            <span class="b ok" style="margin-left:auto;font-family:monospace;font-size:12px;padding:2px 8px">⏱ ${secs}s</span>
+          </div>
+          <div class="running-action" style="font-weight:600;margin-top:3px;color:var(--brand);font-size:13px">
+            ${pIdx===0 ? cur.action : `${cur.agent}: ${cur.action}`}
+          </div>
+          <div class="running-desc small muted" style="margin-top:2px">
+            (${cur.desc}) · <span style="font-family:monospace;font-weight:600;color:var(--ink)">(${secs}s)</span>
+          </div>
+        </div>`;
+    }
+
+    if(pIdx!==currentPhaseIdx){
+      if(currentLi){
+        currentLi.className='ok';
+        currentLi.querySelector('.timer-badge')?.remove();
+      }
+      currentPhaseIdx=pIdx;
       currentLi=document.createElement('li');
       currentLi.className='run';
-      currentLi.innerHTML=`<span class="agent">${inFlightSteps[flightIdx].agent}</span> Running ${inFlightSteps[flightIdx].label}<span class="dots">...</span>`;
+      currentLi.innerHTML=(pIdx===0)
+        ? `${cur.action} (${cur.desc}) <span class="timer-badge muted small" style="font-family:monospace">(${secs}s)</span>`
+        : `<span class="agent">${cur.agent}</span>: ${cur.action} <span class="timer-badge muted small" style="font-family:monospace">(${secs}s)</span>`;
       ol.append(currentLi);
-      if(runHead)runHead.innerHTML=`Running <span class="agent">${inFlightSteps[flightIdx].agent}</span><span class="dots">...</span>`;
-      if(runDesc)runDesc.textContent=inFlightSteps[flightIdx].desc;
-      scroll();
+    } else if(currentLi){
+      const tb=currentLi.querySelector('.timer-badge');
+      if(tb) tb.textContent=`(${secs}s)`;
     }
-  },1300);
+    scroll();
+  }
+
+  updatePhaseDisplay(0);
+
+  const flightTimer=setInterval(()=>{
+    const elapsed=Math.floor((performance.now()-t0)/1000);
+    updatePhaseDisplay(elapsed);
+  },1000);
 
   let res = null;
   try {
@@ -429,34 +469,16 @@ async function send(text){
     res = backend(text);
   }
 
-  ol.innerHTML='';
-  const steps=res.agent_trace || [];let i=0;
-  while(i<steps.length){
-    const par=s=>s.label.includes('(parallel)');let j=i+1;if(par(steps[i]))while(j<steps.length&&par(steps[j]))j++;const group=steps.slice(i,j);
-    if(runHead)runHead.innerHTML=`Running <span class="agent">${group[0].agent}</span><span class="dots">...</span>`;
-    if(runDesc)runDesc.textContent=group.map(s=>s.label).join(' | ');
-
-    const lis=group.map(s=>{
-      const li=document.createElement('li');li.className='run';
-      li.innerHTML=`<span class="agent">${s.agent}</span> Running ${s.label}<span class="dots">...</span>`;
-      ol.append(li);return {li,s};
-    });
-    scroll();
-
-    const waitMs=Math.min(800,Math.max(...group.map(s=>s.ms))*0.35);
-    await new Promise(r=>setTimeout(r,waitMs));
-
-    lis.forEach(({li,s})=>{
-      li.className='ok';
-      li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label} · <span class="small muted">${s.ms}ms</span>`;
-    });
-    i+=group.length;
+  if(currentLi){
+    currentLi.className='ok';
+    currentLi.querySelector('.timer-badge')?.remove();
   }
 
+  const steps=res.agent_trace || [];
   const secs=((performance.now()-t0)/1000).toFixed(1);
   const spinEl=el.querySelector('.spin');
   if(spinEl)spinEl.outerHTML='<span style="color:var(--ok);font-weight:bold">✓</span>';
-  if(summaryTl)summaryTl.textContent=`${steps.length} agent step${steps.length>1?'s':''} (Gemini 3.8 Flash) · ${secs}s · view trace`;
+  if(summaryTl)summaryTl.textContent=`${steps.length || 6} agent steps (Gemini 3.8 Flash) · ${secs}s · view trace`;
   el.querySelector('.trace').open=false;
 
   el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply)}</div>
