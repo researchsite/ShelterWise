@@ -15,8 +15,15 @@ PARSED = {"address_text": "1000 block of Fillmore St", "hazards": ["heat", "wate
           "hazard_summary": "No heat for weeks and water dripping near the fuse box.",
           "search_query": "no heat in residential dwelling unit, temperature below code minimum",
           "hearing_date": "2026-11-23", "case_type": "nonpayment", "is_residential_tenant": True}
-DRAFT = {"summary": "Open DBI case SF-202665182 on her block supports her no-heat account.",
-         "memo_markdown": "City records are block-level, not proof about her unit. § 1942.4 does not apply yet.",
+DRAFT = {"summary": "Open DBI case SF-202665182 on her block supports her no-heat account; the hearing "
+                    "is in 4 days.",
+         "memo_markdown": ("## Client situation\nTenant on the 1000 block faces a nonpayment hearing in 4 days.\n"
+                         "## Corroborating city records\nOpen DBI case SF-202665182 on her block reports no heat. "
+                         "Records are block-level, not proof about her unit.\n"
+                         "## Legal analysis\n### § 1942.4\nThis does not apply yet; recheck after 35 days.\n"
+                         "## Relief referrals\nSF ERAP may help if income is confirmed.\n"
+                         "## Open questions\nDoes she have her own DBI case number?\n"
+                         "## Evidentiary limits\nFilings are about 65 a year (modeled estimate)."),
          "questions_for_tenant": ["Do you have your own DBI case number?"]}
 
 
@@ -64,8 +71,20 @@ def test_verifier_passes_good_draft_and_renders_brief():
 
 def test_verifier_gives_up_after_two_attempts_and_flags_memo():
     state = _steps_2_to_4_then_verify()  # verify_attempts == 1 already
-    bad = {**DRAFT, "memo_markdown": "She is eligible for SF ERAP."}
+    bad = {**DRAFT, "memo_markdown": DRAFT["memo_markdown"] + " She is eligible for SF ERAP."}
     state2, _ = asyncio.run(_run([Verifier(name="verifier")], {**state, "brief_draft": bad}))
     brief = state2["brief"]
     assert brief["verification"]["passed"] is False and brief["verification"]["attempts"] == 2
     assert brief["memo_markdown"].startswith("> ⚠ The drafted memo failed automatic checks")
+
+
+def test_verifier_keeps_the_better_draft_when_last_attempt_is_worse():
+    state = _steps_2_to_4_then_verify()
+    one_issue = {**DRAFT, "memo_markdown": DRAFT["memo_markdown"] + " She is eligible for SF ERAP."}
+    garbage = {"summary": "Task complete.", "memo_markdown": "# Task Complete", "questions_for_tenant": []}
+    seeded = {**state, "verify_attempts": 0, "best_draft": None, "brief_draft": one_issue}
+    s1, _ = asyncio.run(_run([Verifier(name="verifier")], seeded))           # attempt 1: 1 issue, retry
+    s2, _ = asyncio.run(_run([Verifier(name="verifier")], {**s1, "brief_draft": garbage}))  # attempt 2: worse
+    brief = s2["brief"]
+    assert brief["summary"] == one_issue["summary"]  # kept the better first draft
+    assert len(brief["verification"]["issues"]) == 1

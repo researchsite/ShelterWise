@@ -71,7 +71,7 @@ class IntakePrep(CodeStep):
         case = {**intake, **loc, "intake_date": today.isoformat(), "days_to_hearing": days,
                 "search_query": query}
         delta = {"case": case, "safety": safety, "verify_attempts": 0, "verifier_feedback": "",
-                 "brief_draft": None, "brief": None}
+                 "brief_draft": None, "best_draft": None, "brief": None}
         return delta, None, False
 
 
@@ -113,9 +113,13 @@ class Verifier(CodeStep):
         attempts = int(state.get("verify_attempts") or 0) + 1
         issues = verify_draft(draft, evidence=state["evidence"], statutes=state["statutes"],
                               relief=state["relief"])
+        best = state.get("best_draft")
+        if best is None or len(issues) < len(best["issues"]):
+            best = {"draft": draft, "issues": issues}
         if issues and attempts < MAX_VERIFY_ATTEMPTS:
             feedback = "Your previous draft failed these checks. Fix every one:\n- " + "\n- ".join(issues)
-            return {"verify_attempts": attempts, "verifier_feedback": feedback}, None, False
+            return {"verify_attempts": attempts, "verifier_feedback": feedback, "best_draft": best}, None, False
+        draft, issues = best["draft"], best["issues"]  # last try failed too: keep the draft with fewer issues
         brief = assemble_brief(case=state["case"], safety=state["safety"], evidence=state["evidence"],
                                tract=state["tract"], statutes=state["statutes"], relief=state["relief"],
                                draft=draft, issues=issues, attempts=attempts)

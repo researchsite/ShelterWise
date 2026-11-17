@@ -9,9 +9,15 @@ STATUTES = [{"statute_section_id": "STAT-CA-01", "code_citation": "Cal. Civ. Cod
              "verdict": "NOT_YET"}]
 RELIEF = [{"bulletin_id": "BUL-CA-01", "program_name": "San Francisco Emergency Rental Assistance Program (SF ERAP)",
            "verdict": "CONDITIONAL"}]
-GOOD = {"summary": "Open DBI case SF-202665182 on her block supports her account.",
-        "memo_markdown": "§ 1942.4 does not apply yet; recheck after 35 days. SF ERAP may help if income is "
-                         "confirmed. Filings are about 65 a year (modeled estimate). Records are block-level.",
+GOOD = {"summary": "Open DBI case SF-202665182 on her block supports her account; the hearing is in 4 days "
+                   "and income is still unknown.",
+        "memo_markdown": ("## Client situation\nTenant on the 1000 block faces a nonpayment hearing in 4 days.\n"
+                         "## Corroborating city records\nOpen DBI case SF-202665182 on her block reports no heat. "
+                         "Records are block-level, not proof about her unit.\n"
+                         "## Legal analysis\n### § 1942.4\nThis does not apply yet; recheck after 35 days.\n"
+                         "## Relief referrals\nSF ERAP may help if income is confirmed.\n"
+                         "## Open questions\nDoes she have her own DBI case number?\n"
+                         "## Evidentiary limits\nFilings are about 65 a year (modeled estimate)."),
         "questions_for_tenant": ["Do you have your own DBI case number?"]}
 
 
@@ -29,7 +35,8 @@ def test_catches_excluded_id_invented_id_and_overclaims():
     assert any("1942.4" in i for i in _issues(memo_markdown="Under § 1942.4 the landlord is barred. block"))
     assert any("eligible" in i for i in _issues(memo_markdown="She is eligible for SF ERAP. block"))
     assert any("modeled" in i for i in _issues(memo_markdown="There are 65 filings a year. block"))
-    assert any("block-level" in i for i in _issues(summary="Open case SF-202665182.", memo_markdown="ok"))
+    assert any("block-level" in i for i in _issues(memo_markdown=GOOD["memo_markdown"].replace("block", "street"),
+                                                   summary=GOOD["summary"].replace("block", "street")))
     assert any("demographic" in i for i in _issues(summary="Mostly Hispanic tract, block-level."))
 
 
@@ -50,3 +57,14 @@ def test_mcp_firewall():
     assert firewall_reason("execute_sql_readonly", {"sql": "select * from a4i_housing.acs_tract_housing_tenure"})
     assert firewall_reason("execute_sql", {"sql": "DELETE FROM t"})
     assert firewall_reason("execute_sql_readonly", {"sql": "SELECT COUNT(*) FROM a4i_housing.court_eviction_filings"}) is None
+
+
+def test_off_task_draft_fails_quality_floor():
+    issues = _issues(summary="Processing complete.", memo_markdown="# Task Complete\nNo further inputs.")
+    assert any("too short" in i for i in issues)
+    assert any("missing sections" in i for i in issues)
+    assert any("must cite" in i for i in issues)
+
+
+def test_heading_then_explanation_is_not_flagged():
+    assert _issues() == []  # GOOD has "### § 1942.4" followed by "does not apply yet"
