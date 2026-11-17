@@ -20,9 +20,17 @@
   .trace summary::-webkit-details-marker{display:none}
   .trace ol{margin:6px 0 0;padding:8px 10px 8px 28px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
   .trace li{margin:2px 0}
-  .trace li.run{color:var(--brand)} .trace li.ok::marker{color:var(--ok)}
+  .trace li.run{color:var(--brand);font-weight:600} .trace li.ok::marker{color:var(--ok)}
   .spin{width:11px;height:11px;border:2px solid var(--brand-line);border-top-color:var(--brand);border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
+  /* Running indicator */
+  .running-card{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--panel);border:1px solid var(--brand-line);border-left:4px solid var(--brand);border-radius:10px;margin-top:6px;box-shadow:var(--shadow)}
+  .running-info{flex:1;min-width:0}
+  .running-head{font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--brand);font-size:13px}
+  .running-desc{margin-top:3px;font-size:12px;color:var(--muted)}
+  .dots{display:inline-block;font-weight:bold;letter-spacing:1px}
+  .dots::after{content:'...';animation:dotsFade 1.4s infinite steps(4, jump-none)}
+  @keyframes dotsFade{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:'...'}}
   /* blocks */
   .blk{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
   .blk>.hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
@@ -130,6 +138,7 @@
     <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
     <b>ADK Agent Cloud:</b> <a href="https://shelterwise-backend-335751565476.us-central1.run.app" target="_blank" style="color:inherit;text-decoration:underline">shelterwise-backend</a>
   </span>
+  <span class="b ok" style="font-size:11.5px;background:#f0fdf4;border-color:#bbf7d0;color:#15803d;padding:3px 10px">⚡ Gemini 3.8 Flash</span>
   <button class="btn tp-btn" onclick="tp.classList.toggle('open')">🧪 Test prompts</button><button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button>
 </div>
 <div class="thread" id="thread"><div class="col" id="col">
@@ -363,9 +372,39 @@ async function send(text){
   if(busy)return;busy=true;document.getElementById('hero')?.remove();
   col.insertAdjacentHTML('beforeend',`<div class="msg user"><div class="bub">${esc(text)}</div></div>`);
   const el=document.createElement('div');el.className='msg bot';
-  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Querying Google ADK Agents…</span></summary><ol></ol></details><div class="out"></div></div>`;
+  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Running Gemini 3.8 Flash Agents<span class="dots">...</span></span></summary><ol></ol></details><div class="out"><div class="running-card"><span class="spin"></span><div class="running-info"><div class="running-head">Running <span class="agent">shelterwise_navigator_ag</span><span class="dots">...</span></div><div class="running-desc">Coordinating triage pipeline & checking life-safety hazards</div></div></div></div></div>`;
   col.append(el);scroll();
   const ol=el.querySelector('ol');const t0=performance.now();
+  const runHead=el.querySelector('.running-head');
+  const runDesc=el.querySelector('.running-desc');
+  const summaryTl=el.querySelector('.tl');
+
+  const inFlightSteps=[
+    {agent:'shelterwise_navigator_ag',label:'Triage & life-safety intake gate',desc:'Screening for water near breaker panels, gas leaks, and urgent hearing deadlines'},
+    {agent:'intake_structurer_ag',label:'Verbatim fact extraction & GEOID normalization',desc:'Structuring tenant statements into inspector terminology and normalizing tract GEOID'},
+    {agent:'corroboration_fanout_ag',label:'Parallel evidence corroboration fan-out',desc:'Executing BigQuery VECTOR_SEARCH, municipal housing codes, and modeled eviction baselines'},
+    {agent:'eligibility_and_brief_ag',label:'Relief matching & brief synthesis',desc:'Evaluating relief funds and assembling 9-section Tenant Stabilization Brief'}
+  ];
+
+  let flightIdx=0;
+  let currentLi=document.createElement('li');
+  currentLi.className='run';
+  currentLi.innerHTML=`<span class="agent">${inFlightSteps[0].agent}</span> Running ${inFlightSteps[0].label}<span class="dots">...</span>`;
+  ol.append(currentLi);
+
+  let flightTimer=setInterval(()=>{
+    flightIdx++;
+    if(flightIdx<inFlightSteps.length){
+      if(currentLi)currentLi.className='ok';
+      currentLi=document.createElement('li');
+      currentLi.className='run';
+      currentLi.innerHTML=`<span class="agent">${inFlightSteps[flightIdx].agent}</span> Running ${inFlightSteps[flightIdx].label}<span class="dots">...</span>`;
+      ol.append(currentLi);
+      if(runHead)runHead.innerHTML=`Running <span class="agent">${inFlightSteps[flightIdx].agent}</span><span class="dots">...</span>`;
+      if(runDesc)runDesc.textContent=inFlightSteps[flightIdx].desc;
+      scroll();
+    }
+  },1300);
 
   let res = null;
   try {
@@ -384,21 +423,42 @@ async function send(text){
     console.warn('Live ADK Gateway not reachable, using mock:', e);
   }
 
+  clearInterval(flightTimer);
+
   if (!res) {
     res = backend(text);
   }
 
+  ol.innerHTML='';
   const steps=res.agent_trace || [];let i=0;
   while(i<steps.length){
     const par=s=>s.label.includes('(parallel)');let j=i+1;if(par(steps[i]))while(j<steps.length&&par(steps[j]))j++;const group=steps.slice(i,j);
-    const lis=group.map(s=>{const li=document.createElement('li');li.className='run';li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label}`;ol.append(li);return li});
-    scroll();await new Promise(r=>setTimeout(r,Math.max(...group.map(s=>s.ms))*0.45));
-    lis.forEach(li=>li.className='ok');i+=group.length;
+    if(runHead)runHead.innerHTML=`Running <span class="agent">${group[0].agent}</span><span class="dots">...</span>`;
+    if(runDesc)runDesc.textContent=group.map(s=>s.label).join(' | ');
+
+    const lis=group.map(s=>{
+      const li=document.createElement('li');li.className='run';
+      li.innerHTML=`<span class="agent">${s.agent}</span> Running ${s.label}<span class="dots">...</span>`;
+      ol.append(li);return {li,s};
+    });
+    scroll();
+
+    const waitMs=Math.min(800,Math.max(...group.map(s=>s.ms))*0.35);
+    await new Promise(r=>setTimeout(r,waitMs));
+
+    lis.forEach(({li,s})=>{
+      li.className='ok';
+      li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label} · <span class="small muted">${s.ms}ms</span>`;
+    });
+    i+=group.length;
   }
+
   const secs=((performance.now()-t0)/1000).toFixed(1);
-  el.querySelector('.spin').outerHTML='<span>✓</span>';
-  el.querySelector('.tl').textContent=`${steps.length} agent step${steps.length>1?'s':''} · ${secs}s · view trace`;
+  const spinEl=el.querySelector('.spin');
+  if(spinEl)spinEl.outerHTML='<span style="color:var(--ok);font-weight:bold">✓</span>';
+  if(summaryTl)summaryTl.textContent=`${steps.length} agent step${steps.length>1?'s':''} (Gemini 3.8 Flash) · ${secs}s · view trace`;
   el.querySelector('.trace').open=false;
+
   el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply)}</div>
     <div class="blocks">${res.blocks.map(b=>R[b.type](b)).join('')}</div>
     ${res.suggestions.length?`<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>`:''}

@@ -22,7 +22,7 @@ from shelterwise_agent.tools.equity_audit import run_metro_equity_audit
 from shelterwise_agent.tools.logistics import claim_or_update_case_task, estimate_courthouse_transit
 from shelterwise_agent.mcp.bigquery_mcp import query_bigquery_mcp
 from shelterwise_agent.db.firestore_store import FirestoreStore
-from shelterwise_agent.config import PROJECT_ID, METRO
+from shelterwise_agent.config import PROJECT_ID, METRO, SHELTERWISE_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # --- 1. Intake Specialist Agent ---
 intake_structurer_ag = LlmAgent(
     name="intake_structurer_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the Intake Structurer Agent. Extract tenant-reported facts verbatim, "
         "detect immediate life-safety hazards (water near breaker panels, gas leaks, arcing, sewage), "
@@ -42,44 +42,44 @@ intake_structurer_ag = LlmAgent(
         "and translate lay complaints into municipal building inspector terminology for vector search."
     ),
     tools=[FunctionTool(structure_intake)],
-    output_key="intake_facts"
+    output_key="intake_summary"
 )
 
 # --- 2. Parallel Corroboration Fan-out Specialists ---
 habitability_vector_ag = LlmAgent(
     name="habitability_vector_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the Habitability Vector Search Agent. Query BigQuery AI.EMBED + VECTOR_SEARCH on 311 complaints. "
         "Strictly filter out planted decoy traps (commercial properties, closed/abated repairs, zero violation inspections). "
         "Return verified open residential corroborating records and clear explanations of excluded decoys."
     ),
     tools=[FunctionTool(search_public_evidence)],
-    output_key="evidence_pack"
+    output_key="evidence_summary"
 )
 
 statute_and_bulletin_ag = LlmAgent(
     name="statute_and_bulletin_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the Statute & Bulletin Agent. Retrieve municipal housing ordinances (SF Housing Code § 701, "
         "CA Civil Code § 1942.4, CA Civil Code § 1942.5) and rental relief program bulletins. "
         "Identify repair windows, rent-withholding eligibility, and open habitability case prerequisites."
     ),
     tools=[FunctionTool(fetch_statutes_and_bulletins)],
-    output_key="policy_pack"
+    output_key="policy_summary"
 )
 
 tract_displacement_ag = LlmAgent(
     name="tract_displacement_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the Tract Displacement Context Agent. Retrieve tract-level eviction filings and rent burden "
         "from the fan-out-safe v_tract_stability_context view. "
         "RESPONSIBLE AI FIREWALL: You MUST NEVER query, inspect, or expose demographic audit_* columns in this case triage."
     ),
     tools=[FunctionTool(get_tract_displacement_baseline)],
-    output_key="tract_context"
+    output_key="tract_summary"
 )
 
 # Parallel Fan-Out Agent (Corroboration)
@@ -95,14 +95,14 @@ corroboration_fanout_ag = ParallelAgent(
 # --- 3. Brief Generation Agent ---
 eligibility_and_brief_ag = LlmAgent(
     name="eligibility_and_brief_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the Eligibility and Brief Writer Agent. Reconcile evidence gaps between tenant statements "
         "and public records. Match relief programs (contingent on open 311 cases), draft the 9-section "
         "Tenant Stabilization Brief, and formulate the 6-item Attorney Review Checklist."
     ),
     tools=[FunctionTool(reconcile_gaps_and_generate_brief)],
-    output_key="stabilization_brief"
+    output_key="brief_response"
 )
 
 # --- The Core Sequential Triage Pipeline Agent ---
@@ -131,7 +131,7 @@ def explain_excluded_evidence(candidate_id: str, reason: str) -> Dict[str, Any]:
 
 evidence_explainer_ag = LlmAgent(
     name="evidence_explainer_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You explain to paralegals and attorneys why specific 311 complaint candidates or planted decoys "
         "were excluded. Explain the exact municipal rule (commercial vs. residential, abated repair, zero violation) "
@@ -143,7 +143,7 @@ evidence_explainer_ag = LlmAgent(
 
 equity_audit_ag = LlmAgent(
     name="equity_audit_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the isolated Responsible AI & Metro Equity Audit Agent. You analyze silent distress candidates "
         "and demographic reporting rates in aggregate across census tracts. "
@@ -155,7 +155,7 @@ equity_audit_ag = LlmAgent(
 
 hazard_311_drafter_ag = LlmAgent(
     name="hazard_311_drafter_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You draft formal San Francisco Department of Building Inspection (DBI) emergency complaint filings "
         "when zero public 311 records exist on a block. You help establish an official city record to unlock "
@@ -168,7 +168,7 @@ hazard_311_drafter_ag = LlmAgent(
 # --- Root Coordinator Agent ---
 shelterwise_navigator_ag = LlmAgent(
     name="shelterwise_navigator_ag",
-    model="gemini-2.5-flash",
+    model=SHELTERWISE_MODEL,
     instruction=(
         "You are the ShelterWise Navigator Root Coordinator for housing crisis triage in San Francisco. "
         "You guide legal-aid paralegals and housing counselors through intake and case analysis. "
