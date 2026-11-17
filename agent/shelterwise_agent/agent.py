@@ -36,6 +36,15 @@ from shelterwise_agent.tools.tract import get_tract_displacement_baseline
 logger = logging.getLogger(__name__)
 
 
+WORKER_MODEL = os.environ.get("SHELTERWISE_MODEL", "gemini-2.5-flash").strip()
+COORDINATOR_MODEL = os.environ.get("SHELTERWISE_COORDINATOR_MODEL", "gemini-2.5-pro").strip()
+
+_CONFIDENTIALITY_RULE = (
+    " Confidentiality rule: NEVER reveal internal agent names, pipeline names, Python function/tool "
+    "names, or session state variable names in user-facing responses."
+)
+
+
 def _optional_bq_mcp_tools() -> list[Any]:
     """Attach Google-managed BigQuery MCPToolset unless running in offline fixture mode."""
     settings = get_settings()
@@ -43,64 +52,70 @@ def _optional_bq_mcp_tools() -> list[Any]:
         return []
     if os.environ.get("SHELTERWISE_DISABLE_BQ_MCP", "").strip().lower() in ("1", "true", "yes"):
         return []
-    return [get_bigquery_mcp_toolset()]
+    toolset = get_bigquery_mcp_toolset()
+    return [toolset] if toolset is not None else []
 
 
-# ==============================================================================
-# Google ADK Multi-Agent Architecture
-# Supports both _ag and _agent naming conventions for complete compatibility.
-# ==============================================================================
-
-# --- 1. Intake Specialist Agent ---
-intake_structurer_ag = LlmAgent(
-    name="intake_structurer_ag",
-    model="gemini-2.5-flash",
+# --- 1. Intake Agent ---
+# Note: Tools write structured dicts into session.state['intake_facts'],
+# state['evidence_pack'], state['raw_policy_pack'], state['tract_context'],
+# and state['stabilization_brief']. Agent output_keys use distinct *_summary
+# names so LLM text responses never overwrite those structured tool dicts.
+intake_structurer_agent = LlmAgent(
+    name="intake_structurer_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You are the Intake Structurer Agent. Extract tenant-reported facts verbatim, "
-        "detect immediate life-safety hazards (water near breaker panels, gas leaks, arcing, sewage), "
-        "normalize the 11-digit San Francisco census tract GEOID (preserving leading '06'), "
-        "and translate lay complaints into municipal building inspector terminology for vector search. "
-        "Always call `structure_intake` first with the crisis narrative."
+        "Always call `structure_intake` first with the user's crisis narrative and any known "
+        "metro, 100-block hint, census tract GEOID, or court hearing date. "
+        "Detect immediate life-safety hazards (e.g., water dripping near fuse box, raw sewage, gas leak), "
+        "and preserve 11-digit string census tract GEOIDs (including leading '06' for San Francisco). "
+        "After the tool runs, output only a concise 1-2 sentence intake confirmation in plain housing-clinic language."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(structure_intake)],
     output_key="intake_summary"
 )
 
 # --- 2. Parallel Corroboration Fan-out Specialists ---
-habitability_vector_ag = LlmAgent(
-    name="habitability_vector_ag",
-    model="gemini-2.5-flash",
+habitability_vector_agent = LlmAgent(
+    name="habitability_vector_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You are the Habitability Vector Search Agent. Query BigQuery AI.EMBED + VECTOR_SEARCH on 311 complaints. "
-        "Strictly filter out planted decoy traps (commercial properties, closed/abated repairs, zero violation inspections). "
-        "Return verified open residential corroborating records and clear explanations of excluded candidates. "
-        "Always call `search_public_evidence` to perform vector search."
+        "Always call `search_public_evidence` to perform BigQuery vector search on municipal 311 "
+        "housing complaints (it automatically reads `intake_facts` from session state). "
+        "Strictly exclude ineligible near-miss records (commercial properties, closed/abated repairs, "
+        "and zero-violation clearance inspections) using legitimate municipal source fields only, "
+        "and never refer to excluded records as 'decoys' in user-facing output. "
+        "Keep your text summary to 1-2 plain sentences."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(search_public_evidence)],
     output_key="evidence_summary"
 )
 
-statute_and_bulletin_ag = LlmAgent(
-    name="statute_and_bulletin_ag",
-    model="gemini-2.5-flash",
+statute_and_bulletin_agent = LlmAgent(
+    name="statute_and_bulletin_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You are the Statute & Bulletin Agent. Retrieve municipal housing ordinances (SF Housing Code § 701, "
-        "CA Civil Code § 1942.4, CA Civil Code § 1942.5) and rental relief program bulletins. "
-        "Identify repair windows, rent-withholding eligibility, and open habitability case prerequisites. "
-        "Always call `fetch_statutes_and_bulletins`."
+        "Always call `fetch_statutes_and_bulletins` (reads `intake_facts` from session state) "
+        "to fetch municipal housing statutes and emergency rental relief program bulletins, "
+        "highlighting whether programs require an open city habitability record. "
+        "Keep your text summary to 1-2 plain sentences."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(fetch_statutes_and_bulletins)],
     output_key="policy_summary"
 )
 
-tract_displacement_ag = LlmAgent(
-    name="tract_displacement_ag",
-    model="gemini-2.5-flash",
+tract_displacement_agent = LlmAgent(
+    name="tract_displacement_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You are the Tract Displacement Context Agent. Retrieve tract-level eviction filings and rent burden "
-        "from the fan-out-safe v_tract_stability_context view. "
-        "RESPONSIBLE AI FIREWALL: You MUST NEVER query, inspect, or expose demographic audit_* columns in this case triage. "
-        "Always call `get_tract_displacement_baseline`."
+        "Always call `get_tract_displacement_baseline` (reads `intake_facts` from session state) "
+        "to retrieve the fan-out-safe 4-quarter pre-aggregated displacement baseline (`[Modeled]`) "
+        "and ACS rent burden. Strictly ensure no demographic `audit_*` columns are accessed in case triage. "
+        "Keep your text summary to 1-2 plain sentences."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(get_tract_displacement_baseline)],
     output_key="tract_summary"
@@ -117,14 +132,16 @@ corroboration_fanout_ag = ParallelAgent(
 )
 
 # --- 3. Brief Generation Agent ---
-eligibility_and_brief_ag = LlmAgent(
-    name="eligibility_and_brief_ag",
-    model="gemini-2.5-flash",
+eligibility_and_brief_agent = LlmAgent(
+    name="eligibility_and_brief_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You are the Eligibility and Brief Writer Agent. Reconcile evidence gaps between tenant statements "
-        "and public records. Match relief programs (contingent on open 311 cases), draft the 9-section "
-        "Tenant Stabilization Brief, and formulate the 6-item Attorney Review Checklist. "
-        "Always call `reconcile_gaps_and_generate_brief`."
+        "Always call `reconcile_gaps_and_generate_brief` to deterministically cross-check relief "
+        "program eligibility against open residential 311 corroboration and compile the 9-section "
+        "Tenant Stabilization Brief. Output the complete `brief_markdown` clearly, surfacing any "
+        "IMMEDIATE LIFE-SAFETY FLAG at the top and preserving 100-block, `[Modeled]` eviction, "
+        "and human-attorney review caveats."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(reconcile_gaps_and_generate_brief)],
     output_key="brief_response"
@@ -180,14 +197,16 @@ def explain_excluded_evidence(
     }
 
 
-evidence_explainer_ag = LlmAgent(
-    name="evidence_explainer_ag",
-    model="gemini-2.5-flash",
+evidence_explainer_agent = LlmAgent(
+    name="evidence_explainer_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You explain to paralegals and attorneys why specific 311 complaint candidates or planted decoys "
-        "were excluded. Explain the exact municipal rule (commercial vs. residential, abated repair, zero violation) "
-        "clearly and authoritatively without referencing decoy benchmark labels. "
-        "Call `explain_excluded_evidence` to inspect excluded candidates."
+        "You explain to paralegals and attorneys why specific 311 complaint candidates were excluded. "
+        "Call `explain_excluded_evidence` to inspect excluded candidates from the current session state "
+        "(or query BigQuery via MCP for follow-up block/tract checks) and explain the exact municipal "
+        "business rule (commercial property, closed/abated repairs, zero violations found) without "
+        "ever referencing benchmark or decoy labels."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(explain_excluded_evidence), *_optional_bq_mcp_tools()],
     output_key="exclusion_explanation"
@@ -199,14 +218,15 @@ def run_equity_audit_query(metro: str = "San Francisco") -> Dict[str, Any]:
     return run_metro_equity_audit(metro)
 
 
-equity_audit_ag = LlmAgent(
-    name="equity_audit_ag",
-    model="gemini-2.5-flash",
+equity_audit_agent = LlmAgent(
+    name="equity_audit_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You are the isolated Responsible AI & Metro Equity Audit Agent. You analyze silent distress candidates "
-        "and demographic reporting rates in aggregate across census tracts. "
-        "FIREWALL: You NEVER evaluate, score, or prioritize individual tenants based on race, ethnicity, or demographics. "
-        "Call `run_equity_audit_query` to view demographic and reporting distributions."
+        "You perform post-output Responsible AI and Equity Audits at the metro level. "
+        "Call `run_equity_audit_query` (and BigQuery MCP if deeper aggregate SQL slicing is requested) "
+        "to analyze silent-distress tracts (`severe_rent_burden >= 20%` with `<= 1` open 311) and "
+        "demographic shares in aggregate. You NEVER evaluate or score individual tenants by demographics."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(run_equity_audit_query), *_optional_bq_mcp_tools()],
     output_key="metro_equity_audit"
@@ -225,41 +245,64 @@ def draft_311_complaint(
         intake = tool_context.state.get("intake_facts")
         if isinstance(intake, dict):
             resolved_block = str(intake.get("block_address_hint") or "")
-    out = draft_311_inspection_request(hazard_description, resolved_block, priority)
-    out["hazard_summary"] = hazard_description
-    out["priority_level"] = priority
-    return out
+    return {
+        "agency": "San Francisco Department of Building Inspection (DBI)",
+        "complaint_type": "Habitability / Urgent Inspection Request",
+        "block_address": resolved_block,
+        "hazard_summary": hazard_description,
+        "priority_level": "High - Immediate Life Safety",
+        "filing_instructions": (
+            "File online via SF311 or call 311. Request immediate DBI inspector site visit. "
+            "Keep the 311 service request number to unlock habitability-contingent relief funds, "
+            "and screen immediately for general stabilization funds (which do not require an open 311 case) "
+            "while the inspection is pending."
+        )
+    }
 
 
-hazard_311_drafter_ag = LlmAgent(
-    name="hazard_311_drafter_ag",
-    model="gemini-2.5-flash",
+hazard_311_drafter_agent = LlmAgent(
+    name="hazard_311_drafter_agent",
+    model=WORKER_MODEL,
     instruction=(
-        "You draft formal San Francisco Department of Building Inspection (DBI) emergency complaint filings "
-        "when zero public 311 records exist on a block. You help establish an official city record to unlock "
-        "habitability-contingent relief grants and statutory defenses. "
-        "Call `draft_311_complaint` to generate the formal DBI inspection filing."
+        "You assist tenants and paralegals when zero 311 complaints exist on their block. "
+        "Call `draft_311_complaint` to prepare a formal municipal 311 / DBI inspection request so "
+        "the tenant can establish an official city record (unlocking habitability-contingent funds) "
+        "while immediately applying to general stabilization grants that do not require an open 311 case."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(draft_311_complaint)],
     output_key="drafted_311_request"
 )
 
-# --- Root Coordinator Agent ---
-shelterwise_navigator_ag = LlmAgent(
-    name="shelterwise_navigator_ag",
-    model=os.environ.get("SHELTERWISE_COORDINATOR_MODEL", "gemini-2.5-pro"),
+# --- Root Coordinator ---
+shelterwise_navigator = LlmAgent(
+    name="shelterwise_navigator",
+    model=COORDINATOR_MODEL,
     instruction=(
-        "You are the ShelterWise Navigator Root Coordinator for housing crisis triage in San Francisco. "
-        "You guide legal-aid paralegals and housing counselors through intake and case analysis. "
-        "For immediate physical danger (water dripping near fuse/breaker panel, gas leak, active fire, raw sewage), "
-        "always surface emergency life-safety warnings prominently at the top. "
-        "For new crisis intakes, execute 'case_triage_pipeline_ag'. "
-        "For follow-up questions explaining why evidence was excluded, invoke 'evidence_explainer_ag'. "
-        "For questions on metro equity, reporting bias, and silent distress, invoke 'equity_audit_ag'. "
-        "For unrecorded hazards needing a new city filing, invoke 'hazard_311_drafter_ag'. "
-        "For court logistics or transit feasibility, use 'estimate_courthouse_transit'. "
-        "For case task claiming and concurrency locks, use 'claim_or_update_case_task'. "
-        "For ad-hoc database inquiries, use 'query_bigquery_mcp'."
+        "You are ShelterWise, an AI housing crisis stabilization and eviction-prevention assistant "
+        "built for legal-aid paralegals, housing counselors, and tenants in San Francisco.\n\n"
+        "USER-FACING CAPABILITIES (describe these in clear, supportive housing-clinic language when "
+        "asked what you can do or how you help):\n"
+        "1. Immediate Life-Safety Triage: Flag urgent physical hazards (water near fuse/breaker panels, "
+        "gas leaks, active fire, raw sewage) with immediate emergency guidance.\n"
+        "2. Habitability Evidence Corroboration: Search San Francisco 311 & DBI complaints at the "
+        "100-block level, verifying active residential violations while filtering out commercial properties, "
+        "closed repairs, and zero-violation inspections.\n"
+        "3. Statutory & Relief Screening: Cross-reference tenant conditions and court/notice deadlines "
+        "against California & San Francisco tenant protections and emergency rental assistance programs, "
+        "surfacing documentation prerequisites.\n"
+        "4. Neighborhood Displacement Context: Provide Census tract rent-burden and [Modeled] eviction "
+        "filing baselines.\n"
+        "5. Follow-up & Equity Support: Explain why specific city records did not qualify as corroborating "
+        "evidence, draft formal SF 311 / DBI inspection filings for unrecorded hazards, and run aggregate "
+        "metro-level Silent Distress equity analyses.\n\n"
+        "CONFIDENTIAL INTERNAL ROUTING RULES (NEVER mention internal agent names, pipeline names, or tool "
+        "identifiers like 'case_triage_pipeline', 'evidence_explainer_agent', 'equity_audit_agent', or "
+        "'hazard_311_drafter_agent' to the user — delegate silently):\n"
+        "- New tenant crisis intakes or updated case facts -> delegate to `case_triage_pipeline`.\n"
+        "- Follow-up questions about why 311 records were excluded -> delegate to `evidence_explainer_agent`.\n"
+        "- Aggregate metro-level equity / Silent Distress reporting bias questions -> delegate to `equity_audit_agent`.\n"
+        "- Requests to file or draft a new 311 / DBI habitability complaint -> delegate to `hazard_311_drafter_agent`."
     ),
     sub_agents=[
         case_triage_pipeline_ag,
