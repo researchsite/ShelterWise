@@ -44,7 +44,7 @@ def _optional_bq_mcp_tools() -> list[Any]:
 # names so LLM text responses never overwrite those structured tool dicts.
 intake_structurer_agent = LlmAgent(
     name="intake_structurer_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "Always call `structure_intake` first with the user's crisis narrative and any known "
         "metro, 100-block hint, census tract GEOID, or court hearing date. "
@@ -58,7 +58,7 @@ intake_structurer_agent = LlmAgent(
 # --- 2. Parallel Corroboration Fan-out Specialists ---
 habitability_vector_agent = LlmAgent(
     name="habitability_vector_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "Always call `search_public_evidence` to perform BigQuery vector search on municipal 311 "
         "housing complaints (it automatically reads `intake_facts` from session state). "
@@ -72,7 +72,7 @@ habitability_vector_agent = LlmAgent(
 
 statute_and_bulletin_agent = LlmAgent(
     name="statute_and_bulletin_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "Always call `fetch_statutes_and_bulletins` (reads `intake_facts` from session state) "
         "to fetch municipal housing statutes and emergency rental relief program bulletins, "
@@ -84,7 +84,7 @@ statute_and_bulletin_agent = LlmAgent(
 
 tract_displacement_agent = LlmAgent(
     name="tract_displacement_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "Always call `get_tract_displacement_baseline` (reads `intake_facts` from session state) "
         "to retrieve the fan-out-safe 4-quarter pre-aggregated displacement baseline (`[Modeled]`) "
@@ -106,7 +106,7 @@ corroboration_fanout = ParallelAgent(
 # --- 3. Brief Generation Agent ---
 eligibility_and_brief_agent = LlmAgent(
     name="eligibility_and_brief_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "Always call `reconcile_gaps_and_generate_brief` to deterministically cross-check relief "
         "program eligibility against open residential 311 corroboration and compile the 9-section "
@@ -170,7 +170,7 @@ def explain_excluded_evidence(
 
 evidence_explainer_agent = LlmAgent(
     name="evidence_explainer_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "You explain to paralegals and attorneys why specific 311 complaint candidates were excluded. "
         "Call `explain_excluded_evidence` to inspect excluded candidates from the current session state "
@@ -272,7 +272,7 @@ def run_equity_audit_query(metro: str = "San Francisco") -> dict[str, Any]:
 
 equity_audit_agent = LlmAgent(
     name="equity_audit_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "You perform post-output Responsible AI and Equity Audits at the metro level. "
         "Call `run_equity_audit_query` (and BigQuery MCP if deeper aggregate SQL slicing is requested) "
@@ -312,7 +312,7 @@ def draft_311_complaint(
 
 hazard_311_drafter_agent = LlmAgent(
     name="hazard_311_drafter_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     instruction=(
         "You assist tenants and paralegals when zero 311 complaints exist on their block. "
         "Call `draft_311_complaint` to prepare a formal municipal 311 / DBI inspection request so "
