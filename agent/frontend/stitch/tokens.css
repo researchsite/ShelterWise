@@ -1,0 +1,116 @@
+/* ==========================================================================
+   Google Stitch Design System: Design Tokens (tokens.css)
+   Project: ShelterWise — Housing Stability & Habitability Defense Navigator
+   Philosophy: Civic Warmth & Judicial Rigor
+   ========================================================================== */
+
+:root {
+  /* --- Brand & Intent (Google Civic Identity) --- */
+  --stitch-brand-primary: #1A73E8;          /* Google Trust Blue */
+  --stitch-brand-hover: #1557B0;            /* Darkened Blue on Hover */
+  --stitch-brand-navy: #0F172A;             /* Slate 900 / Deep Courtroom Navy */
+  --stitch-brand-soft: #E8F0FE;             /* Subtle Ice Blue Surface Tint */
+  --stitch-brand-border: #BFDBFE;           /* Soft Blue Boundary Line */
+  --stitch-brand-ring: rgba(26, 115, 232, 0.25);
+
+  /* --- Emotional & Statutory Statuses --- */
+  --stitch-relief-green: #188038;           /* Financial Relief & Verified Proof */
+  --stitch-relief-hover: #137333;           /* Darker Forest Green */
+  --stitch-relief-soft: #E6F4EA;            /* Soft Relief Tint */
+  --stitch-relief-border: #A8DAB5;          /* Green Outline */
+  
+  --stitch-alert-crimson: #D93025;          /* Acute Life-Safety Hazard Alert */
+  --stitch-alert-hover: #C5221F;            /* Deep Crimson */
+  --stitch-alert-soft: #FCE8E6;             /* Hazard Background */
+  --stitch-alert-border: #F6AEA9;           /* Danger Boundary */
+  
+  --stitch-clock-amber: #F29900;            /* 35-Day Statutory Repair Window */
+  --stitch-clock-hover: #E37400;            /* Dark Amber */
+  --stitch-clock-soft: #FEF7E0;             /* Statutory Warning Background */
+  --stitch-clock-border: #FEEFC3;           /* Amber Boundary */
+  
+  --stitch-trust-purple: #7C3AED;           /* AI Insights, Verification & MCP */
+  --stitch-trust-soft: #F3E8FD;             /* Purple Ambient Tint */
+  --stitch-trust-border: #D7AEFB;           /* Purple Outline */
+
+  /* --- Neutral Surfaces & Inks --- */
+  --stitch-surface-ground: #F8FAFC;         /* Soft Civic Canvas Slate 50 */
+  --stitch-surface-card: #FFFFFF;           /* Card Elevated Surface */
+  --stitch-surface-subtle: #F1F5F9;         /* Field & Code Background Slate 100 */
+  --stitch-surface-overlay: rgba(15, 23, 42, 0.6);
+
+  --stitch-ink-primary: #0F172A;            /* High-Contrast Readability Slate 900 */
+  --stitch-ink-secondary: #334155;          /* Body & Explanation Slate 700 */
+  --stitch-ink-muted: #64748B;              /* Metadata & Captions Slate 500 */
+  --stitch-ink-inverse: #FFFFFF;            /* Text on Dark Surfaces */
+
+  --stitch-border-line: #E2E8F0;            /* Divider & Border Slate 200 */
+  --stitch-border-strong: #CBD5E1;          /* Card Focus Border Slate 300 */
+
+  /* --- Layered Elevation & Shadows --- */
+  --stitch-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --stitch-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --stitch-shadow-card: 0 4px 14px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --stitch-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --stitch-shadow-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.2), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+
+  /* --- Geometry & Radii --- */
+  --stitch-radius-xs: 4px;
+  --stitch-radius-sm: 8px;
+  --stitch-radius-md: 12px;
+  --stitch-radius-lg: 18px;
+  --stitch-radius-xl: 24px;
+  --stitch-radius-pill: 999px;
+
+  /* --- Typography Scale (Google Sans / Plus Jakarta Sans) --- */
+  --stitch-font-sans: 'Plus Jakarta Sans', 'Google Sans', system-ui, -apple-system, sans-serif;
+  --stitch-font-mono: 'JetBrains Mono', 'Roboto Mono', monospace;
+
+  /* --- Transitions --- */
+  --stitch-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --stitch-transition-norm: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --stitch-transition-spring: 350ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ==========================================================================
+   Trauma-Informed Distress Mode
+   High-contrast, zero-distraction theme for tenants under imminent eviction
+   ========================================================================== */
+body.distress-mode {
+  --stitch-surface-ground: #000000;
+  --stitch-surface-card: #111111;
+  --stitch-surface-subtle: #1C1C1C;
+  --stitch-border-line: #333333;
+  --stitch-border-strong: #666666;
+  
+  --stitch-ink-primary: #FFFFFF;
+  --stitch-ink-secondary: #E5E7EB;
+  --stitch-ink-muted: #9CA3AF;
+
+  --stitch-brand-primary: #8AB4F8;
+  --stitch-brand-soft: #172554;
+  --stitch-brand-border: #1E3A8A;
+
+  --stitch-relief-green: #81C995;
+  --stitch-relief-soft: #064E3B;
+  --stitch-relief-border: #065F46;
+
+  --stitch-alert-crimson: #F28B82;
+  --stitch-alert-soft: #450A0A;
+  --stitch-alert-border: #7F1D1D;
+
+  --stitch-clock-amber: #FDD663;
+  --stitch-clock-soft: #451A03;
+  --stitch-clock-border: #78350F;
+
+  --stitch-shadow-card: 0 0 0 1px #333333;
+  --stitch-shadow-hover: 0 0 0 2px #8AB4F8;
+
+  font-size: 16.5px;
+  line-height: 1.7;
+}
+
+body.distress-mode * {
+  animation-duration: 0.001s !important;
+  transition-duration: 0.001s !important;
+}

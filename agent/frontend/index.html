@@ -10,6 +10,11 @@
 <!-- Leaflet Map CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- Google Stitch Design System -->
+<link rel="stylesheet" href="/stitch/tokens.css">
+<link rel="stylesheet" href="/stitch/components.css">
+<script src="/stitch/components.js"></script>
 <style>
 :root{
   --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
@@ -184,15 +189,27 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
 </head>
 <body>
 
+<!-- DISTRESS MODE BANNER (TRAUMA-INFORMED) -->
+<div id="stitch-distress-banner" class="stitch-distress-banner" style="display:none">
+  <div>
+    <span>🚨 <strong>URGENT EVICTION COURT HEARING WITHIN 48 HOURS?</strong> Free San Francisco tenant legal representation is waiting right now.</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="tel:4155553842" class="stitch-distress-call-btn">📞 Call EDC: (415) 555-EVIC</a>
+    <button class="btn ghost sm" style="color:#fff;border-color:rgba(255,255,255,0.4)" onclick="StitchComponents.toggleDistressMode()">✕ Close</button>
+  </div>
+</div>
+
 <header>
   <div class="brand-lockup">
-    <div class="brand-icon">🏠</div>
+    <div class="brand-icon">🏛️</div>
     <div>
       <h1>ShelterWise <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);vertical-align:middle;margin-left:6px">SAN FRANCISCO</span></h1>
       <div class="tagline">Tenant Protection, City Evidence Search &amp; Eviction Defense Navigator</div>
     </div>
   </div>
   <div class="header-actions">
+    <button id="distress-toggle-btn" class="btn sm" style="background:var(--bad);color:#fff" onclick="StitchComponents.toggleDistressMode()">🚨 Distress Mode</button>
     <div class="lang-select">
       <button class="lang-btn on" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('es')">ES</button>
@@ -212,9 +229,10 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
 
 <nav class="nav-tabs" id="tabs">
   <button data-v="demo" class="on">🏠 Protect My Home</button>
-  <button data-v="arch">⚙️ Behind The Scenes (Google ADK *_ag)</button>
-  <button data-v="data">📊 City Inspection Data (BigQuery)</button>
-  <button data-v="rules">⚖️ Tenant Rights &amp; Defense Rules</button>
+  <button data-v="map">🗺️ City Inspection Map</button>
+  <button data-v="arch">🤖 Agent Studio (Google ADK *_ag)</button>
+  <button data-v="rules">⚖️ Tenant Rights Codex</button>
+  <button data-v="court">📑 Court Brief Export</button>
 </nav>
 
 <main>
@@ -244,7 +262,25 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
   </div>
 </section>
 
-<!-- VIEW 2: ARCHITECTURE -->
+<!-- VIEW 2: DEDICATED GIS MAP EXPLORER -->
+<section class="view" id="v-map">
+  <div class="card">
+    <h2>San Francisco Citywide Housing Inspection Map (BigQuery GIS Vector Buffer)</h2>
+    <p class="sub">Visualizing municipal code citations within the 400-meter statutory evidentiary radius, with transit routes to San Francisco Superior Court.</p>
+    <div id="leaflet-map-full" style="height:500px;width:100%;border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow-sm);margin:14px 0"></div>
+    <div class="map-legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#2563eb"></span> Tenant Residence (100-Block Coarsened)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#059669"></span> Verified 311 Corroboration (SF-202665182 · 12m away)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#dc2626"></span> Excluded False Leads / Decoys (Commercial / Abated)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#7c3aed"></span> SF Superior Courthouse (400 McAllister St)</div>
+    </div>
+    <div class="note info" style="margin-top:16px">
+      <b>How the Map Works in Plain English:</b> When you enter your address, ShelterWise searches City Hall inspection records within 400 meters (about 2 city blocks) of your front door. It highlights official inspection citations confirming problems on your block, and maps the direct MUNI bus route to the courthouse so you arrive before morning roll call.
+    </div>
+  </div>
+</section>
+
+<!-- VIEW 3: ARCHITECTURE & PLAIN-ENGLISH TECH GUIDE -->
 <section class="view" id="v-arch">
   <div class="card">
     <h2>Multi-Agent Architecture (Google Agent Development Kit)</h2>
@@ -254,6 +290,7 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
       <div id="archdetail" class="card" style="margin:0;position:sticky;top:80px"></div>
     </div>
   </div>
+
   <div class="card">
     <h2>Dual Data Layer: BigQuery Vector Search + Cloud Firestore</h2>
     <div class="two">
@@ -267,21 +304,66 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
       </div>
     </div>
   </div>
-</section>
 
-<!-- VIEW 3: DATASETS -->
-<section class="view" id="v-data">
   <div class="card">
-    <h2>BigQuery Dataset <span class="mono">a4i_housing</span> (US Location)</h2>
-    <p class="sub">Explore the 6 tables powering semantic vector search, affirmative defense statutes, and relief programs.</p>
-    <div class="grid3" id="tblgrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px"></div>
+    <h2>📖 How the Technology Works (In Plain Everyday English)</h2>
+    <div class="two">
+      <div class="cand acc">
+        <div class="h"><b>1. The City Hall Record Matcher</b> <span class="pill p-info">BigQuery Vector Search</span></div>
+        <p>Just like an experienced researcher, it doesn't just match keywords—it understands the <em>meaning</em> of your story. Even if you say "freezing rooms" and the city inspector wrote "heating boiler inoperative," it finds the official citation on your street in 2 seconds.</p>
+      </div>
+      <div class="cand rej">
+        <div class="h"><b>2. The False Lead Filter</b> <span class="pill p-bad">Decoy Rejection Engine</span></div>
+        <p>Sometimes nearby records are false leads—like a coffee shop down the street with a leaky pipe, or an old repair finished two years ago. The system weeds these out automatically so you only bring valid residential proof to the judge.</p>
+      </div>
+      <div class="cand cond">
+        <div class="h"><b>3. Your AI Legal Support Team</b> <span class="pill p-purple">Google ADK Pipeline</span></div>
+        <p>Instead of a single chatbot, you have a coordinated legal defense team: Intake Paralegal, City Records Specialist, Housing Code Attorney, Neighborhood Analyst, and Court Brief Drafter.</p>
+      </div>
+      <div class="cand acc">
+        <div class="h"><b>4. The Collaborator Shield</b> <span class="pill p-ok">Firestore Transactional Lock</span></div>
+        <p>If a tenant and their legal aid attorney are reviewing the case at the same time, this shield ensures they don't accidentally overwrite or erase each other's notes.</p>
+      </div>
+      <div class="cand acc">
+        <div class="h"><b>5. The Fairness Firewall</b> <span class="pill p-warn">Responsible AI Sandbox</span></div>
+        <p>Personal demographic details (race, age, language) are strictly locked away behind a firewall. They are NEVER used to judge your individual case, but only help the city check which neighborhoods need more funding.</p>
+      </div>
+      <div class="cand cond">
+        <div class="h"><b>6. The Landlord Repair Deadline</b> <span class="pill p-info">Cal. Civ. Code § 1942.4</span></div>
+        <p>If your landlord was told by the city to fix serious housing problems and failed to do so within 35 days, California law bars them from demanding rent or evicting you.</p>
+      </div>
+    </div>
   </div>
-  <div class="card" id="tbldetail"></div>
 </section>
 
-<!-- VIEW 4: RULES -->
+<!-- VIEW 4: TENANT RIGHTS CODEX -->
 <section class="view" id="v-rules">
   <div class="two">
+    <div class="card">
+      <h2>Tenant Rights Codex (California &amp; San Francisco Housing Laws)</h2>
+      <p class="sub">Plain-English legal defenses you can assert against an eviction lawsuit in California Superior Court.</p>
+      
+      <div class="cand acc" style="margin-bottom:12px">
+        <div class="h"><b>California Civil Code § 1941.1 (Habitability Guarantee)</b> <span class="pill p-ok">Mandatory Law</span></div>
+        <p>Every landlord in California has a non-waivable legal duty to provide weather-tight walls, effective waterproofing, plumbing, gas, heating facilities maintained in good working order, and clean premises free from vermin.</p>
+      </div>
+
+      <div class="cand cond" style="margin-bottom:12px">
+        <div class="h"><b>California Civil Code § 1942.4 (The 35-Day Repair Deadline)</b> <span class="pill p-warn">Rent Demand Bar</span></div>
+        <p>If an official housing inspector cites the property for serious defects, and 35 days pass without repair, the landlord is <strong>legally barred</strong> from serving an eviction notice or demanding rent for that time period.</p>
+      </div>
+
+      <div class="cand acc" style="margin-bottom:12px">
+        <div class="h"><b>California Civil Code § 1942.5 (Protection from Landlord Retaliation)</b> <span class="pill p-purple">180-Day Shield</span></div>
+        <p>A landlord cannot evict you, increase your rent, or decrease services within 180 days of you making a complaint to the city building department or exercising your legal tenant rights.</p>
+      </div>
+
+      <div class="cand acc">
+        <div class="h"><b>San Francisco Proposition F (Universal Right to Counsel)</b> <span class="pill p-info">City Funded</span></div>
+        <p>All residential tenants in San Francisco facing an eviction lawsuit are entitled to free, city-funded legal representation in court through the Eviction Defense Collaborative.</p>
+      </div>
+    </div>
+
     <div class="card">
       <h2>The 8 Grounded Rules (All Tested in Code)</h2>
       <ol style="padding-left:20px;line-height:1.7">
@@ -294,9 +376,7 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
         <li><b>11-Digit Text GEOIDs:</b> Preserves leading zeros (<code>06075...</code>) in census tract identifiers.</li>
         <li><b>Demographic Firewall:</b> <code>audit_*</code> columns are strictly isolated from individual case triage.</li>
       </ol>
-    </div>
-    <div class="card">
-      <h2>Ethical AI Guardrails &amp; Human-in-the-Loop</h2>
+      <h3>Ethical AI Guardrails &amp; Human-in-the-Loop</h3>
       <ul style="padding-left:20px;line-height:1.7">
         <li><b>Grounding Before Answer:</b> Every external claim cites BigQuery provenance or is labeled <code>[Tenant-Reported]</code>.</li>
         <li><b>Absence ≠ Proof:</b> The absence of a 311 record never implies conditions are safe.</li>
@@ -304,6 +384,65 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
         <li><b>Mandatory Attorney Review:</b> A 7-item checklist must be signed off by counsel before filing court motions.</li>
         <li><b>Strict Data Privacy:</b> Tenant intake sandboxed; protected demographic traits are never used to score tenants.</li>
       </ul>
+    </div>
+  </div>
+</section>
+
+<!-- VIEW 5: COURT BRIEF EXPORT (CALIFORNIA PLEADING PAPER) -->
+<section class="view" id="v-court">
+  <div class="card" style="max-width:960px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="margin:0">California Superior Court Pleading Paper Export</h2>
+        <span class="sub">28-line legal pleading paper format for direct court filing in San Francisco County</span>
+      </div>
+      <div class="btns" style="margin:0">
+        <button class="btn" onclick="window.print()">🖨️ Print / Save Pleading PDF</button>
+        <button class="btn ghost" onclick="copyBriefText()">📋 Copy Plain Text</button>
+      </div>
+    </div>
+
+    <!-- 28-Line California Pleading Paper -->
+    <div style="background:#fff;color:#000;border:1px solid #d1d5db;box-shadow:var(--shadow-lg);padding:40px 50px 50px 70px;position:relative;font-family:'Times New Roman',Times,serif;font-size:15px;line-height:28px;max-width:900px;margin:20px auto">
+      <div style="position:absolute;top:0;bottom:0;left:55px;width:2px;background:#dc2626"></div>
+      <div style="position:absolute;top:40px;left:24px;width:24px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:28px;color:#6b7280;text-align:right;user-select:none">
+        1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28
+      </div>
+      <div>
+        <div style="text-align:left;font-weight:bold;margin-bottom:18px;">
+          EVICTION DEFENSE COLLABORATIVE / PROP F COUNSEL<br>
+          1338 Mission Street, 4th Floor<br>
+          San Francisco, California 94103<br>
+          Telephone: (415) 555-EVIC<br>
+          Attorneys for Defendant / Tenant
+        </div>
+        <div style="text-align:center;font-weight:bold;margin:24px 0;">
+          SUPERIOR COURT OF THE STATE OF CALIFORNIA<br>
+          COUNTY OF SAN FRANCISCO – LIMITED JURISDICTION
+        </div>
+        <table style="width:100%;border:none;margin-bottom:20px;">
+          <tr style="border:none">
+            <td style="width:55%;border:none;vertical-align:top;">
+              LANDLORD / PLAINTIFF,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;v.<br>
+              TENANT / DEFENDANT.<br>
+              _____________________________________/
+            </td>
+            <td style="width:45%;border:none;border-left:1px solid #000;padding-left:16px;vertical-align:top;">
+              Case No.: <span id="court-case-num">SF-2026-UD-08492</span><br>
+              <strong>DEFENDANT'S VERIFIED ANSWER &amp; AFFIRMATIVE DEFENSES TO UNLAWFUL DETAINER</strong><br>
+              (Cal. Civ. Code §§ 1941.1, 1942.4, 1942.5;<br>
+              SF Housing Code § 701; Prop F)
+            </td>
+          </tr>
+        </table>
+        <div id="court-brief-content" style="line-height:28px;">
+          <p><strong>1. DEFENDANT'S AFFIRMATIVE DEFENSES:</strong> Defendant alleges that Plaintiff landlord failed to maintain the subject dwelling unit at <span class="court-address">1000 Block Fillmore St, San Francisco, CA</span> in a habitable condition, in direct violation of California Civil Code § 1941.1 and San Francisco Housing Code § 701.</p>
+          <p><strong>2. OFFICIAL MUNICIPAL CITATIONS:</strong> On November 3, 2026, the San Francisco Department of Building Inspection issued official Notice of Violation <strong>SF-202665182</strong> documenting inoperative heating facilities and freezing indoor dwelling temperatures (52°F). Said violation remains open and unabated.</p>
+          <p><strong>3. STATUTORY RENT DEMAND BAR:</strong> Under California Civil Code § 1942.4, Plaintiff is barred from demanding rent or collecting rent arrears due to unabated substantial code violations persisting beyond statutory notice periods.</p>
+          <p><strong>4. EMERGENCY RELIEF OFFSET:</strong> Defendant has been approved for emergency rental assistance under SF ERAP and MEDA in the sum of $4,200.00, fully satisfying any alleged past-due rental obligations.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -617,6 +756,12 @@ function reliefTable(){
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
+  if(b.dataset.v === 'map'){
+    setTimeout(initFullLeafletMap, 80);
+  }
+  if(b.dataset.v === 'court'){
+    updateCourtBrief();
+  }
 });
 
 /* =================== 10 GUIDED STEPS =================== */
@@ -755,6 +900,9 @@ const V=[
  
  <h3>Interactive Google Maps &amp; Evidentiary Buffer (San Francisco)</h3>
  <div id="leaflet-map"></div>
+  <div style="margin:14px 0">
+    ${window.StitchComponents ? window.StitchComponents.renderProximityRadar(12, 22) : ""}
+  </div>
  <div class="map-legend">
    <div class="legend-item"><span class="legend-dot" style="background:#2563eb"></span> ${esc(STATE_INTAKE.address_text)} (Tenant)</div>
    <div class="legend-item"><span class="legend-dot" style="background:#059669"></span> SF-202665182 (Corroborating 311 · 12m away)</div>
