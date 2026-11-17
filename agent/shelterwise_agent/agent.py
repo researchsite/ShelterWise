@@ -62,7 +62,7 @@ def _optional_bq_mcp_tools() -> list[Any]:
 # and state['stabilization_brief']. Agent output_keys use distinct *_summary
 # names so LLM text responses never overwrite those structured tool dicts.
 intake_structurer_agent = LlmAgent(
-    name="intake_structurer_agent",
+    name="intake_structurer_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `structure_intake` first with the user's crisis narrative and any known "
@@ -78,7 +78,7 @@ intake_structurer_agent = LlmAgent(
 
 # --- 2. Parallel Corroboration Fan-out Specialists ---
 habitability_vector_agent = LlmAgent(
-    name="habitability_vector_agent",
+    name="habitability_vector_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `search_public_evidence` to perform BigQuery vector search on municipal 311 "
@@ -94,7 +94,7 @@ habitability_vector_agent = LlmAgent(
 )
 
 statute_and_bulletin_agent = LlmAgent(
-    name="statute_and_bulletin_agent",
+    name="statute_and_bulletin_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `fetch_statutes_and_bulletins` (reads `intake_facts` from session state) "
@@ -108,7 +108,7 @@ statute_and_bulletin_agent = LlmAgent(
 )
 
 tract_displacement_agent = LlmAgent(
-    name="tract_displacement_agent",
+    name="tract_displacement_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `get_tract_displacement_baseline` (reads `intake_facts` from session state) "
@@ -125,15 +125,15 @@ tract_displacement_agent = LlmAgent(
 corroboration_fanout_ag = ParallelAgent(
     name="corroboration_fanout_ag",
     sub_agents=[
-        habitability_vector_ag,
-        statute_and_bulletin_ag,
-        tract_displacement_ag
+        habitability_vector_agent,
+        statute_and_bulletin_agent,
+        tract_displacement_agent
     ]
 )
 
 # --- 3. Brief Generation Agent ---
 eligibility_and_brief_agent = LlmAgent(
-    name="eligibility_and_brief_agent",
+    name="eligibility_and_brief_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `reconcile_gaps_and_generate_brief` to deterministically cross-check relief "
@@ -151,9 +151,9 @@ eligibility_and_brief_agent = LlmAgent(
 case_triage_pipeline_ag = SequentialAgent(
     name="case_triage_pipeline_ag",
     sub_agents=[
-        intake_structurer_ag,
+        intake_structurer_agent,
         corroboration_fanout_ag,
-        eligibility_and_brief_ag
+        eligibility_and_brief_agent
     ]
 )
 
@@ -198,7 +198,7 @@ def explain_excluded_evidence(
 
 
 evidence_explainer_agent = LlmAgent(
-    name="evidence_explainer_agent",
+    name="evidence_explainer_ag",
     model=WORKER_MODEL,
     instruction=(
         "You explain to paralegals and attorneys why specific 311 complaint candidates were excluded. "
@@ -219,7 +219,7 @@ def run_equity_audit_query(metro: str = "San Francisco") -> Dict[str, Any]:
 
 
 equity_audit_agent = LlmAgent(
-    name="equity_audit_agent",
+    name="equity_audit_ag",
     model=WORKER_MODEL,
     instruction=(
         "You perform post-output Responsible AI and Equity Audits at the metro level. "
@@ -261,7 +261,7 @@ def draft_311_complaint(
 
 
 hazard_311_drafter_agent = LlmAgent(
-    name="hazard_311_drafter_agent",
+    name="hazard_311_drafter_ag",
     model=WORKER_MODEL,
     instruction=(
         "You assist tenants and paralegals when zero 311 complaints exist on their block. "
@@ -276,7 +276,7 @@ hazard_311_drafter_agent = LlmAgent(
 
 # --- Root Coordinator ---
 shelterwise_navigator = LlmAgent(
-    name="shelterwise_navigator",
+    name="shelterwise_navigator_ag",
     model=COORDINATOR_MODEL,
     instruction=(
         "You are ShelterWise, an AI housing crisis stabilization and eviction-prevention assistant "
@@ -306,9 +306,9 @@ shelterwise_navigator = LlmAgent(
     ),
     sub_agents=[
         case_triage_pipeline_ag,
-        evidence_explainer_ag,
-        equity_audit_ag,
-        hazard_311_drafter_ag
+        evidence_explainer_agent,
+        equity_audit_agent,
+        hazard_311_drafter_agent
     ],
     tools=[
         FunctionTool(estimate_courthouse_transit),
@@ -317,7 +317,7 @@ shelterwise_navigator = LlmAgent(
     ]
 )
 
-root_agent = shelterwise_navigator_ag
+root_agent = shelterwise_navigator
 
 # ==============================================================================
 # Pipeline Execution & Conversational Router
@@ -528,17 +528,18 @@ def handle_chat_message(
 # ==============================================================================
 
 # Backward-compatibility aliases
-shelterwise_navigator = shelterwise_navigator_ag
+shelterwise_navigator_ag = shelterwise_navigator
 case_triage_pipeline = case_triage_pipeline_ag
-intake_structurer_agent = intake_structurer_ag
+intake_structurer_ag = intake_structurer_agent
 corroboration_fanout = corroboration_fanout_ag
-habitability_vector_agent = habitability_vector_ag
-statute_and_bulletin_agent = statute_and_bulletin_ag
-tract_displacement_agent = tract_displacement_ag
-eligibility_and_brief_agent = eligibility_and_brief_ag
-evidence_explainer_agent = evidence_explainer_ag
-equity_audit_agent = equity_audit_ag
-hazard_311_drafter_agent = hazard_311_drafter_ag
+corroboration_fanout_agent = corroboration_fanout_ag
+habitability_vector_ag = habitability_vector_agent
+statute_and_bulletin_ag = statute_and_bulletin_agent
+tract_displacement_ag = tract_displacement_agent
+eligibility_and_brief_ag = eligibility_and_brief_agent
+evidence_explainer_ag = evidence_explainer_agent
+equity_audit_ag = equity_audit_agent
+hazard_311_drafter_ag = hazard_311_drafter_agent
 
 # In-Memory Session Singleton & Runner Factory
 APP_NAME = "shelterwise"
