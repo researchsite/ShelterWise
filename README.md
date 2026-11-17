@@ -16,8 +16,31 @@
 | Resource | URL | Status |
 | :--- | :--- | :--- |
 | **Interactive Case Workspace UI** | [https://shelterwise-335751565476.us-central1.run.app](https://shelterwise-335751565476.us-central1.run.app) | 🟢 Live & Serving |
+| **Civic Tech Infographic Asset** | [https://shelterwise-335751565476.us-central1.run.app/hero.png](https://shelterwise-335751565476.us-central1.run.app/hero.png) | 🟢 Live Asset |
 | **Backend API Health Check** | [https://shelterwise-335751565476.us-central1.run.app/api/health](https://shelterwise-335751565476.us-central1.run.app/api/health) | 🟢 Healthy |
 | **Interactive Swagger API Docs** | [https://shelterwise-335751565476.us-central1.run.app/docs](https://shelterwise-335751565476.us-central1.run.app/docs) | 🟢 Live |
+
+---
+
+## 🌟 Google Product Stack & Data Entry Innovations
+
+ShelterWise integrates Google's full cloud & developer ecosystem to eliminate data-entry bottlenecks for advocates and tenants:
+
+1. **Google Maps Geospatial Buffer & Courthouse Route**:
+   - Visualizes the tenant's residence, the **400-meter evidentiary radius**, the corroborating 311 citation (12m away), and rejected decoy traps across San Francisco.
+   - Traces the transit polyline to the **SF Superior Courthouse (400 McAllister St)** with live MUNI Route 31/5 transit calculations.
+2. **Google reCAPTCHA Enterprise Shield**:
+   - Integrated bot and abuse prevention protecting the public legal aid intake portal with risk score assessment (`score: 0.94`), ensuring only authentic tenant advocates generate court briefs.
+3. **Google Places Address Autocomplete**:
+   - Standardizes messy verbal tenant addresses into San Francisco 100-block coarsened format and 11-digit Census Tract GEOIDs (`06075...`).
+4. **Google Cloud Speech-to-Text Voice Dictation**:
+   - Enables low-literacy tenants or advocates conducting telephone intake to dictate statements verbally with automated acoustic transcription.
+5. **MOHCD Area Median Income (AMI) Calculator**:
+   - Dynamic 2026 San Francisco Area Median Income calculator that evaluates household size (1–4+ people) and annual earnings to assess eligibility for SF ERAP (<=80% AMI) and MEDA (<=60% AMI).
+6. **Google Cloud Storage (GCS) Evidence Dropzone**:
+   - Interactive evidence upload for photos (thermostat at 50°F, ceiling water damage) and legal PDFs (notice to landlord, 3-day notice to quit).
+7. **Multilingual Access (English / Español / 中文)**:
+   - High-priority legal warnings, life-safety gates, and court countdown timers accessible to San Francisco's diverse renter population.
 
 ---
 
