@@ -1,0 +1,11 @@
+# Python 3.11+ (MCP support needs 3.10+). Pinned for hackathon stability.
+google-adk==2.14.1
+mcp==2.3.0
+google-cloud-bigquery==3.47.0
+pydantic>=2.10,<3
+pyyaml>=6
+requests>=2.32
+# local / offline data mode and tests
+pandas>=2.2
+pyarrow>=17
+pytest>=8
