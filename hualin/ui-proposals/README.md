@@ -26,6 +26,9 @@ Everything runs on a **mock backend** with sample data; no server is needed.
 
 ## 📌 Note: proposed backend contract (DRAFT, to confirm with the team)
 
+**Full spec: [API_CONTRACT.md](API_CONTRACT.md)** (endpoints, every block's fields mapped to agent state, gaps).
+
+
 ```
 POST /api/chat  { session_id, message }
 → { reply, agent_trace:[{agent,label,ms}], blocks:[{type, ...data}], suggestions:[...] }
