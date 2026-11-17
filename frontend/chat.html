@@ -159,11 +159,11 @@
       </div>
       <p class="small" style="margin:6px 0 0;color:#065f46">Connected to Cloud Run (<code>shelterwise-backend</code>) using Gemini 2.5 Flash, BigQuery Vector Search over SF 311 housing complaints, and real-time eviction defense statutes.</p>
     </div>
-    <div class="starters">
-      <div class="starter" onclick="send(SAMPLE)"><b>📋 Thursday 3:40pm intake</b><span class="small muted">No heat, water by the fuse box, Monday 9am nonpayment hearing</span></div>
-      <div class="starter" onclick="send('Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?')"><b>🧾 No 311 on file yet</b><span class="small muted">Help document a brand-new hazard</span></div>
-      <div class="starter" onclick="send('Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?')"><b>🛡 Metro equity audit</b><span class="small muted">Aggregate only, never case-level</span></div>
-      <div class="starter" onclick="send('How severe is eviction filing pressure in tract 06075016300 compared with the rest of SF?')"><b>📊 Tract context</b><span class="small muted">Rent burden + modeled filings vs SF</span></div>
+    <div class="card" style="text-align:left;margin-top:16px;padding:12px 14px;border:1px solid #cbd5e1;background:#f8fafc">
+      <div style="font-weight:600;color:#1e293b;display:flex;align-items:center;gap:6px;font-size:13px">
+        <span>📝 Tenant Intake & Eviction Defense</span>
+      </div>
+      <p class="small" style="margin:6px 0 0;color:#475569">Enter a real tenant intake narrative below (e.g. address/block in SF, habitability conditions, landlord notices, hearing dates) or ask a legal defense question. The live ADK agent pipeline will analyze municipal 311 public records, CA/SF statutes, and rental assistance programs.</p>
     </div>
   </div>
 </div></div>
@@ -193,16 +193,9 @@
 <script src="geo_sf.js"></script>
 <script src="maps.js"></script>
 <script>
-/* ------------------------------------------------------------------
-   MOCK BACKEND: stands in for  POST /api/chat
-   request : { session_id, message }
-   response: { reply, agent_trace:[{agent,label,ms}], blocks:[{type,...}], suggestions:[...] }
-   The UI only renders blocks by `type`, so the backend decides what to show.
--------------------------------------------------------------------*/
-const SAMPLE="Mother of 2 on the 1000 block of Fillmore St. Radiators stone cold for 2 weeks, about 50 degrees inside, kid keeps getting sick. Now water is dripping near the kitchen fuse box. Behind about two months on rent. Nonpayment hearing Monday 9am. What do we have?";
-const S={own:false,inc:false,hasCase:false,locked:false};
+/* Live ADK Backend Client: communicates with POST /api/chat */
+const currentSessionId = 'SF-' + Math.floor(1000 + Math.random() * 9000);
 
-const T=(agent,label,ms)=>({agent,label,ms});
 
 /* ---------------- LIVE GEO (built from live block references & BigQuery coordinates) ----------------
    Each block may carry geo: GeoJSON FeatureCollection with properties.role and properties.ref
@@ -410,7 +403,7 @@ async function send(text){
     const apiRes = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: 'SF-1042', message: text, user: 'maria.r', is_followup: intakeComplete })
+      body: JSON.stringify({ session_id: currentSessionId, message: text, user: 'advocate', is_followup: intakeComplete })
     });
     if (apiRes.ok) {
       res = await apiRes.json();
@@ -464,7 +457,7 @@ async function send(text){
   el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply || '')}</div>
     ${renderedBlocks ? `<div class="blocks">${renderedBlocks}</div>` : ''}
     ${res.suggestions && res.suggestions.length ? `<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>` : ''}
-    <details class="json"><summary>{ } live response JSON</summary><pre class="code">${esc(JSON.stringify({session_id:'SF-1042',...res},null,2))}</pre></details>`;
+    <details class="json"><summary>{ } live response JSON</summary><pre class="code">${esc(JSON.stringify({session_id: currentSessionId, ...res},null,2))}</pre></details>`;
   el.querySelectorAll('[data-ref]').forEach(c=>{c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false))});
   busy=false;scroll();
 }
