@@ -294,13 +294,16 @@ def transit_estimate_endpoint(origin: Optional[str] = "1000 Block Fillmore St"):
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 
 # Serve Web UI
-frontend_dir = os.path.join(PROJECT_ROOT, "frontend")
+frontend_dir = os.path.join(BASE_DIR, "frontend")
+if not os.path.exists(frontend_dir):
+    frontend_dir = os.path.join(PROJECT_ROOT, "frontend")
+
 if os.path.exists(frontend_dir):
     app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 else:
     @app.get("/", response_class=HTMLResponse)
     def serve_index():
-        return "<h1>ShelterWise API Online</h1><p>Visit /docs for API documentation.</p>"
+        return f"<h1>ShelterWise API Online</h1><p>Visit /docs for API documentation.</p><p>Debug: frontend_dir={frontend_dir} not found.</p>"
 
 if __name__ == "__main__":
     import uvicorn
