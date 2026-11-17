@@ -54,6 +54,10 @@ ShelterWise integrates Google's full cloud & developer ecosystem to eliminate da
    - A prominent **`▶ 3-Min Walkthrough`** header button autonomously advances through the complete 10-step demo script with automated vector search and brief verification.
 11. **Defense Brief Export**:
    - Includes one-click **Print / Save Defense Brief PDF** and **Copy Brief to Clipboard** buttons for immediate court filing.
+12. **Consumer-Friendly & Accessible Product Design**:
+   - Built to feel like a modern, warm, consumer-grade civic product rather than an intimidating research paper or legal database.
+   - Empowering tenant messaging, intuitive top-level navigation (**🏠 Protect My Home**, **⚙️ Behind The Scenes**, **📊 City Inspection Data**, **⚖️ Tenant Rights**), and high-trust badges (🛡️ City-Verified 311 Records, ⚖️ Prop F Universal Right to Counsel, 💵 Up to $12,000 Back-Rent Grants, 🔒 100% Free & Confidential).
+   - Clear visual iconography for crisis triage (❄️ Broken Heat, ⚡ Electrical Leak, 🍄 Mold Retaliation, 🚰 Sewage Backup) with responsive, card-based layouts.
 
 ---
 
