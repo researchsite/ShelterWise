@@ -1,9 +1,9 @@
-# ShelterWise UI prototypes
+# ShelterWise Case Workspace UI
 
-Serve the folder and open `chat.html` (Google Maps needs http, not file://):
+Serve the folder and open `index.html` (or `chat.html`) over HTTP (Google Maps requires HTTP, not file://):
 
-```
-cd hualin/ui-proposals && python3 -m http.server 8000   # → http://localhost:8000/chat.html
+```bash
+cd frontend && python3 -m http.server 8000   # → http://localhost:8000/
 ```
 
 Layout: **chat on the left, Google Map on the right** (🗺 Hide map to collapse). The earlier 6-screen

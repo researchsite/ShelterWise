@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShelterWise · Chat</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  body{height:100vh;display:flex;flex-direction:column}
+  .thread{flex:1;min-height:0;overflow:auto}
+  .col{max-width:880px;margin:0 auto;padding:18px 20px 30px}
+  .msg{margin:14px 0}
+  .msg.user{display:flex;justify-content:flex-end}
+  .msg.user .bub{background:var(--brand);color:#fff;padding:10px 14px;border-radius:14px 14px 3px 14px;max-width:80%;white-space:pre-wrap}
+  .msg.bot{display:flex;gap:10px;align-items:flex-start}
+  .ava{width:30px;height:30px;border-radius:8px;background:var(--appbar);border:2px solid var(--accent);color:#fff;display:grid;place-items:center;flex:none;font-size:15px}
+  .body{flex:1;min-width:0}
+  .reply{margin:2px 0 8px}
+  .blocks{display:grid;gap:10px}
+  /* agent trace */
+  .trace{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .trace summary{cursor:pointer;list-style:none;display:inline-flex;gap:6px;align-items:center}
+  .trace summary::-webkit-details-marker{display:none}
+  .trace ol{margin:6px 0 0;padding:8px 10px 8px 28px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+  .trace li{margin:2px 0}
+  .trace li.run{color:var(--brand)} .trace li.ok::marker{color:var(--ok)}
+  .spin{width:11px;height:11px;border:2px solid var(--brand-line);border-top-color:var(--brand);border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  /* blocks */
+  .blk{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+  .blk>.hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .blk>.hd h4{margin:0;color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px;font-family:var(--font-head)}
+  .blk>.hd .sp{flex:1}
+  .facts{display:flex;flex-wrap:wrap;gap:6px}
+  .fact{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border:1px solid var(--line);border-radius:7px;background:var(--sunk);font-size:12.5px}
+  .fact .ed{border:0;background:none;color:var(--brand);cursor:pointer;font-size:12px;padding:0}
+  .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+  .kv div{background:var(--sunk);border-radius:8px;padding:8px 10px}
+  .kv .k{font-size:11px;color:var(--muted)} .kv .v{font-weight:700}
+  .rec{border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:9px 11px;margin:6px 0}
+  .rec.x{border-left-color:var(--grey-line);background:var(--sunk)}
+  .rec .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .rec .id{font:700 12.5px ui-monospace,Menlo,monospace}
+  .rec .qt{font-style:italic;color:var(--muted);font-size:13px;margin:5px 0}
+  .rule{font-size:11.5px;padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+  .rule.p{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+  .rule.f{background:var(--grey-soft);color:var(--ink);border-color:var(--grey-line);font-weight:700}
+  .cav{font-size:12px;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:5px 8px;margin-top:6px}
+  details.more>summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:13px;padding:4px 0}
+  .li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line)}
+  .li:first-of-type{border-top:0}
+  .li .s{font-size:12.5px;color:var(--muted);grid-column:1/3}
+  .clock{height:8px;background:var(--grey-soft);border-radius:4px;margin-top:6px;position:relative}
+  .clock i{position:absolute;inset:0 auto 0 0;background:var(--grey);border-radius:4px}
+  .ask{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  .ask .lbl{font-size:12px;color:var(--muted);align-self:center}
+  .mini{font-size:12px;padding:4px 9px;border-radius:99px;border:1px solid var(--brand-line);background:var(--brand-soft);color:var(--brand);cursor:pointer;font-weight:600}
+  .mini:hover{background:var(--brand-hover)}
+  .strip{margin:8px 0 12px}.strip .l{display:flex;justify-content:space-between;font-size:12.5px}
+  .strip svg{width:100%;height:34px;overflow:visible}
+  .steps{margin:0;padding-left:20px}.steps li{margin:3px 0}
+  .fence{border:2px solid var(--audit);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .fence .fh{background:var(--audit);color:#fff;font-size:12px;font-weight:700;padding:7px 12px}
+  .fence .fb{padding:12px 14px}
+  .bars .r{display:grid;grid-template-columns:170px 1fr 52px;gap:8px;align-items:center;font-size:12.5px;margin:6px 0}
+  .bars .t{height:12px;background:var(--grey-soft);border-radius:3px}.bars .t i{display:block;height:100%;background:var(--audit);border-radius:0 4px 4px 0}
+  .brief section{padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+  .brief section h5{margin:0 0 3px;font-size:13px;color:var(--brand);font-family:var(--font-head)}
+  .ck label{display:flex;gap:8px;padding:3px 0;cursor:pointer}
+  pre.code{margin:0;white-space:pre-wrap;background:var(--code-bg);color:var(--code-ink);padding:10px;border-radius:8px;font:12px/1.5 ui-monospace,Menlo,monospace}
+  .json{margin-top:6px}
+  .json summary{cursor:pointer;font-size:11.5px;color:var(--muted)}
+  .json pre{max-height:280px;overflow:auto}
+  .sugg{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  /* empty state */
+  .hero{text-align:center;padding:50px 10px 10px}
+  .hero h2{font-size:24px}
+  .starters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;text-align:left}
+  .starter{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;box-shadow:var(--shadow)}
+  .starter:hover{border-color:var(--accent)}
+  .starter b{display:block;margin-bottom:3px}
+  /* composer */
+  .composer{border-top:1px solid var(--line);background:var(--panel)}
+  .composer .col{padding:12px 20px 14px}
+  .box{display:flex;gap:8px;align-items:flex-end;border:1px solid var(--line-strong);border-radius:14px;padding:8px 8px 8px 12px;background:var(--panel)}
+  .box:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-hover)}
+  .box textarea{flex:1;border:0;outline:0;padding:6px 0;max-height:160px;min-height:24px;resize:none}
+  .box .btn{white-space:nowrap}
+  .fine{font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center}
+  .tp-btn{}
+  .tp{position:fixed;top:0;right:-460px;width:440px;height:100%;background:var(--panel);box-shadow:-10px 0 30px rgba(0,0,0,.15);transition:right .25s;z-index:40;display:flex;flex-direction:column}
+  .tp.open{right:0}
+  .tp .hd{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .tp ol{margin:0;padding:10px 16px 20px 36px;overflow:auto;flex:1}
+  .tp li{margin:0 0 10px}
+  .tp .pt{font-size:13px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:7px 9px;user-select:all;white-space:pre-wrap}
+  .tp .ex{font-size:11.5px;color:var(--muted);margin:3px 0}
+  /* --- chat + map split --- */
+  .main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,42%)}
+  .main.nomap{grid-template-columns:minmax(0,1fr)} .main.nomap .mappane{display:none}
+  .chatpane{display:flex;flex-direction:column;min-height:0;position:relative}
+  .mappane{position:relative;border-left:1px solid var(--line);background:var(--sunk);display:flex;flex-direction:column;min-height:0}
+  .maptools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);font-size:12px}
+  .maptools label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+  #map{flex:1;min-height:0}
+  .mapfail{display:grid;place-items:center;height:100%;color:var(--muted);padding:20px;text-align:center}
+  #mapkey{position:absolute;left:12px;right:12px;top:52px;z-index:5;background:var(--warn-soft);border:1px solid var(--warn-line);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:12px;box-shadow:var(--shadow)}
+  #mapkey .row{margin-top:6px} #mapkey input{flex:1;padding:5px 8px}
+  .mapfoot{padding:8px 12px;border-top:1px solid var(--line);background:var(--panel);font-size:12px}
+  #maplegend{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted)} #maplegend span{display:inline-flex;align-items:center;gap:5px}
+  .lg{display:inline-block;width:11px;height:11px;flex:none}
+  .lg.dot{border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line-strong)}
+  .lg.dia{background:#7b828c;transform:rotate(45deg);width:9px;height:9px}
+  .lg.line{height:4px;width:16px;background:var(--brand);border-radius:2px}
+  .lg.box{border:2px solid;border-radius:2px} .lg.ring{border:2px solid var(--warn);border-radius:50%}
+  .ramp{display:inline-flex;align-items:center;gap:2px}.ramp i{display:inline-block;width:14px;height:9px}
+  #routenote{color:var(--muted);margin-top:4px}
+  .maptoggle{display:flex;gap:6px;justify-content:flex-end;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .maptoggle .btn{padding:4px 10px;font-size:12.5px}
+  [data-ref]{transition:box-shadow .15s,background .15s}
+  [data-ref].maphi{box-shadow:0 0 0 2px var(--accent)}
+  [data-ref].flash{animation:flash 1.3s ease-out}
+  @keyframes flash{0%,40%{box-shadow:0 0 0 3px var(--accent);background:var(--brand-soft)}100%{box-shadow:none}}
+  .pin{border:0;background:none;cursor:pointer;font-size:13px;padding:0 2px}
+  .iw{font:13px/1.4 var(--font);color:#1d2433;max-width:260px}.iw .iws{font-size:12px;color:#5f6675;margin-top:4px}.iw .prov{font-style:italic}
+  .iw .b{font-size:10.5px;padding:1px 6px}
+  @media (max-width:980px){.main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 42vh}.mappane{border-left:0;border-top:1px solid var(--line)}}
+</style></head>
+<body>
+<div class="main" id="main"><div class="chatpane">
+<div class="maptoggle"><button class="btn tp-btn" onclick="tp.classList.toggle('open')">🧪 Test prompts</button><button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button></div>
+<div class="thread" id="thread"><div class="col" id="col">
+  <div class="hero" id="hero">
+    <h2>What's the situation?</h2>
+    <p class="muted">Describe the tenant's situation in plain words. ShelterWise checks public 311 records, CA/SF law, relief funds and neighborhood context, then gives you a reviewable brief.<br><span class="small">Don't include names, phone numbers or unit numbers.</span></p>
+    <div class="legend" style="margin-top:14px"><span class="muted">Status key:</span>
+      <span class="b crit">⚡ Life-safety</span><span class="b urg">⏱ Deadline / act today</span><span class="b warn">◐ Conditional · needs review</span><span class="b ok">✓ Eligible · corroborated</span><span class="b info">ℹ Record / fact</span><span class="b grey">🔒 Locked · excluded · unknown</span><span class="b audit">🛡 Equity audit (aggregate)</span></div>
+    <details class="card" style="text-align:left;margin-top:16px;padding:10px 14px;border:1px dashed var(--warn-line);background:var(--warn-soft)">
+      <summary style="cursor:pointer;font-weight:600">📌 Note: proposed backend contract (DRAFT, to confirm with the team)</summary>
+      <pre class="code" style="margin-top:8px">POST /api/chat  { session_id, message }
+→ { reply, agent_trace:[{agent,label,ms}], blocks:[{type, ...data}], suggestions:[...] }</pre>
+      <p class="small" style="margin:8px 0 0">The UI just draws whatever blocks arrive, so the agents decide what the user sees. Block types used by this mock: <code>safety</code> <code>summary</code> <code>evidence</code> <code>law</code> <code>relief</code> <code>tract</code> <code>next_steps</code> <code>brief_cta</code> <code>brief</code> <code>explain</code> <code>equity_audit</code> <code>draft_311</code> <code>relief_fallback</code> <code>transit</code> <code>lock</code> <code>diff</code>.<br><b>Open question for the team:</b> confirm field names in <code>schemas.py</code> (Shiva) and the endpoint in <code>server.py</code> (Member 4).</p>
+    </details>
+    <div class="starters">
+      <div class="starter" onclick="send(SAMPLE)"><b>📋 Thursday 3:40pm intake</b><span class="small muted">No heat, water by the fuse box, Monday 9am nonpayment hearing</span></div>
+      <div class="starter" onclick="send('Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?')"><b>🧾 No 311 on file yet</b><span class="small muted">Help document a brand-new hazard</span></div>
+      <div class="starter" onclick="send('Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?')"><b>🛡 Metro equity audit</b><span class="small muted">Aggregate only, never case-level</span></div>
+      <div class="starter" onclick="send('How severe is eviction filing pressure in tract 06075016300 compared with the rest of SF?')"><b>📊 Tract context</b><span class="small muted">Rent burden + modeled filings vs SF</span></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="composer"><div class="col">
+  <form class="box" onsubmit="event.preventDefault();sendBox()">
+    <textarea id="inp" rows="1" placeholder="Describe the situation or ask a follow-up…" aria-label="Message" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendBox()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+    <button class="btn primary" aria-label="Send">Send ↑</button>
+  </form>
+  <div class="fine">Intake aid, not legal advice · every result needs attorney review · <span class="sample-tag">SAMPLE DATA</span> mock backend</div>
+</div></div>
+</div><!-- /chatpane -->
+<aside class="mappane" aria-label="Map">
+  <div class="maptools"><b>🗺 Map</b><span class="muted">San Francisco · public records</span><span class="sp"></span>
+    <label><input type="checkbox" onchange="SWMap.toggle('pts',this.checked)"> All SF 311 records</label>
+    <label><input type="checkbox" onchange="SWMap.toggle('shade',this.checked)"> Shade tracts by rent burden</label></div>
+  <div id="mapkey" hidden><div class="msg">🔑 <b>No Google Maps API key.</b> The map runs in development mode (watermarked). Put your key in <code>config.local.js</code> (git-ignored) or paste it here. It's saved only in this browser.</div>
+    <div class="row"><input type="text" id="keyinp" placeholder="AIza…" aria-label="Google Maps API key"><button class="btn primary" onclick="SWMap.saveKey()">Use key</button><button class="btn ghost" onclick="mapkey.hidden=true">Dismiss</button></div></div>
+  <div id="map"></div>
+  <div class="mapfoot"><div id="maplegend"><span>Send a case and its locations appear here: the tenant's 100-block, matching 311 records, excluded look-alikes, the tract and the courthouse route.</span></div><div id="routenote"></div></div>
+</aside>
+</div><!-- /main -->
+
+<aside class="tp" id="tp" aria-label="Test prompts"><div class="hd"><b>🧪 Test prompts</b><span class="small muted" style="margin-left:8px">run in order · refresh to reset</span><span class="sp" style="flex:1"></span><button class="btn ghost" onclick="tp.classList.remove('open')">✕</button></div><ol id="tplist"></ol></aside>
+<script>
+const TESTS=[
+ ["Mother of 2 on the 1000 block of Fillmore St. Radiators stone cold for 2 weeks, about 50 degrees inside, kid keeps getting sick. Now water is dripping near the kitchen fuse box. Behind about two months on rent. Nonpayment hearing Monday 9am. What do we have?","Full answer: safety alert, facts, evidence, law, funds, tract, steps, brief"],
+ ["Why did you exclude the boiler shutdown complaint?","DECOY-SANF-01 · Commercial"],
+ ["Why did you exclude DECOY-SANF-04 (the abated one)?","Closed: Abated"],
+ ["Why did you exclude DECOY-SANF-07?","Closed: No Violation"],
+ ["She has her own DBI case number","Prop F + DBI Bridge → Eligible"],
+ ["Household of 3, about $45k a year","SF ERAP → Eligible"],
+ ["Can she reach the courthouse by bus before 9am Monday?","Transit card · leave by 8:00am"],
+ ["Draft the attorney brief","9-section brief + checklist"],
+ ["Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?","Fenced equity audit card"],
+ ["Lock this case for Attorney Chen","Firestore lock card"],
+ ["Tenant is Black, can that raise priority?","Guardrail refusal"],
+ ["Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?","311 draft + no-case funds"],
+ ["How severe is eviction filing pressure in tract 06075016300 compared with the rest of SF?","Tract charts"],
+ ["Correction: household is 4 people","Fact updated · Brief v2"],
+ ["hello","Clarifying question"],
+];
+document.getElementById('tplist').innerHTML=TESTS.map((t,i)=>`<li><div class="pt">${t[0].replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</div><div class="ex">→ ${t[1]}</div><div class="row"><button class="mini" onclick="send(TESTS[${i}][0])">▶ Run</button><button class="mini" onclick="navigator.clipboard.writeText(TESTS[${i}][0]).then(()=>toast('Copied'))">⧉ Copy</button><button class="mini" onclick="inp.value=TESTS[${i}][0];inp.focus();tp.classList.remove('open')">↧ Put in box</button></div></li>`).join('');
+</script>
+<script src="shared.js"></script>
+<script src="config.local.js" onerror="void 0"></script>
+<script src="geo_sf.js"></script>
+<script src="maps.js"></script>
+<script>
+/* ------------------------------------------------------------------
+   MOCK BACKEND: stands in for  POST /api/chat
+   request : { session_id, message }
+   response: { reply, agent_trace:[{agent,label,ms}], blocks:[{type,...}], suggestions:[...] }
+   The UI only renders blocks by `type`, so the backend decides what to show.
+-------------------------------------------------------------------*/
+const SAMPLE="Mother of 2 on the 1000 block of Fillmore St. Radiators stone cold for 2 weeks, about 50 degrees inside, kid keeps getting sick. Now water is dripping near the kitchen fuse box. Behind about two months on rent. Nonpayment hearing Monday 9am. What do we have?";
+const S={own:false,inc:false,hasCase:false,locked:false};
+
+const T=(agent,label,ms)=>({agent,label,ms});
+function relief(){
+  const g=S.own?['ok','✓ Eligible','Unlocked: open habitability case confirmed for her unit']:['warn','◐ Conditional','Needs an open habitability case on <b>her unit</b>; block record found, unit not confirmed'];
+  const e=S.inc?['ok','✓ Eligible','No case needed · income ≤ 80% AMI ✓']:['warn','◐ Needs income','No case needed · needs ≤ 80% AMI'];
+  const m=S.inc?['warn','◐ Conditional','≤ 60% AMI ✓ · still needs medical leave or wage loss']:['warn','◐ Needs income','No case needed · needs ≤ 60% AMI + medical leave or wage loss'];
+  return {type:'relief',funds:[
+    {id:'BUL-CA-02',name:'Prop F Right to Counsel & Habitability Defense',agency:'Eviction Defense Collaborative',amount:'up to $6,000',gated:true,urgent:true,verdict:g},
+    {id:'BUL-CA-01',name:'SF Emergency Rental Assistance (ERAP)',agency:'MOHCD',amount:'up to $12,000',gated:false,verdict:e},
+    {id:'BUL-CA-03',name:'MEDA Family Stabilization Grant',agency:'MEDA SF',amount:'up to $7,500',gated:false,verdict:m},
+    {id:'BUL-CA-04',name:'DBI Relocation & Mold Remediation Bridge',agency:'SF DBI',amount:'up to $8,500',gated:true,verdict:g},
+  ],ask:[!S.own&&['She has her own DBI case number','She has her own DBI case number'],!S.inc&&['2-person… ≤60% AMI','Household of 3, about $45k a year']].filter(Boolean)};
+}
+let backend=function(msg){
+  const m=msg.toLowerCase();
+  const EXP={
+    '01':[1,0.07,"property_type = 'Commercial'",'Emergency boiler shutdown, no heat, and ceiling water leak inside commercial retail warehouse storefront; zero residential tenants.','A residential habitability defense needs a residential record. Embeddings find similar meaning; only the rules decide what counts.','It was actually the **#1 semantic match**, but it\'s a commercial property, so it can\'t count as evidence.'],
+    '04':[2,0.09,"inspection_status = 'Closed - Abated' (2026-06-18)",'Tenant reported broken central boiler, freezing rooms, and zero hot water; landlord replaced boiler and inspector verified full abatement.','A closed, abated record shows a past condition, not a current one.','Same hazard, but it was **fixed and verified** by an inspector before this case.'],
+    '07':[4,0.16,"inspection_status = 'Closed - No Violation'",'Proactive winter readiness inspection: heating boiler operating at 71F, hot water at 122F, no mold, no leaks, and zero habitability defects found.','Citing it would hurt the tenant\'s case: the inspector found nothing wrong.','The inspection found **no violation**, which is the opposite of corroboration.'],
+  };
+  if(/why.*(exclud|drop)|boiler|abated/.test(m)){
+    const k=/07|winter|no violation/.test(m)?'07':/04|abated/.test(m)?'04':'01';const e=EXP[k];
+    return {reply:e[5],agent_trace:[T('shelterwise_navigator','route follow-up',300),T('evidence_explainer_agent','read evidence_pack.excluded_candidates',600)],
+      blocks:[{type:'explain',id:'DECOY-SANF-'+k,rank:e[0],distance:e[1],rule:e[2],text:e[3],why:e[4]}],
+      suggestions:k==='01'?['Why drop the abated boiler one?','Draft the attorney brief']:['Draft the attorney brief']};}
+  if(/who lives|equity|under-report/.test(m)) return {
+    reply:'Here is the metro-level view. It is **aggregate only** and never attached to an individual case.',
+    agent_trace:[T('shelterwise_navigator','transfer (isolated)',300),T('equity_audit_agent','run_metro_equity_audit',1100)],
+    blocks:[{type:'equity_audit'}],suggestions:['Which tracts are silent-distress candidates?']};
+  if(/no 311|not.*filed|document|mold/.test(m)) return {
+    reply:'There are **0 open residential 311 records** near that block. Absence of a record isn\'t proof nothing happened, so here\'s a ready-to-file inspection request and the funds that don\'t need a habitability case.',
+    agent_trace:[T('intake_structurer_agent','structure_intake',700),T('habitability_vector_agent','search_public_evidence → 0 kept',1200),T('hazard_311_drafter_agent','draft_311_inspection_request',900)],
+    blocks:[{type:'draft_311'},{type:'relief_fallback'}],suggestions:['Lock this case for Attorney Chen']};
+  if(/\btract\b|filing pressure|compared/.test(m)) return {reply:'Tract **06075016300** is about typical for rent burden, but has higher modeled filings than 76% of SF tracts.',
+    agent_trace:[T('tract_displacement_agent','get_tract_displacement_baseline',900)],blocks:[{type:'tract'}],suggestions:['Who lives in the tracts our triage rules prioritize?']};
+  if(/own dbi|case number/.test(m)){S.own=true;return {reply:'Updated. With her own open DBI case, **Prop F and the DBI Bridge are now eligible**. Please verify the case number with DBI.',
+    agent_trace:[T('shelterwise_navigator','update intake_facts (v5)',300),T('eligibility_and_brief_agent','reconcile_relief_and_gaps',800)],blocks:[relief(),{type:'diff',items:['tenant_has_own_dbi_case: null → true','Prop F: Conditional → Eligible','DBI Bridge: Conditional → Eligible','Brief → v2']}],suggestions:S.inc?['Draft the attorney brief']:['Household of 3, about $45k a year']};}
+  if(/\$|income|\bami\b|household of/.test(m)){S.inc=true;return {reply:'A household of 3 at ~$45k is under 60% AMI (verify against 2026 MOHCD limits), so **SF ERAP is now eligible**. MEDA still needs proof of medical leave or wage loss.',
+    agent_trace:[T('shelterwise_navigator','update intake_facts',300),T('eligibility_and_brief_agent','reconcile_relief_and_gaps',800)],blocks:[relief(),{type:'diff',items:['household_income_pct_ami: null → ≤ 60% (verify)','SF ERAP: Needs income → Eligible']}],suggestions:['Draft the attorney brief']};}
+  if(/^correction:/.test(m)) return {reply:'Thanks, I updated that fact and re-ran triage. **Brief v2** was saved.',agent_trace:[T('shelterwise_navigator','update intake_facts (human edit)',300),T('eligibility_and_brief_agent','reconcile_relief_and_gaps',800)],blocks:[{type:'diff',items:['intake_facts edited by Maria R.','lock_version 4 → 5','Brief → v2']}],suggestions:['Draft the attorney brief']};
+  if(/\bbus\b|courthouse|transit/.test(m)) return {reply:'Yes, it\'s short. She should **leave by 8:00am** to be safe.',agent_trace:[T('shelterwise_navigator','estimate_courthouse_transit',500)],blocks:[{type:'transit'}],suggestions:['Draft the attorney brief']};
+  if(/\block\b|attorney chen/.test(m)){S.locked=true;return {reply:'Locked and handed off to Attorney Chen.',agent_trace:[T('shelterwise_navigator','claim_or_update_case_task (Firestore txn)',400)],blocks:[{type:'lock'}],suggestions:[]};}
+  if(/black|race|ethnic/.test(m)) return {reply:'I don\'t use race or other protected traits to retrieve, rank or decide anything about a tenant. Demographic data is only used inside an isolated, metro-level equity audit.',agent_trace:[T('shelterwise_navigator','guardrail',200)],blocks:[],suggestions:['Who lives in the tracts our triage rules prioritize?']};
+  if(/brief|memo|packet/.test(m)) return {reply:'Here is the Tenant Stabilization Brief, ready for attorney review.',agent_trace:[T('eligibility_and_brief_agent','generate_stabilization_brief',1100)],blocks:[{type:'brief'}],suggestions:['Lock this case for Attorney Chen']};
+  if(/heat|fillmore|fuse|hearing|rent/.test(m)){S.hasCase=true;return {
+    reply:'**Safety first:** there\'s an electrical hazard. Then here\'s what the public record and the law say. Case **SF-1042** was created.',
+    agent_trace:[T('shelterwise_navigator','life-safety gate',250),T('intake_structurer_agent','structure_intake · PII scrub · GEOID',800),
+      T('habitability_vector_agent','VECTOR_SEARCH top 25 → 1 kept, 3 decoys excluded (parallel)',2400),T('statute_and_bulletin_agent','3 statutes · 4 bulletins (parallel)',1500),T('tract_displacement_agent','tract baseline (parallel)',1900),
+      T('eligibility_and_brief_agent','reconcile funds · build brief v1',1100)],
+    blocks:[{type:'safety'},{type:'summary'},{type:'evidence'},{type:'law'},relief(),{type:'tract'},{type:'next_steps'},{type:'brief_cta'}],
+    suggestions:['Why did you exclude the boiler shutdown complaint?','She has her own DBI case number','Can she reach the courthouse by bus before 9am Monday?','Draft the attorney brief']};}
+  return {reply:'Tell me a bit more: the block, the problem in the home, and any hearing date. I\'ll check records, law and funds.',agent_trace:[T('shelterwise_navigator','clarify',300)],blocks:[],suggestions:[SAMPLE.slice(0,60)+'…']};
+}
+
+/* ---------------- MOCK GEO (backend would build these from BigQuery GEOGRAPHY) ----------------
+   Each block may carry  geo: GeoJSON FeatureCollection, features' properties.role ∈
+   tenant_block | corroborating | excluded | courthouse | route | tract_focus | silent_distress | search_radius
+   and properties.ref = id of the card it belongs to (for map ↔ card highlighting). */
+const FC=f=>({type:'FeatureCollection',features:f.filter(Boolean)});
+const PT=(lng,lat,props)=>({type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:props});
+const TENANT=PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:'1000 Block Fillmore St (tenant\'s 100-block)'});
+const COURT=PT(-122.41795,37.78075,{role:'courthouse',ref:'courthouse',label:'400 McAllister St (approx.)'});
+const REASON={'DECOY-SANF-01':'property_type = Commercial','DECOY-SANF-04':'Closed - Abated','DECOY-SANF-07':'Closed - No Violation'};
+function distM(a,b){const R=6371000,t=x=>x*Math.PI/180,[l1,p1]=a,[l2,p2]=b;const d=Math.sin(t(p2-p1)/2)**2+Math.cos(t(p1))*Math.cos(t(p2))*Math.sin(t(l2-l1)/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(d)))}
+function REC(id,role){const f=(window.SF_311?.features||[]).find(x=>x.properties.request_id===id);if(!f)return null;
+  return {...f,properties:{...f.properties,role,ref:id,reason:REASON[id],distance_m:distM(f.geometry.coordinates,TENANT.geometry.coordinates)}}}
+function TRACT(geoid,role){const f=(window.SF_TRACTS?.features||[]).find(x=>x.properties.geoid===geoid);return f&&{...f,properties:{...f.properties,role,ref:geoid}}}
+const GEO={
+  evidence:()=>FC([TENANT,REC('SF-202665182','corroborating'),REC('DECOY-SANF-01','excluded'),REC('DECOY-SANF-04','excluded'),REC('DECOY-SANF-07','excluded')]),
+  tract:()=>FC([TRACT('06075016300','tract_focus'),TENANT]),
+  explain:b=>FC([TENANT,REC(b.id,'excluded')]),
+  transit:()=>FC([TENANT,COURT,{type:'Feature',geometry:{type:'LineString',coordinates:[TENANT.geometry.coordinates,COURT.geometry.coordinates]},properties:{role:'route',ref:'courthouse'}}]),
+  equity_audit:()=>FC((window.SF_TRACTS?.features||[]).filter(f=>f.properties.silent_distress).map(f=>({...f,properties:{...f.properties,role:'silent_distress',ref:'equity'}}))),
+  draft_311:()=>FC([PT(-122.41866,37.75855,{role:'tenant_block',ref:'tenant',label:'2400 Block Mission St (tenant\'s 100-block)'}),PT(-122.41866,37.75855,{role:'search_radius',radius_m:400})]),
+};
+const _backend=backend;
+backend=msg=>{const r=_backend(msg);r.blocks.forEach(b=>{if(GEO[b.type])b.geo=GEO[b.type](b)});return r};
+
+/* ------------------------- BLOCK RENDERERS ------------------------- */
+const R={
+ safety:()=>`<div class="safety" role="alert"><div class="ico">⚡</div><div style="flex:1"><b>LIFE-SAFETY: water near an electrical panel</b>
+   <div style="margin-top:3px">Tell the tenant: <b>do NOT touch the wet fuse box or nearby switches.</b> Sparking, burning smell or spreading water → <b>call 911</b>. Otherwise request an <b>emergency DBI inspection via 311</b>.</div></div>
+   <button class="btn" onclick="this.textContent='✓ Told tenant 15:41';this.disabled=true">I told the tenant</button></div>`,
+ summary:()=>`<div class="blk"><div class="hd"><h4>📝 What I understood</h4><span class="b outline">SF-1042</span><span class="sp"></span><span class="small muted">click ✎ to correct</span></div>
+   <div class="kv"><div><div class="k">Hearing</div><div class="v" style="color:var(--urg)">⏱ Mon 11/23 9:00 · 89h</div></div><div><div class="k">Location</div><div class="v">1000 Block Fillmore St</div></div><div><div class="k">Tract GEOID</div><div class="v mono">06075016300</div></div></div>
+   <div class="facts">${[['No heat ~2 wks, ~50°F','Reported'],['Water near fuse box','Reported'],['~2 months behind','Reported'],['Parent + 2 children','Reported'],['Own DBI case #','Unknown'],['Income','Unknown']]
+     .map(([f,l])=>`<span class="fact"><span class="b ${l==='Unknown'?'grey':'brand'}">${l}</span>${f}<button class="ed" title="Edit" onclick="editFact('${f}')">✎</button></span>`).join('')}</div>
+   <div class="small muted" style="margin-top:6px">🔒 3 personal details scrubbed before search · raw text not logged</div></div>`,
+ evidence:()=>`<div class="blk"><div class="hd"><h4>🔎 Public 311 evidence</h4><span class="b ok">✓ 1 corroborating</span><span class="b grey">✕ 3 look-alikes excluded</span><span class="sp"></span><span class="small muted">25 searched by meaning → filtered by rules</span></div>
+   <div class="rec" data-ref="SF-202665182"><div class="top"><button class="pin" title="Show on map" onclick="SWMap.focus('SF-202665182')">📍</button><span class="id">SF-202665182</span><span class="b info">Open: Active DBI Case</span><span class="small muted">created 2026-11-03 · same block · 12 m</span></div>
+     <div class="qt">"…resident has been without heat… its 52 degrees in the dwelling unit."</div>
+     <div class="row" style="gap:5px"><span class="rule p">✓ Residential</span><span class="rule p">✓ Open</span><span class="rule p">✓ Active</span><span class="b outline">Public: SF 311</span></div>
+     <div class="cav">⚠ Block-level record, not proof about her unit. The caller may be a third party.</div></div>
+   <details class="more"><summary>Show 3 excluded look-alikes (why they don't count)</summary>
+     ${[['DECOY-SANF-01','#1','Commercial property','Emergency boiler shutdown… commercial retail warehouse storefront'],['DECOY-SANF-04','#2','Closed: Abated','Broken central boiler… landlord replaced boiler, inspector verified'],['DECOY-SANF-07','#4','Closed: No Violation','Winter readiness inspection… boiler at 71F, zero defects']]
+      .map(([id,rk,r,t])=>`<div class="rec x" data-ref="${id}"><div class="top"><button class="pin" title="Show on map" onclick="SWMap.focus('${id}')">📍</button><span class="id">${id}</span><span class="small muted">semantic rank ${rk}</span><span class="rule f">✗ ${r}</span><span class="sp"></span><button class="mini" onclick="send('Why did you exclude ${id}${id.endsWith('01')?' (the boiler shutdown complaint)':id.endsWith('04')?' (the abated one)':''}?')">Why?</button></div><div class="qt">"${t}…"</div></div>`).join('')}
+   </details></div>`,
+ law:()=>`<div class="blk"><div class="hd"><h4>⚖️ Law to review</h4><span class="b warn">◐ attorney review required</span></div>
+   <div class="li"><b>SF Admin. Code Ch. 37 &amp; Prop F</b><span class="b ok">✓ Likely applies</span><div class="s">Just cause + city-funded lawyer. <b>Call Right to Counsel before Monday.</b></div></div>
+   <div class="li"><b>Cal. Civ. Code § 1942.5</b><span class="b warn">◐ Applies if…</span><div class="s">Anti-retaliation, but only if the tenant herself complained to the city.</div></div>
+   <div class="li"><b>Cal. Civ. Code § 1941.1 &amp; § 1942.4</b><span class="b grey">⏳ Not yet</span><div class="s">Rent-demand bar needs a citation unabated &gt; 35 days. Day <b>16 / 35</b>; recheck 2026-12-09.<div class="clock"><i style="width:45.7%"></i></div></div></div></div>`,
+ relief:b=>`<div class="blk"><div class="hd"><h4>💵 Relief funds</h4><span class="sp"></span><span class="small muted">gated on the evidence above</span></div>
+   ${b.funds.map(f=>`<div class="li"><div><b>${f.name}</b> ${f.urgent?'<span class="b urg">⏱ call today</span>':''}<div class="small muted">${f.agency} · ${f.amount} · ${f.gated?'🔒 needs open habitability case':'general fund'}</div></div><span class="b ${f.verdict[0]}">${f.verdict[1]}</span><div class="s">${f.verdict[2]}</div></div>`).join('')}
+   ${b.ask.length?`<div class="ask"><span class="lbl">Answer to unlock more:</span>${b.ask.map(a=>`<button class="mini" onclick="send('${a[1]}')">${a[1]}</button>`).join('')}</div>`:''}</div>`,
+ relief_fallback:()=>`<div class="blk"><div class="hd"><h4>💵 Funds while inspection is pending</h4></div>
+   <div class="li"><b>SF ERAP</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $12,000</div></div>
+   <div class="li"><b>MEDA Family Stabilization Grant</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $7,500</div></div>
+   <div class="li"><b>Prop F / DBI Bridge</b><span class="b grey">🔒 Locked</span><div class="s">Require an open habitability case. Revisit once the 311 is filed.</div></div></div>`,
+ tract:()=>{const st=(t,me,med,min,max,u,read)=>{const x=v=>(v-min)/(max-min)*100;const r=rngd(t.length,41,med,(max-min)/3);
+   return `<div class="strip"><div class="l"><b>${t}</b><span>this tract <b>${me}${u}</b> · SF median ${med}${u}</span></div><svg aria-label="${t}"><line x1="0" x2="100%" y1="16" y2="16" stroke="var(--line)"/>${r.map((v,i)=>`<circle cx="${Math.min(100,Math.max(0,x(v)))}%" cy="${16+(i%5)-2}" r="3.5" fill="var(--line-strong)" stroke="#fff" stroke-width="1.2"><title>SF tract: ${v.toFixed(1)}${u}</title></circle>`).join('')}<line x1="${x(med)}%" x2="${x(med)}%" y1="4" y2="28" stroke="var(--ink)" stroke-width="2"/><circle cx="${x(me)}%" cy="16" r="7" fill="var(--brand)" stroke="#fff" stroke-width="2"><title>This tract: ${me}${u}</title></circle></svg><div class="small muted">${read}</div></div>`};
+   return `<div class="blk" data-ref="06075016300"><div class="hd"><button class="pin" title="Show on map" onclick="SWMap.focus('06075016300')">📍</button><h4>📊 Neighborhood context</h4><span class="b outline mono">06075016300</span><span class="sp"></span><span class="small muted">● this tract · | SF median · grey = other 41 tracts</span></div>
+   ${st('Severe rent burden','16.0',16.1,4,30,'%','About typical')}${st('Annual eviction filings [Modeled]',65,55,15,100,'','Higher than 76% of SF tracts')}
+   <div class="small muted">Context only, never an individual risk score. Filings are modeled, not her docket.</div></div>`},
+ next_steps:()=>`<div class="blk"><div class="hd"><h4>✅ Suggested next steps</h4></div><ol class="steps">
+   <li><b>Today:</b> call Prop F Right to Counsel (Eviction Defense Collaborative) about the 11/23 hearing</li>
+   <li>Ask the tenant for her own DBI case number; request an emergency electrical inspection</li>
+   <li>Document: dated photos, indoor temperature log, written notice to landlord</li>
+   <li>Collect income → apply to SF ERAP</li></ol>
+   <div class="ask"><span class="lbl">Evidence gaps:</span><span class="b grey">Own DBI case #</span><span class="b grey">Income / AMI</span><span class="b grey">Proof landlord was told</span></div></div>`,
+ brief_cta:()=>`<div class="blk row"><div><b>📄 Tenant Stabilization Brief v1</b><div class="small muted">9 sections · 6-item reviewer checklist · saved to case SF-1042</div></div><span class="sp"></span><button class="btn primary" onclick="send('Draft the attorney brief')">Open brief</button></div>`,
+ brief:()=>`<div class="blk brief"><div class="hd"><h4>📄 Tenant Stabilization Brief · SF-1042 · v${S.own||S.inc?2:1}</h4><span class="b warn">◐ DRAFT</span><span class="sp"></span><button class="btn" onclick="toast('Copied as Markdown')">Copy</button><button class="btn" onclick="print()">PDF</button></div>
+   ${[['1. Case snapshot','SF · tract 06075016300 · nonpayment hearing Mon 11/23 9:00 · heat + electrical hazard'],['2. Tenant-reported','No heat ~2 wks (~50°F) · water near fuse box · ~2 months behind'],['3. Evidence','SF-202665182 open DBI case, same block (block-level). 3 look-alikes excluded by rule.'],['4. Law','Prop F likely · §1942.5 if she complained · §1942.4 not yet (16/35)'],['5. Assistance',`Prop F ${S.own?'eligible':'conditional'} · ERAP ${S.inc?'eligible':'needs income'} · MEDA conditional · DBI Bridge ${S.own?'eligible':'conditional'}`],['6. Gaps',(S.own?'':'Own DBI case # · ')+(S.inc?'':'Income · ')+'Proof of notice · photos'],['7. Next steps','Prop F intake today → DBI case → document → ERAP'],['8. Limitations','Block-level evidence; filings modeled; not a legal determination']]
+     .map(([h,t])=>`<section><h5>${h}</h5>${t}</section>`).join('')}
+   <section class="ck"><h5>9. Reviewer checklist <span class="b outline" data-c>0/6</span></h5>${['Facts confirmed with tenant','Hearing deadline verified','DBI case & citation age verified','Statute applicability confirmed','Fund eligibility confirmed','Source dates checked'].map(c=>`<label><input type="checkbox" onchange="ck(this)"> ${c}</label>`).join('')}</section>
+   <div class="review-banner"><span>Intake aid, not legal advice. Nothing is filed or sent automatically.</span></div></div>`,
+ explain:b=>`<div class="blk" data-ref="${b.id}"><div class="hd"><button class="pin" title="Show on map" onclick="SWMap.focus('${b.id}')">📍</button><h4>🚫 ${b.id}</h4><span class="small muted">semantic rank #${b.rank} · cosine distance ${b.distance}</span></div>
+   <div class="rec x" style="margin:0"><div class="qt">"${b.text}"</div><span class="rule f">✗ ${b.rule}</span></div><p class="small" style="margin:8px 0 0">${b.why}</p></div>`,
+ equity_audit:()=>`<div class="fence" data-ref="equity"><div class="fh">🛡 ISOLATED METRO AUDIT · aggregate only · never used to score a tenant</div><div class="fb">
+   <b class="small">Households without a vehicle (renter-weighted)</b><div class="bars">
+   <div class="r"><span>SF metro (42 tracts)</span><div class="t"><i style="width:42.1%"></i></div><b>42.1%</b></div>
+   <div class="r"><span>≥ 2 open 311s (23 tracts)</span><div class="t"><i style="width:40%"></i></div><b>40.0%</b></div>
+   <div class="r"><span>Silent distress (6 tracts)</span><div class="t"><i style="width:53.4%"></i></div><b>53.4%</b></div></div>
+   <details class="more"><summary>Cohort composition table</summary><table class="small"><tr><th>Cohort</th><th>Asian</th><th>Hispanic</th><th>White</th></tr><tr><td>SF metro</td><td>28.5%</td><td>11.8%</td><td>48.6%</td></tr><tr><td>≥ 2 open 311s</td><td>28.5%</td><td>12.7%</td><td>47.6%</td></tr><tr><td>Silent distress</td><td>37.9%</td><td>13.4%</td><td>35.8%</td></tr></table></details>
+   <p class="small" style="margin:8px 0 0"><b>Reading:</b> silent-distress tracts (few 311s, high burden) have the least car access, so a rule that waits for complaints misses them. <b>Recommend mobile / in-person outreach.</b></p></div></div>`,
+ draft_311:()=>`<div class="blk" style="border-color:var(--warn-line);background:var(--warn-soft)"><div class="hd"><h4>📝 Draft SF 311 / DBI inspection request</h4><span class="sp"></span><button class="btn" onclick="toast('Copied')">Copy</button></div>
+   <div class="small"><b>Category:</b> Housing Inspection Services → Mold / Leak</div>
+   <p style="font-style:italic;margin:6px 0">"Residents of the 2400 block of Mission St report an active leak and spreading mold in a residential unit. Requesting an inspection under the SF Housing Code."</p>
+   <div class="small"><b>Safe photo checklist:</b> ☐ dated photos of mold ☐ leak source ☐ damaged belongings ☐ written notice to landlord</div></div>`,
+ transit:()=>`<div class="blk row" data-ref="courthouse" style="background:var(--ok-soft);border-color:var(--ok-line)"><span style="font-size:26px">🚌</span><div><b>1000 Block Fillmore St → 400 McAllister St</b><div class="small">≈ 1.2 km · roughly 10–15 min by bus (illustrative; verify with SFMTA)</div></div><span class="sp"></span><div style="text-align:right"><div class="small muted">Leave by</div><b style="font-size:20px">8:00am</b></div></div>`,
+ lock:()=>`<pre class="code">Firestore transaction ✓  cases/SF-1042
+assigned_attorney : "Chen"
+status            : review → attorney_ready
+lock_version      : 4 → 5</pre>`,
+ diff:b=>`<div class="blk tight small"><b>What changed</b><ul style="margin:4px 0 0;padding-left:18px">${b.items.map(i=>`<li><code>${i}</code></li>`).join('')}</ul></div>`,
+};
+function rngd(seed,n,mid,spread){let s=seed*7919+13;const r=()=>(s=(s*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{let t=0;for(let i=0;i<4;i++)t+=r();return mid+(t/4-.5)*spread*2})}
+const md=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ------------------------------ CHAT ------------------------------ */
+const col=document.getElementById('col'),thread=document.getElementById('thread');
+let busy=false;
+function sendBox(){const i=document.getElementById('inp');if(!i.value.trim())return;send(i.value);i.value='';i.style.height='auto'}
+async function send(text){
+  if(busy)return;busy=true;document.getElementById('hero')?.remove();
+  col.insertAdjacentHTML('beforeend',`<div class="msg user"><div class="bub">${esc(text)}</div></div>`);
+  const res=backend(text);
+  const el=document.createElement('div');el.className='msg bot';
+  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Working…</span></summary><ol></ol></details><div class="out"></div></div>`;
+  col.append(el);scroll();
+  const ol=el.querySelector('ol');const t0=performance.now();
+  // parallel lanes run together
+  const steps=res.agent_trace;let i=0;
+  while(i<steps.length){
+    const par=s=>s.label.includes('(parallel)');let j=i+1;if(par(steps[i]))while(j<steps.length&&par(steps[j]))j++;const group=steps.slice(i,j);
+    const lis=group.map(s=>{const li=document.createElement('li');li.className='run';li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label}`;ol.append(li);return li});
+    scroll();await new Promise(r=>setTimeout(r,Math.max(...group.map(s=>s.ms))*0.45));
+    lis.forEach(li=>li.className='ok');i+=group.length;
+  }
+  const secs=((performance.now()-t0)/1000).toFixed(1);
+  el.querySelector('.spin').outerHTML='<span>✓</span>';
+  el.querySelector('.tl').textContent=`${steps.length} agent step${steps.length>1?'s':''} · ${secs}s · view trace`;
+  el.querySelector('.trace').open=false;
+  el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply)}</div>
+    <div class="blocks">${res.blocks.map(b=>R[b.type](b)).join('')}</div>
+    ${res.suggestions.length?`<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>`:''}
+    <details class="json"><summary>{ } response JSON (contract for /api/chat)</summary><pre class="code">${esc(JSON.stringify({session_id:'SF-1042',...res},null,2))}</pre></details>`;
+  el.querySelectorAll('[data-ref]').forEach(c=>{c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false))});
+  SWMap.show(res);
+  busy=false;scroll();
+}
+function toggleMap(){const m=document.getElementById('main');m.classList.toggle('nomap');document.getElementById('mapbtn').textContent=m.classList.contains('nomap')?'🗺 Show map':'🗺 Hide map'}
+function scroll(){thread.scrollTop=thread.scrollHeight}
+function editFact(f){const v=prompt('Correct this fact:',f);if(v&&v!==f)send(`Correction: ${v}`)}
+function ck(el){const s=el.closest('section');const n=s.querySelectorAll('input:checked').length;s.querySelector('[data-c]').textContent=n+'/6';if(n===6)toast('✅ Checklist complete: case can be marked attorney_ready')}
+</script>
+<script>SWMap.load()</script>
+</body></html>
