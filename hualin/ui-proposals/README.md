@@ -1,6 +1,27 @@
 # ShelterWise UI prototypes
 
-Open `chat.html` in a browser. It is the single main UI. (Earlier 6-screen proposals were removed; see git history before this commit.)
+Serve the folder and open `chat.html` (Google Maps needs http, not file://):
+
+```
+cd hualin/ui-proposals && python3 -m http.server 8000   # → http://localhost:8000/chat.html
+```
+
+Layout: **chat on the left, Google Map on the right** (🗺 Hide map to collapse). The earlier 6-screen
+proposals were removed; see git history.
+
+### Google Maps key
+1. `cp config.example.js config.local.js` (git-ignored) and paste the key, **or** paste it in the
+   yellow banner on the map (stored in this browser only), **or** open `chat.html?gmaps_key=…`.
+2. On the key's GCP project enable **Maps JavaScript API** (+ **Directions API** for real transit
+   routes; otherwise the route is drawn as a straight-line estimate).
+3. Restrict the key to HTTP referrers (`http://localhost:*/*`, the Cloud Run URL).
+
+Without a key the map still works in Google's watermarked "development purposes only" mode.
+
+### Map data
+`geo_sf.js` holds the 42 SF tract polygons and 174 SF 311 points as GeoJSON, generated from
+`data/*.parquet` by `tools/build_geo.py`. **`audit_*` demographic columns are not exported.**
+Tenant locations are shown as **100-block centroids only**.
 Everything runs on a **mock backend** with sample data; no server is needed.
 
 ## 📌 Note: proposed backend contract (DRAFT, to confirm with the team)
@@ -11,6 +32,26 @@ POST /api/chat  { session_id, message }
 ```
 
 The UI just draws whatever blocks arrive, so the agents decide what the user sees.
+
+**`geo` field (GeoJSON):** any block may carry `geo`, a GeoJSON `FeatureCollection`. The map draws
+the features from the latest reply that has any. Each feature's `properties`:
+
+| property | meaning |
+|---|---|
+| `role` | `tenant_block` · `corroborating` · `excluded` · `courthouse` · `route` (LineString) · `tract_focus` (Polygon) · `silent_distress` (Polygon, equity audit only) · `search_radius` (Point + `radius_m`) |
+| `ref` | id of the card it belongs to (e.g. `SF-202665182`, `06075016300`): hover/click links card ↔ map |
+| other | record fields for the popup: `request_id`, `type`, `status`, `reason`, `distance_m`, `severe_burden_pct`… |
+
+Backend can build these from BigQuery `ST_ASGEOJSON(property_geom / tract_geom)`. Example:
+
+```json
+{ "type": "evidence", "...": "...",
+  "geo": { "type": "FeatureCollection", "features": [
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-122.43172, 37.77909] },
+      "properties": { "role": "corroborating", "ref": "SF-202665182", "status": "Open - Active DBI Case", "distance_m": 12 } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [-122.4136, 37.78493] },
+      "properties": { "role": "excluded", "ref": "DECOY-SANF-01", "reason": "property_type = Commercial", "distance_m": 1702 } } ] } }
+```
 
 Block types used by the mock: `safety`, `summary`, `evidence`, `law`, `relief`, `tract`,
 `next_steps`, `brief_cta`, `brief`, `explain`, `equity_audit`, `draft_311`,
