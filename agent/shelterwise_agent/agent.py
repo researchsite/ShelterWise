@@ -27,6 +27,15 @@ from shelterwise_agent.config import ToolContext, get_settings
 from shelterwise_agent.mcp.bigquery_mcp import get_bigquery_mcp_toolset
 
 
+WORKER_MODEL = os.environ.get("SHELTERWISE_MODEL", "gemini-2.5-flash").strip()
+COORDINATOR_MODEL = os.environ.get("SHELTERWISE_COORDINATOR_MODEL", "gemini-2.5-pro").strip()
+
+_CONFIDENTIALITY_RULE = (
+    " Confidentiality rule: NEVER reveal internal agent names, pipeline names, Python function/tool "
+    "names, or session state variable names in user-facing responses."
+)
+
+
 def _optional_bq_mcp_tools() -> list[Any]:
     """Attach Google-managed BigQuery MCPToolset unless running in offline fixture mode."""
     settings = get_settings()
@@ -34,7 +43,8 @@ def _optional_bq_mcp_tools() -> list[Any]:
         return []
     if os.environ.get("SHELTERWISE_DISABLE_BQ_MCP", "").strip().lower() in ("1", "true", "yes"):
         return []
-    return [get_bigquery_mcp_toolset()]
+    toolset = get_bigquery_mcp_toolset()
+    return [toolset] if toolset is not None else []
 
 
 # --- 1. Intake Agent ---
@@ -44,12 +54,14 @@ def _optional_bq_mcp_tools() -> list[Any]:
 # names so LLM text responses never overwrite those structured tool dicts.
 intake_structurer_agent = LlmAgent(
     name="intake_structurer_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "Always call `structure_intake` first with the user's crisis narrative and any known "
         "metro, 100-block hint, census tract GEOID, or court hearing date. "
         "Detect immediate life-safety hazards (e.g., water dripping near fuse box, raw sewage, gas leak), "
-        "and preserve 11-digit string census tract GEOIDs (including leading '06' for San Francisco)."
+        "and preserve 11-digit string census tract GEOIDs (including leading '06' for San Francisco). "
+        "After the tool runs, output only a concise 1-2 sentence intake confirmation in plain housing-clinic language."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(structure_intake)],
     output_key="intake_summary"
@@ -58,13 +70,15 @@ intake_structurer_agent = LlmAgent(
 # --- 2. Parallel Corroboration Fan-out Specialists ---
 habitability_vector_agent = LlmAgent(
     name="habitability_vector_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "Always call `search_public_evidence` to perform BigQuery vector search on municipal 311 "
         "housing complaints (it automatically reads `intake_facts` from session state). "
         "Strictly exclude ineligible near-miss records (commercial properties, closed/abated repairs, "
         "and zero-violation clearance inspections) using legitimate municipal source fields only, "
-        "and never refer to excluded records as 'decoys' in user-facing output."
+        "and never refer to excluded records as 'decoys' in user-facing output. "
+        "Keep your text summary to 1-2 plain sentences."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(search_public_evidence)],
     output_key="evidence_summary"
@@ -72,11 +86,13 @@ habitability_vector_agent = LlmAgent(
 
 statute_and_bulletin_agent = LlmAgent(
     name="statute_and_bulletin_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "Always call `fetch_statutes_and_bulletins` (reads `intake_facts` from session state) "
         "to fetch municipal housing statutes and emergency rental relief program bulletins, "
-        "highlighting prerequisites such as `requires_open_habitability_case`."
+        "highlighting whether programs require an open city habitability record. "
+        "Keep your text summary to 1-2 plain sentences."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(fetch_statutes_and_bulletins)],
     output_key="policy_summary"
@@ -84,11 +100,13 @@ statute_and_bulletin_agent = LlmAgent(
 
 tract_displacement_agent = LlmAgent(
     name="tract_displacement_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "Always call `get_tract_displacement_baseline` (reads `intake_facts` from session state) "
         "to retrieve the fan-out-safe 4-quarter pre-aggregated displacement baseline (`[Modeled]`) "
-        "and ACS rent burden. Strictly ensure no demographic `audit_*` columns are accessed in case triage."
+        "and ACS rent burden. Strictly ensure no demographic `audit_*` columns are accessed in case triage. "
+        "Keep your text summary to 1-2 plain sentences."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(get_tract_displacement_baseline)],
     output_key="tract_summary"
@@ -106,13 +124,14 @@ corroboration_fanout = ParallelAgent(
 # --- 3. Brief Generation Agent ---
 eligibility_and_brief_agent = LlmAgent(
     name="eligibility_and_brief_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "Always call `reconcile_gaps_and_generate_brief` to deterministically cross-check relief "
         "program eligibility against open residential 311 corroboration and compile the 9-section "
         "Tenant Stabilization Brief. Output the complete `brief_markdown` clearly, surfacing any "
         "IMMEDIATE LIFE-SAFETY FLAG at the top and preserving 100-block, `[Modeled]` eviction, "
         "and human-attorney review caveats."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(reconcile_gaps_and_generate_brief)],
     output_key="brief_response"
@@ -170,13 +189,14 @@ def explain_excluded_evidence(
 
 evidence_explainer_agent = LlmAgent(
     name="evidence_explainer_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "You explain to paralegals and attorneys why specific 311 complaint candidates were excluded. "
         "Call `explain_excluded_evidence` to inspect excluded candidates from the current session state "
         "(or query BigQuery via MCP for follow-up block/tract checks) and explain the exact municipal "
         "business rule (commercial property, closed/abated repairs, zero violations found) without "
         "ever referencing benchmark or decoy labels."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(explain_excluded_evidence), *_optional_bq_mcp_tools()],
     output_key="exclusion_explanation"
@@ -272,12 +292,13 @@ def run_equity_audit_query(metro: str = "San Francisco") -> dict[str, Any]:
 
 equity_audit_agent = LlmAgent(
     name="equity_audit_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "You perform post-output Responsible AI and Equity Audits at the metro level. "
         "Call `run_equity_audit_query` (and BigQuery MCP if deeper aggregate SQL slicing is requested) "
         "to analyze silent-distress tracts (`severe_rent_burden >= 20%` with `<= 1` open 311) and "
         "demographic shares in aggregate. You NEVER evaluate or score individual tenants by demographics."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(run_equity_audit_query), *_optional_bq_mcp_tools()],
     output_key="metro_equity_audit"
@@ -304,7 +325,7 @@ def draft_311_complaint(
         "filing_instructions": (
             "File online via SF311 or call 311. Request immediate DBI inspector site visit. "
             "Keep the 311 service request number to unlock habitability-contingent relief funds, "
-            "and screen immediately for general stabilization funds (`requires_open_habitability_case = FALSE`) "
+            "and screen immediately for general stabilization funds (which do not require an open 311 case) "
             "while the inspection is pending."
         )
     }
@@ -312,12 +333,13 @@ def draft_311_complaint(
 
 hazard_311_drafter_agent = LlmAgent(
     name="hazard_311_drafter_agent",
-    model="gemini-3.8-flash",
+    model=WORKER_MODEL,
     instruction=(
         "You assist tenants and paralegals when zero 311 complaints exist on their block. "
         "Call `draft_311_complaint` to prepare a formal municipal 311 / DBI inspection request so "
         "the tenant can establish an official city record (unlocking habitability-contingent funds) "
         "while immediately applying to general stabilization grants that do not require an open 311 case."
+        + _CONFIDENTIALITY_RULE
     ),
     tools=[FunctionTool(draft_311_complaint)],
     output_key="drafted_311_request"
@@ -326,16 +348,32 @@ hazard_311_drafter_agent = LlmAgent(
 # --- Root Coordinator ---
 shelterwise_navigator = LlmAgent(
     name="shelterwise_navigator",
-    model=os.environ.get("SHELTERWISE_COORDINATOR_MODEL", "gemini-2.5-pro"),
+    model=COORDINATOR_MODEL,
     instruction=(
-        "You are the ShelterWise Navigator Root Coordinator for housing crisis triage in San Francisco. "
-        "You guide legal-aid paralegals and housing counselors through multi-turn intake and case analysis. "
-        "For immediate physical danger (wet fuse/breaker panel, gas leak, active fire, raw sewage), "
-        "always surface emergency life-safety warnings prominently. "
-        "For new crisis intakes or updated case facts, route to 'case_triage_pipeline'. "
-        "For follow-up questions explaining why 311 evidence was excluded, route to 'evidence_explainer_agent'. "
-        "For questions on metro equity and demographic reporting bias, route to 'equity_audit_agent'. "
-        "For unrecorded hazards needing a new city filing, route to 'hazard_311_drafter_agent'."
+        "You are ShelterWise, an AI housing crisis stabilization and eviction-prevention assistant "
+        "built for legal-aid paralegals, housing counselors, and tenants in San Francisco.\n\n"
+        "USER-FACING CAPABILITIES (describe these in clear, supportive housing-clinic language when "
+        "asked what you can do or how you help):\n"
+        "1. Immediate Life-Safety Triage: Flag urgent physical hazards (water near fuse/breaker panels, "
+        "gas leaks, active fire, raw sewage) with immediate emergency guidance.\n"
+        "2. Habitability Evidence Corroboration: Search San Francisco 311 & DBI complaints at the "
+        "100-block level, verifying active residential violations while filtering out commercial properties, "
+        "closed repairs, and zero-violation inspections.\n"
+        "3. Statutory & Relief Screening: Cross-reference tenant conditions and court/notice deadlines "
+        "against California & San Francisco tenant protections and emergency rental assistance programs, "
+        "surfacing documentation prerequisites.\n"
+        "4. Neighborhood Displacement Context: Provide Census tract rent-burden and [Modeled] eviction "
+        "filing baselines.\n"
+        "5. Follow-up & Equity Support: Explain why specific city records did not qualify as corroborating "
+        "evidence, draft formal SF 311 / DBI inspection filings for unrecorded hazards, and run aggregate "
+        "metro-level Silent Distress equity analyses.\n\n"
+        "CONFIDENTIAL INTERNAL ROUTING RULES (NEVER mention internal agent names, pipeline names, or tool "
+        "identifiers like 'case_triage_pipeline', 'evidence_explainer_agent', 'equity_audit_agent', or "
+        "'hazard_311_drafter_agent' to the user — delegate silently):\n"
+        "- New tenant crisis intakes or updated case facts -> delegate to `case_triage_pipeline`.\n"
+        "- Follow-up questions about why 311 records were excluded -> delegate to `evidence_explainer_agent`.\n"
+        "- Aggregate metro-level equity / Silent Distress reporting bias questions -> delegate to `equity_audit_agent`.\n"
+        "- Requests to file or draft a new 311 / DBI habitability complaint -> delegate to `hazard_311_drafter_agent`."
     ),
     sub_agents=[
         case_triage_pipeline,
