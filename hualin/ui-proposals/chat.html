@@ -90,6 +90,12 @@
   <div class="hero" id="hero">
     <h2>What's the situation?</h2>
     <p class="muted">Describe the tenant's situation in plain words. ShelterWise checks public 311 records, CA/SF law, relief funds and neighborhood context, then gives you a reviewable brief.<br><span class="small">Don't include names, phone numbers or unit numbers.</span></p>
+    <details class="card" style="text-align:left;margin-top:16px;padding:10px 14px;border:1px dashed #f1d9a6;background:#fffcf3">
+      <summary style="cursor:pointer;font-weight:600">📌 Note: proposed backend contract (DRAFT, to confirm with the team)</summary>
+      <pre class="code" style="margin-top:8px">POST /api/chat  { session_id, message }
+→ { reply, agent_trace:[{agent,label,ms}], blocks:[{type, ...data}], suggestions:[...] }</pre>
+      <p class="small" style="margin:8px 0 0">The UI just draws whatever blocks arrive, so the agents decide what the user sees. Block types used by this mock: <code>safety</code> <code>summary</code> <code>evidence</code> <code>law</code> <code>relief</code> <code>tract</code> <code>next_steps</code> <code>brief_cta</code> <code>brief</code> <code>explain</code> <code>equity_audit</code> <code>draft_311</code> <code>relief_fallback</code> <code>transit</code> <code>lock</code> <code>diff</code>.<br><b>Open question for the team:</b> confirm field names in <code>schemas.py</code> (Shiva) and the endpoint in <code>server.py</code> (Member 4).</p>
+    </details>
     <div class="starters">
       <div class="starter" onclick="send(SAMPLE)"><b>📋 Thursday 3:40pm intake</b><span class="small muted">No heat, water by the fuse box, Monday 9am nonpayment hearing</span></div>
       <div class="starter" onclick="send('Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?')"><b>🧾 No 311 on file yet</b><span class="small muted">Help document a brand-new hazard</span></div>
