@@ -169,7 +169,7 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
                     }
                 }
                 
-                events = call_adk_json(run_url, data=run_payload, method="POST", timeout=120)
+                events = call_adk_json(run_url, data=run_payload, method="POST", timeout=180)
                 
                 # 3. Extract agent trace and reply text
                 agent_trace = []
