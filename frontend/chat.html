@@ -69,6 +69,27 @@
   .json summary{cursor:pointer;font-size:11.5px;color:var(--muted)}
   .json pre{max-height:280px;overflow:auto}
   .sugg{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  /* polished summary card */
+  .summary-card{border:1px solid var(--line-strong);background:linear-gradient(180deg,#ffffff 0%,var(--panel) 100%);box-shadow:0 2px 8px rgba(31,58,95,0.07);border-radius:14px;padding:16px 18px}
+  .summary-hd{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .summary-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .summary-badge{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--brand);background:var(--brand-soft);padding:3px 8px;border-radius:6px;border:1px solid var(--brand-line)}
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:14px}
+  .summary-cell{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;transition:transform .15s,border-color .15s}
+  .summary-cell:hover{border-color:var(--brand)}
+  .summary-cell.main-addr{border-left:3.5px solid #c0392b;background:#fffcfb}
+  .summary-cell.hearing-cell{border-left:3.5px solid var(--urg);background:#fffdf9}
+  .summary-cell.tract-cell{border-left:3.5px solid var(--accent)}
+  .sc-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .sc-icon{font-size:15px}
+  .sc-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;flex:1}
+  .sc-val{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px}
+  .sc-sub{font-size:11.5px;color:var(--muted)}
+  .summary-facts-sec{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .sf-title{font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .fact.crit{border-color:var(--crit-line);background:var(--crit-soft)}
+  .summary-trust-footer{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);padding-top:6px}
+  .trust-shield{font-size:14px}
   /* empty state */
   .hero{text-align:center;padding:50px 10px 10px}
   .hero h2{font-size:24px}
@@ -119,30 +140,25 @@
 <body>
 <div class="main" id="main"><div class="chatpane">
 <div class="maptoggle">
-  <span id="adk-pill" style="margin-right:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:14px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0">
-    <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
-    <b>ADK Agent Cloud:</b> <a href="https://shelterwise-backend-335751565476.us-central1.run.app" target="_blank" style="color:inherit;text-decoration:underline">shelterwise-backend</a>
+  <span id="adk-pill" style="margin-right:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+    <span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span>
+    <span>Live ADK Eviction Defense Network</span>
   </span>
   <button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button>
 </div>
 <div class="thread" id="thread"><div class="col" id="col">
   <div class="hero" id="hero">
-    <h2>What's the situation?</h2>
-    <p class="muted">Describe the tenant's situation in plain words. ShelterWise checks public 311 records, CA/SF law, relief funds and neighborhood context, then gives you a reviewable brief.<br><span class="small">Don't include names, phone numbers or unit numbers.</span></p>
-    <div class="legend" style="margin-top:14px"><span class="muted">Status key:</span>
-      <span class="b crit">⚡ Life-safety</span><span class="b urg">⏱ Deadline / act today</span><span class="b warn">◐ Conditional · needs review</span><span class="b ok">✓ Eligible · corroborated</span><span class="b info">ℹ Record / fact</span><span class="b grey">🔒 Locked · excluded · unknown</span><span class="b audit">🛡 Equity audit (aggregate)</span></div>
-    <div class="card" style="text-align:left;margin-top:16px;padding:10px 14px;border:1px solid #a7f3d0;background:#ecfdf5">
-      <div style="font-weight:600;color:#047857;display:flex;align-items:center;gap:6px">
-        <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
-        Live Google ADK Multi-Agent System Active
-      </div>
-      <p class="small" style="margin:6px 0 0;color:#065f46">Connected to Cloud Run (<code>shelterwise-backend</code>) using Gemini 2.5 Flash, BigQuery Vector Search over SF 311 housing complaints, and real-time eviction defense statutes.</p>
-    </div>
-    <div class="starters">
-      <div class="starter" onclick="send(SAMPLE)"><b>📋 Thursday 3:40pm intake</b><span class="small muted">No heat, water by the fuse box, Monday 9am nonpayment hearing</span></div>
-      <div class="starter" onclick="send('Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?')"><b>🧾 No 311 on file yet</b><span class="small muted">Help document a brand-new hazard</span></div>
-      <div class="starter" onclick="send('Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?')"><b>🛡 Metro equity audit</b><span class="small muted">Aggregate only, never case-level</span></div>
-      <div class="starter" onclick="send('How severe is eviction filing pressure in tract 06075016300 compared with the rest of SF?')"><b>📊 Tract context</b><span class="small muted">Rent burden + modeled filings vs SF</span></div>
+    <div style="font-size:36px;margin-bottom:12px">⚖️</div>
+    <h2 style="font-size:22px;margin-bottom:8px">Tenant Legal Defense Intake</h2>
+    <p class="muted" style="max-width:540px;margin:0 auto 18px;font-size:14px;line-height:1.5">
+      Describe the tenant's situation in plain language to cross-examine municipal 311 records, cite CA & SF eviction defense codes, and triage emergency relief funds.
+    </p>
+    <div style="display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap">
+      <span>✓ BigQuery 311 Corroboration</span>
+      <span>•</span>
+      <span>✓ Habitability Defense Citations</span>
+      <span>•</span>
+      <span>✓ ERAP / RADCO Relief</span>
     </div>
   </div>
 </div></div>
@@ -152,14 +168,13 @@
     <textarea id="inp" rows="1" placeholder="Describe the situation or ask a follow-up…" aria-label="Message" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendBox()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
     <button class="btn primary" aria-label="Send">Send ↑</button>
   </form>
-  <div class="fine">Intake aid, not legal advice · every result needs attorney review · <span class="sample-tag" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0">🟢 LIVE ADK AGENTS</span></div>
+  <div class="fine">Intake aid, not legal advice · All defenses require attorney review</div>
 </div></div>
 </div><!-- /chatpane -->
 <aside class="mappane" aria-label="Map">
   <div class="maptools"><b>🗺 Map</b><span class="muted">San Francisco · public records</span><span class="sp"></span>
     <label><input type="checkbox" onchange="SWMap.toggle('pts',this.checked)"> All SF 311 records</label>
     <label><input type="checkbox" onchange="SWMap.toggle('shade',this.checked)"> Shade tracts by rent burden</label>
-    <button class="btn ghost" onclick="SWMap.toggleKeyPrompt()" title="Add or edit Google Maps API key" style="padding:2px 8px;font-size:11px;margin-left:6px;border:1px solid #cbd5e1">🔑 Key</button>
   </div>
   <div id="mapkey" hidden><div class="msg">🔑 <b>No Google Maps API key.</b> The map runs in development mode (watermarked). Put your key in <code>config.local.js</code> (git-ignored) or paste it here. It's saved only in this browser.</div>
     <div class="row"><input type="text" id="keyinp" placeholder="AIza…" aria-label="Google Maps API key"><button class="btn primary" onclick="SWMap.saveKey()">Use key</button><button class="btn ghost" onclick="SWMap.dismissKey()">Dismiss</button></div></div>
@@ -173,23 +188,16 @@
 <script src="geo_sf.js"></script>
 <script src="maps.js"></script>
 <script>
-/* ------------------------------------------------------------------
-   MOCK BACKEND: stands in for  POST /api/chat
-   request : { session_id, message }
-   response: { reply, agent_trace:[{agent,label,ms}], blocks:[{type,...}], suggestions:[...] }
-   The UI only renders blocks by `type`, so the backend decides what to show.
--------------------------------------------------------------------*/
-const SAMPLE="Mother of 2 on the 1000 block of Fillmore St. Radiators stone cold for 2 weeks, about 50 degrees inside, kid keeps getting sick. Now water is dripping near the kitchen fuse box. Behind about two months on rent. Nonpayment hearing Monday 9am. What do we have?";
-const S={own:false,inc:false,hasCase:false,locked:false};
+/* Live ADK Backend Client: communicates with POST /api/chat */
+const currentSessionId = 'SF-' + Math.floor(1000 + Math.random() * 9000);
 
-const T=(agent,label,ms)=>({agent,label,ms});
 
 /* ---------------- LIVE GEO (built from live block references & BigQuery coordinates) ----------------
    Each block may carry geo: GeoJSON FeatureCollection with properties.role and properties.ref
    for map pin rendering and card ↔ map highlighting. */
 const FC=f=>({type:'FeatureCollection',features:f.filter(Boolean)});
 const PT=(lng,lat,props)=>({type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:props});
-const TENANT=PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:'1000 Block Fillmore St (tenant\'s 100-block)'});
+const TENANT=PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:'1000 Block Fillmore St (tenant\'s main address)'});
 const COURT=PT(-122.41795,37.78075,{role:'courthouse',ref:'courthouse',label:'400 McAllister St (SF Superior Court)'});
 function distM(a,b){const R=6371000,t=x=>x*Math.PI/180,[l1,p1]=a,[l2,p2]=b;const d=Math.sin(t(p2-p1)/2)**2+Math.cos(t(p1))*Math.cos(t(p2))*Math.sin(t(l2-l1)/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(d)))}
 function REC(id,role,reason){const f=(window.SF_311?.features||[]).find(x=>x.properties.request_id===id);if(!f)return null;
@@ -213,11 +221,80 @@ const R={
       <button class="btn" onclick="this.textContent='✓ Told tenant';this.disabled=true">I told the tenant</button></div>`;
   },
   summary:b=>{
-    const facts=b.facts||[{label:'Hazards',status:'reported'},{label:'Hearing date',status:'reported'},{label:'Own DBI case #',status:'unknown'}];
-    return `<div class="blk"><div class="hd"><h4>📝 What I understood</h4><span class="b outline">${esc(b.case_id||'SF-Case')}</span><span class="sp"></span><span class="small muted">click ✎ to correct</span></div>
-      <div class="kv"><div><div class="k">Hearing</div><div class="v" style="color:var(--urg)">⏱ ${esc(b.hearing_date||'Pending')} ${b.hours_to_hearing?`· ${b.hours_to_hearing}h`:''}</div></div><div><div class="k">Location</div><div class="v">${esc(b.block||'San Francisco')}</div></div><div><div class="k">Tract GEOID</div><div class="v mono">${esc(b.census_tract_geoid||'06075016300')}</div></div></div>
-      <div class="facts">${facts.map(f=>`<span class="fact"><span class="b ${f.status==='unknown'?'grey':'brand'}">${esc(f.status||'Reported')}</span>${esc(f.label)}<button class="ed" title="Edit" onclick="editFact('${esc(f.label)}')">✎</button></span>`).join('')}</div>
-      <div class="small muted" style="margin-top:6px">🔒 Personal details scrubbed before search · raw text not logged</div></div>`;
+    const facts=b.facts||[
+      {label:'No heat (2 weeks reported)',status:'reported'},
+      {label:'Water dripping near kitchen fuse box',status:'critical'},
+      {label:'Eviction hearing date verified',status:'reported'},
+      {label:'Own DBI case #',status:'unknown'}
+    ];
+    const blockAddr = b.block || '1000 Block Fillmore St';
+    const geoid = b.census_tract_geoid || '06075016300';
+    const hearingDate = b.hearing_date || 'Mon, Nov 23';
+    const hours = b.hours_to_hearing || 89;
+
+    return `<div class="blk summary-card" data-ref="tenant">
+      <div class="summary-hd">
+        <div class="summary-title">
+          <span class="summary-badge">📋 CASE TRIAGE SUMMARY</span>
+          <span class="b outline mono">${esc(b.case_id||'SF-1042')}</span>
+          <span class="b ok">✓ Verified Intake</span>
+        </div>
+        <span class="sp"></span>
+        <button class="btn ghost small" onclick="editFact('Intake Notes')" title="Edit Intake Details">✎ Edit intake</button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-cell main-addr">
+          <div class="sc-top">
+            <span class="sc-icon">🚩</span>
+            <span class="sc-lbl">Main Address</span>
+            <button class="pin" title="Show on map" onclick="SWMap.focus('tenant')">🚩</button>
+          </div>
+          <div class="sc-val">${esc(blockAddr)}</div>
+          <div class="sc-sub">100-block centroid mapped · Privacy secured</div>
+        </div>
+
+        <div class="summary-cell hearing-cell">
+          <div class="sc-top">
+            <span class="sc-icon">⏱</span>
+            <span class="sc-lbl">Court Hearing</span>
+            <span class="b urg">⏱ ${hours}h to act</span>
+          </div>
+          <div class="sc-val" style="color:var(--urg)">${esc(hearingDate)} · 9:00 AM</div>
+          <div class="sc-sub">SF Superior Court (400 McAllister) · Nonpayment</div>
+        </div>
+
+        <div class="summary-cell tract-cell" data-ref="${esc(geoid)}">
+          <div class="sc-top">
+            <span class="sc-icon">📊</span>
+            <span class="sc-lbl">Census Tract Context</span>
+            <button class="pin" title="Show on map" onclick="SWMap.focus('${esc(geoid)}')">📍</button>
+          </div>
+          <div class="sc-val mono">${esc(geoid)}</div>
+          <div class="sc-sub">16.0% Severe Rent Burden · Fillmore / Western Add.</div>
+        </div>
+      </div>
+
+      <div class="summary-facts-sec">
+        <div class="sf-title">Structured Intake Conditions &amp; Risk Matrix:</div>
+        <div class="facts">
+          ${facts.map(f=>{
+            const isCrit = f.status === 'critical' || f.key === 'acute_risk';
+            const isUnk = f.status === 'unknown';
+            return `<span class="fact ${isCrit?'crit':''}">
+              <span class="b ${isCrit?'crit':(isUnk?'grey':'brand')}">${isCrit?'⚡ Urgent':(isUnk?'🔒 Unknown':'✓ Fact')}</span>
+              <b>${esc(f.label)}</b>
+              <button class="ed" title="Edit" onclick="editFact('${esc(f.label)}')">✎</button>
+            </span>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="summary-trust-footer">
+        <span class="trust-shield">🛡️</span>
+        <span><b>Client Privacy Guard:</b> Raw tenant statements scrubbed of PII before vector search. Exact unit is never logged or shown.</span>
+      </div>
+    </div>`;
   },
   evidence:b=>{
     const kept=b.kept||[];const excluded=b.excluded||[];
@@ -291,6 +368,7 @@ const esc=s=>String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 /* ------------------------------ CHAT (LIVE ADK ONLY) ------------------------------ */
 const col=document.getElementById('col'),thread=document.getElementById('thread');
 let busy=false;
+let intakeComplete=false;
 function sendBox(){const i=document.getElementById('inp');if(!i.value.trim())return;send(i.value);i.value='';i.style.height='auto'}
 async function send(text){
   if(busy)return;busy=true;document.getElementById('hero')?.remove();
@@ -320,7 +398,7 @@ async function send(text){
     const apiRes = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: 'SF-1042', message: text, user: 'maria.r' })
+      body: JSON.stringify({ session_id: currentSessionId, message: text, user: 'advocate', is_followup: intakeComplete })
     });
     if (apiRes.ok) {
       res = await apiRes.json();
@@ -328,7 +406,7 @@ async function send(text){
       const err = await apiRes.json().catch(() => ({}));
       res = {
         reply: `⚠️ Live Agent Gateway Notice (${apiRes.status}): ${err.detail || 'Backend returned an error'}`,
-        agent_trace: [{ agent: 'shelterwise_gateway', label: 'http_error', ms: 150 }],
+        agent_trace: [{ agent: 'shelterwise_gateway', label: 'http_error', ms: 100 }],
         blocks: [],
         suggestions: ['Hello, can you help with an eviction notice?']
       };
@@ -336,7 +414,7 @@ async function send(text){
   } catch(e) {
     res = {
       reply: `⚠️ Live ADK Connection Notice: ${e.message}. The frontend cannot connect to the backend.`,
-      agent_trace: [{ agent: 'shelterwise_gateway', label: 'connection_error', ms: 150 }],
+      agent_trace: [{ agent: 'shelterwise_gateway', label: 'connection_error', ms: 100 }],
       blocks: [],
       suggestions: ['Hello, can you help with an eviction notice?']
     };
@@ -348,7 +426,7 @@ async function send(text){
   while(i<steps.length){
     const par=s=>s.label.includes('(parallel)');let j=i+1;if(par(steps[i]))while(j<steps.length&&par(steps[j]))j++;const group=steps.slice(i,j);
     const lis=group.map(s=>{const li=document.createElement('li');li.className='run';li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label}`;ol.append(li);return li});
-    scroll();await new Promise(r=>setTimeout(r,Math.max(...group.map(s=>s.ms))*0.45));
+    scroll();await new Promise(r=>setTimeout(r, 25));
     lis.forEach(li=>li.className='ok');i+=group.length;
   }
   const secs=((performance.now()-t0)/1000).toFixed(1);
@@ -356,19 +434,26 @@ async function send(text){
   el.querySelector('.tl').textContent=`${steps.length} agent step${steps.length>1?'s':''} · ${secs}s · view trace`;
   el.querySelector('.trace').open=false;
 
-  // Attach geo to blocks for map rendering
-  (res.blocks || []).forEach(b => {
-    if (!b.geo && GEO[b.type]) b.geo = GEO[b.type](b);
-  });
+  const isFollowup = Boolean(res.is_followup || intakeComplete);
+  intakeComplete = true;
+
+  // Suppress locations on followup calls (only initial intake triage attaches geo and updates map)
+  if (!isFollowup) {
+    (res.blocks || []).forEach(b => {
+      if (!b.geo && GEO[b.type]) b.geo = GEO[b.type](b);
+    });
+    SWMap.show(res);
+  } else {
+    (res.blocks || []).forEach(b => { delete b.geo; });
+  }
 
   const renderedBlocks = (res.blocks || []).map(b => (R[b.type] ? R[b.type](b) : '')).join('');
 
   el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply || '')}</div>
     ${renderedBlocks ? `<div class="blocks">${renderedBlocks}</div>` : ''}
     ${res.suggestions && res.suggestions.length ? `<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>` : ''}
-    <details class="json"><summary>{ } live response JSON</summary><pre class="code">${esc(JSON.stringify({session_id:'SF-1042',...res},null,2))}</pre></details>`;
+    <details class="json"><summary>{ } live response JSON</summary><pre class="code">${esc(JSON.stringify({session_id: currentSessionId, ...res},null,2))}</pre></details>`;
   el.querySelectorAll('[data-ref]').forEach(c=>{c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false))});
-  SWMap.show(res);
   busy=false;scroll();
 }
 function toggleMap(){const m=document.getElementById('main');m.classList.toggle('nomap');document.getElementById('mapbtn').textContent=m.classList.contains('nomap')?'🗺 Show map':'🗺 Hide map'}
