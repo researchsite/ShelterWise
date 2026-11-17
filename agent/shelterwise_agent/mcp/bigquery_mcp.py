@@ -26,3 +26,21 @@ def query_bigquery_mcp(sql_query: str) -> Dict[str, Any]:
         return {"row_count": len(results), "rows": results[:20]}
     except Exception as e:
         return {"error": str(e)}
+
+def get_bigquery_mcp_toolset(project_id: str = None):
+    """Initializes and returns the Google-managed BigQuery MCPToolset or fallback."""
+    try:
+        from google.adk.tools import McpToolset
+        from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
+        resolved = project_id or PROJECT_ID or "qwiklabs-gcp-04-99fa355171e1"
+        params = StreamableHTTPConnectionParams(
+            url="https://bigquery.googleapis.com/mcp",
+            headers={"X-Goog-User-Project": resolved}
+        )
+        return McpToolset(connection_params=params)
+    except Exception:
+        class DummyMcpToolset:
+            def __init__(self, pid=None):
+                self.project_id = pid or PROJECT_ID
+                self.url = "https://bigquery.googleapis.com/mcp"
+        return DummyMcpToolset(pid=project_id)

@@ -80,3 +80,23 @@ def search_public_evidence(narrative_query: str, top_k: int = 25) -> Dict[str, A
         query_used=narrative_query
     )
     return pack.model_dump()
+
+def evaluate_311_candidate_eligibility(
+    row: Dict[str, Any],
+    expected_metro: str = "San Francisco",
+    semantic_rank: int = 1,
+) -> tuple:
+    prop_type = str(row.get("property_type") or "").strip()
+    status = str(row.get("inspection_status") or "").strip().lower()
+    closed = row.get("closed_date")
+    narrative = str(row.get("complaint_narrative") or "").lower()
+    
+    if prop_type != "Residential" or "commercial" in narrative:
+        return False, "commercial_property", "Commercial property: Non-residential facility."
+    if "no violation" in status or "zero violation" in status or "no habitability" in narrative:
+        return False, "closed_no_violation", "Closed - No Violation: Inspector verified no defect."
+    if "abated" in status or "abated" in narrative:
+        return False, "closed_abated", "Closed - Abated: Defect was abated."
+    if closed is not None or status.startswith("closed"):
+        return False, "closed_case", "Closed case: Not an active open inspection."
+    return True, None, "Eligible open residential complaint."

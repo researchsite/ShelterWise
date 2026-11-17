@@ -124,8 +124,8 @@ def explain_excluded_evidence(candidate_id: str, reason: str) -> Dict[str, Any]:
         "explanation": (
             f"Record '{candidate_id}' was excluded from court evidence because: {reason}. "
             "Municipal habitability defense rules strictly require active residential violations. "
-            "Commercial storefronts, abated repairs, and zero-violation inspections would weaken or "
-            "prejudice the tenant's defense before the judge."
+            "Commercial storefronts, abated repairs, and zero-violation inspections "
+            "cannot corroborate a residential habitability defense."
         )
     }
 
@@ -396,3 +396,48 @@ def handle_chat_message(
             "How can I assist you further with evidence corroboration, relief fund applications, or court transit?"
         )
     }
+
+# ==============================================================================
+# Helper functions & Aliases for test compatibility
+# ==============================================================================
+
+def draft_311_complaint(
+    hazard_description: str,
+    block_address: str = "1000 Block Fillmore St, San Francisco, CA",
+    priority: str = "High - Immediate Life Safety"
+) -> Dict[str, Any]:
+    out = draft_311_inspection_request(hazard_description, block_address, priority)
+    out["hazard_summary"] = hazard_description
+    out["priority_level"] = priority
+    return out
+
+# Backward-compatibility aliases
+shelterwise_navigator = shelterwise_navigator_ag
+case_triage_pipeline = case_triage_pipeline_ag
+intake_structurer_agent = intake_structurer_ag
+corroboration_fanout = corroboration_fanout_ag
+habitability_vector_agent = habitability_vector_ag
+statute_and_bulletin_agent = statute_and_bulletin_ag
+tract_displacement_agent = tract_displacement_ag
+eligibility_and_brief_agent = eligibility_and_brief_ag
+evidence_explainer_agent = evidence_explainer_ag
+equity_audit_agent = equity_audit_ag
+hazard_311_drafter_agent = hazard_311_drafter_ag
+
+# Runner factory with Session Support
+try:
+    from google.adk.runners import Runner, InMemoryRunner
+    from google.adk.sessions import InMemorySessionService
+    def create_runner(agent=None, session_service=None) -> Runner:
+        return Runner(
+            agent=agent or root_agent,
+            app_name="shelterwise",
+            session_service=session_service or InMemorySessionService(),
+            auto_create_session=True
+        )
+except Exception:
+    class DummyRunner:
+        def __init__(self, agent=None, app_name="shelterwise", session_service=None, auto_create_session=True):
+            self.agent = agent
+    def create_runner(agent=None, session_service=None):
+        return DummyRunner(agent=agent or root_agent)

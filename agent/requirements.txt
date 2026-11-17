@@ -1,8 +1,19 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
-pydantic>=2.7.0
+# ShelterWise — Google ADK Multi-Agent + BigQuery Vector Search + Firestore (Cloud Shell & Cloud Run)
 google-adk>=0.1.0
 google-genai>=0.1.0
+
+# Databases & Auth (BigQuery AI.EMBED / VECTOR_SEARCH + Firestore Transactional Store)
 google-cloud-bigquery>=3.25.0
 google-cloud-firestore>=2.16.0
+google-auth>=2.35.0
 pyarrow>=15.0.0
+
+# Shared Contracts & API Gateway
+pydantic>=2.7.0,<3.0.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+httpx>=0.27.0
+python-dotenv>=1.0.1
+
+# Testing & Verification
+pytest>=8.0.0

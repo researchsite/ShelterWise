@@ -318,3 +318,11 @@ class BQClient:
                     }
                 ]
             }
+
+# Compatibility aliases for repository interface
+BigQueryHousingRepository = BQClient
+HousingRepository = BQClient
+SanFranciscoFixtureRepository = BQClient
+
+def get_housing_repository():
+    return BQClient()

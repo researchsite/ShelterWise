@@ -215,3 +215,7 @@ def reconcile_gaps_and_generate_brief(
         brief_markdown=brief_markdown
     )
     return brief.model_dump()
+
+# Backwards-compatibility aliases for tools registry
+generate_stabilization_brief = reconcile_gaps_and_generate_brief
+reconcile_relief_and_gaps = reconcile_gaps_and_generate_brief

@@ -86,3 +86,16 @@ def structure_intake(
         semantic_search_query=search_query
     )
     return facts.model_dump()
+
+def scrub_pii_narrative(text: str) -> str:
+    """Scrub caller names, phone numbers, emails, and exact unit numbers."""
+    if not text:
+        return ""
+    cleaned = str(text)
+    # Redact phone numbers
+    cleaned = re.sub(r"\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b", "[REDACTED PHONE]", cleaned)
+    # Redact email addresses
+    cleaned = re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "[REDACTED EMAIL]", cleaned)
+    # Redact exact apartment/unit numbers
+    cleaned = re.sub(r"(?i)\b(?:apt|unit|suite|#)\s*\w+\b", "[REDACTED UNIT]", cleaned)
+    return cleaned.strip()

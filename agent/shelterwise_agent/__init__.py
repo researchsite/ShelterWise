@@ -13,7 +13,20 @@ from shelterwise_agent.agent import (
     equity_audit_ag,
     hazard_311_drafter_ag,
     execute_full_triage,
-    handle_chat_message
+    handle_chat_message,
+    # Aliases
+    shelterwise_navigator,
+    case_triage_pipeline,
+    intake_structurer_agent,
+    corroboration_fanout,
+    habitability_vector_agent,
+    statute_and_bulletin_agent,
+    tract_displacement_agent,
+    eligibility_and_brief_agent,
+    evidence_explainer_agent,
+    equity_audit_agent,
+    hazard_311_drafter_agent,
+    create_runner,
 )
 
 __all__ = [
@@ -30,5 +43,17 @@ __all__ = [
     "equity_audit_ag",
     "hazard_311_drafter_ag",
     "execute_full_triage",
-    "handle_chat_message"
+    "handle_chat_message",
+    "shelterwise_navigator",
+    "case_triage_pipeline",
+    "intake_structurer_agent",
+    "corroboration_fanout",
+    "habitability_vector_agent",
+    "statute_and_bulletin_agent",
+    "tract_displacement_agent",
+    "eligibility_and_brief_agent",
+    "evidence_explainer_agent",
+    "equity_audit_agent",
+    "hazard_311_drafter_agent",
+    "create_runner",
 ]
