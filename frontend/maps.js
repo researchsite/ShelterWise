@@ -19,10 +19,11 @@ const SWMap = (() => {
   const burdenColor = v => BURDEN_STEPS.find(([t]) => v < t)[1];
   const layerState = { shade: false, pts: false };
 
+  const DEFAULT_MAPS_KEY = 'AIzaSyALPqfkpF-3WOekirAfj_8qiBCqcfUuDRo';
   function key() {
     const u = new URLSearchParams(location.search).get('gmaps_key');
     if (u) localStorage.setItem('sw-gmaps-key', u);
-    return (window.SW_CONFIG && window.SW_CONFIG.GOOGLE_MAPS_API_KEY) || u || localStorage.getItem('sw-gmaps-key') || '';
+    return (window.SW_CONFIG && window.SW_CONFIG.GOOGLE_MAPS_API_KEY) || u || localStorage.getItem('sw-gmaps-key') || DEFAULT_MAPS_KEY;
   }
 
   function dismissKey() {
@@ -42,7 +43,7 @@ const SWMap = (() => {
     const keyEl = document.getElementById('mapkey');
     if (keyEl) keyEl.hidden = !!k || dismissed;
     window.__swInitMap = init;
-    window.gm_authFailure = () => { const b = document.getElementById('mapkey'); b.hidden = false; b.querySelector('.msg').innerHTML = '⚠ Google rejected this API key. Check that <b>Maps JavaScript API</b> is enabled and the key allows this origin.'; };
+    window.gm_authFailure = () => { const b = document.getElementById('mapkey'); if (b) { b.hidden = false; const m = b.querySelector('.msg'); if (m) m.innerHTML = '⚠ Google rejected this API key. Check that <b>Maps JavaScript API</b> is enabled and the key allows this origin.'; } };
     const s = document.createElement('script');
     s.src = `https://maps.googleapis.com/maps/api/js?${k ? 'key=' + encodeURIComponent(k) + '&' : ''}callback=__swInitMap&loading=async&v=weekly`;
     s.async = true; s.onerror = () => { document.getElementById('map').innerHTML = '<div class="mapfail">Could not load Google Maps (offline?). The chat still works.</div>'; };
@@ -113,6 +114,7 @@ const SWMap = (() => {
   }
 
   const DIAMOND = 'M 0,-1 1,0 0,1 -1,0 z';
+  const FLAG = 'M 0,0 L 0,-26 L 17,-19 L 0,-12 Z';
   function styleOverlay(f) {
     const r = f.getProperty('role'), hi = f.getProperty('_hi');
     const pt = (fill, scale, path = google.maps.SymbolPath.CIRCLE, z = 10) => ({
@@ -120,7 +122,19 @@ const SWMap = (() => {
       title: f.getProperty('label') || f.getProperty('request_id') || '', zIndex: hi ? 99 : z,
     });
     switch (r) {
-      case 'tenant_block': return pt(css('--brand'), 10, google.maps.SymbolPath.CIRCLE, 20);
+      case 'tenant_block': return {
+        icon: {
+          path: FLAG,
+          scale: hi ? 1.6 : 1.25,
+          fillColor: '#c0392b',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 1.5,
+          anchor: new google.maps.Point(0, 0)
+        },
+        title: f.getProperty('label') || 'Tenant Main Address',
+        zIndex: hi ? 99 : 50
+      };
       case 'corroborating': return pt(css('--ok'), 8, google.maps.SymbolPath.CIRCLE, 25);
       case 'excluded': return pt('#7b828c', 8, DIAMOND, 12);
       case 'courthouse': return pt(css('--accent'), 9, google.maps.SymbolPath.BACKWARD_CLOSED_ARROW, 18);
@@ -206,7 +220,7 @@ const SWMap = (() => {
   function openInfo(pos, html) { info.setContent(`<div class="iw">${html}</div>`); info.setPosition(pos); info.open({ map }); }
   function recHtml(f) {
     const p = k => f.getProperty(k), r = p('role');
-    if (r === 'tenant_block') return `<b>${esc(p('label'))}</b><div class="iws">100-block centroid only. The exact address is never stored or shown.</div>`;
+    if (r === 'tenant_block') return `<b>🚩 ${esc(p('label'))}</b><div class="iws">Tenant main address (100-block centroid). The exact address is never stored or shown.</div>`;
     if (r === 'courthouse') return `<b>⚖ ${esc(p('label'))}</b><div class="iws">SF Superior Court · hearing Mon 11/23 9:00am</div>`;
     const tag = r === 'corroborating' ? '<span class="b ok">✓ Corroborating</span>' : r === 'excluded' ? `<span class="b grey">✕ Excluded</span>` : (p('open_residential') ? '<span class="b info">Open · residential</span>' : '<span class="b grey">Closed or non-residential</span>');
     return `<b class="mono">${esc(p('request_id'))}</b> ${tag}<div class="iws">${esc(p('type'))} · ${esc(p('block'))}<br>${esc(p('property_type'))} · ${esc(p('status'))} · created ${esc(p('created'))}</div>${p('reason') ? `<div class="iws"><b>Why excluded:</b> ${esc(p('reason'))}</div>` : ''}${p('distance_m') ? `<div class="iws">${p('distance_m') >= 1000 ? (p('distance_m') / 1000).toFixed(1) + ' km' : p('distance_m') + ' m'} from tenant's block</div>` : ''}<div class="iws prov">Public: SF 311 Open Data</div>`;
@@ -222,7 +236,7 @@ const SWMap = (() => {
   function legend(feats) {
     const roles = new Set(feats.map(f => f.properties.role));
     const L = [
-      ['tenant_block', '<i class="lg dot" style="background:var(--brand)"></i>Tenant block (100-block)'],
+      ['tenant_block', '<i class="lg flag" style="font-style:normal;font-size:13px;display:inline-block;margin-right:2px">🚩</i>Main address (flag)'],
       ['corroborating', '<i class="lg dot" style="background:var(--ok)"></i>✓ Corroborating 311'],
       ['excluded', '<i class="lg dia"></i>✕ Excluded look-alike'],
       ['courthouse', '<i class="lg dot" style="background:var(--accent)"></i>⚖ Courthouse'],
