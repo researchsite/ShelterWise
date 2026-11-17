@@ -201,6 +201,7 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       <span>reCAPTCHA Enterprise · 0.94</span>
     </div>
+    <button class="btn sm" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff" onclick="startAutoDemo()">▶ 3-Min Walkthrough</button>
     <div class="live-pill" id="backend-status">
       <span class="live-dot"></span>
       <span>CLOUD RUN LIVE</span>
@@ -730,7 +731,22 @@ const V=[
  <div><h3 style="margin-top:0">Inspector-Wording Query for Vector Search</h3><div class="note info" style="margin-top:0"><b>Query:</b><br>“${STATE_INTAKE.search_query}”</div>
  <h3>Eviction Court Urgency</h3><span class="pill p-bad">Hearing Scheduled Soon</span><span class="pill p-warn">Critical Habitability Defense</span>
  <h3>Security Shield</h3><span class="pill p-ok">reCAPTCHA Enterprise Verified · Score 0.94</span></div></div>
- <h3>Preserved Facts Table</h3><div class="scroll"><table><tr><th>Reported Fact</th><th>Source Label</th><th>Detail</th></tr>${FACTS.map(f=>`<tr><td>${f[0]}</td><td><span class="pill ${f[1]==='Unknown'?'p-mute':'p-user'}">${f[1]}</span></td><td>${f[2]}</td></tr>`).join('')}</table></div>${nav()}</div>`,
+ <h3>Preserved Facts Table (Reviewable &amp; Editable by Advocate)</h3>
+ <div class="scroll">
+   <table>
+     <tr><th>Reported Fact (Click to edit)</th><th>Source Label</th><th>Legal Significance / Detail (Click to edit)</th><th>Action</th></tr>
+     ${FACTS.map((f,idx)=>`<tr id="fact-row-${idx}">
+       <td contenteditable="true" title="Click to edit fact" style="cursor:text;border-bottom:1px dashed var(--brand-border)" onblur="FACTS[${idx}][0]=this.innerText.trim()">${esc(f[0])}</td>
+       <td><span class="pill ${f[1]==='Unknown'?'p-mute':'p-user'}">${esc(f[1])}</span></td>
+       <td contenteditable="true" title="Click to edit detail" style="cursor:text;border-bottom:1px dashed var(--brand-border)" onblur="FACTS[${idx}][2]=this.innerText.trim()">${esc(f[2])}</td>
+       <td><button class="btn ghost sm" style="padding:2px 8px;font-size:11px" onclick="removeFact(${idx})">✕</button></td>
+     </tr>`).join('')}
+   </table>
+ </div>
+ <div class="btns" style="margin-top:10px">
+   <button class="btn ghost sm" onclick="addNewFact()">➕ Add Additional Tenant Fact</button>
+   <span class="sub" style="margin:0">💡 Advocates can edit fact text directly above or add new items to adjust the defense brief.</span>
+ </div>${nav()}</div>`,
 
 /* 2 evidence */
 ()=>`<div class="card"><h2>2 · Gather: Evidence (habitability_vector_ag)</h2><p class="sub">BigQuery AI.EMBED + VECTOR_SEARCH over 311 housing complaints with strict business rule post-filtering.</p>
@@ -844,7 +860,7 @@ const V=[
    <li>☐ Relief grant eligibility checked against open habitability prerequisites</li>
    <li>☐ Google reCAPTCHA abuse shield verified on intake record</li>
  </ul>
- <div class="btns"><button class="btn" onclick="window.print()">🖨 Print / Save Defense Brief PDF</button></div>${nav()}</div>`,
+ <div class="btns"><button class="btn" onclick="window.print()">🖨 Print / Save Defense Brief PDF</button><button class="btn ghost" onclick="copyBriefText()">📋 Copy Brief to Clipboard</button></div>${nav()}</div>`,
 
 /* 8 follow-ups */
 ()=>`<div class="card"><h2>8 · Interactive Follow-up Chat (shelterwise_navigator_ag)</h2><p class="sub">Ask follow-up questions to query specialist agents, re-verify relief, check transit, or lock case in Firestore.</p>
@@ -1141,6 +1157,49 @@ async function runEquityAuditAPI(){
   g.querySelectorAll('.cand').forEach(e=>e.onclick=()=>show(e.dataset.k));
   show('complaints_embedded');
 })();
+
+
+function addNewFact(){
+  const f = prompt("Enter new tenant-reported fact to record:");
+  if(f){
+    const d = prompt("Enter legal significance / detail:");
+    FACTS.push([f, "Tenant-Reported", d || "Additional verified tenant claim"]);
+    render();
+  }
+}
+
+function removeFact(idx){
+  FACTS.splice(idx, 1);
+  render();
+}
+
+function copyBriefText(){
+  const el = document.querySelector('.brief');
+  if(el){
+    navigator.clipboard.writeText(el.innerText).then(()=>{
+      alert("Tenant Stabilization Brief copied to clipboard!");
+    });
+  }
+}
+
+let demoTimer = null;
+function startAutoDemo(){
+  let step = 0;
+  alert("Starting 3-Minute Autonomous Demo Walkthrough as specified in DEMO_SCRIPT.md.\nWatch each agent in the pipeline execute!");
+  go(0);
+  if(demoTimer) clearInterval(demoTimer);
+  demoTimer = setInterval(()=>{
+    step++;
+    if(step < STEPS.length){
+      go(step);
+      if(step === 2){ setTimeout(runPipe, 800); }
+      if(step === 6){ setTimeout(runVerify, 600); }
+    } else {
+      clearInterval(demoTimer);
+      alert("Walkthrough Complete! Defense brief compiled and ready for court.");
+    }
+  }, 4500);
+}
 
 render();
 </script>
