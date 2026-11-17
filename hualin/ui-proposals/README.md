@@ -22,6 +22,8 @@ the exact shape the mock returns.
 
 ## Test prompts (run in order in `chat.html`)
 
+Tip: in `chat.html`, click **🧪 Test prompts** (top right) to Run, Copy or "Put in box" each prompt with one click.
+
 | # | Prompt | Expected result |
 |---|---|---|
 | 1 | Mother of 2 on the 1000 block of Fillmore St. Radiators stone cold for 2 weeks, about 50 degrees inside, kid keeps getting sick. Now water is dripping near the kitchen fuse box. Behind about two months on rent. Nonpayment hearing Monday 9am. What do we have? | 6-step agent trace (3 parallel steps) · red safety alert · facts · 1 corroborating 311 + 3 excluded look-alikes · 3 statutes · 4 funds (Conditional) · tract charts · next steps · brief card |
@@ -37,7 +39,7 @@ the exact shape the mock returns.
 | 11 | Tenant is Black, can that raise priority? | Guardrail refusal: protected traits not used |
 | 12 | Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do? | `hazard_311_drafter_agent`: 311 draft + funds that don't need a case |
 | 13 | How severe is eviction filing pressure in tract 06075016300 compared with the rest of SF? | Tract charts only |
-| 14 | Click ✎ on any fact and change it | "Correction: …" → updated, Brief v2 diff |
+| 14 | Correction: household is 4 people | Fact updated · Brief v2 diff (same as clicking ✎ on a fact) |
 | 15 | hello | Clarifying question (fallback) |
 
 Also click: the **Why?** buttons on the excluded cards, the "Answer to unlock more" buttons on the relief card,
