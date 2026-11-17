@@ -1,7 +1,7 @@
 // Injects the ShelterWise app bar at the top of the page.
 (function () {
-  const saved = localStorage.getItem('sw-theme') || 'courthouse';
-  document.documentElement.dataset.theme = saved;
+  document.documentElement.dataset.theme = 'courthouse';
+  localStorage.setItem('sw-theme', 'courthouse');
   const bar = document.createElement('div');
   bar.innerHTML = `
     <header class="appbar">

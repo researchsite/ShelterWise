@@ -140,30 +140,25 @@
 <body>
 <div class="main" id="main"><div class="chatpane">
 <div class="maptoggle">
-  <span id="adk-pill" style="margin-right:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:14px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0">
-    <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
-    <b>ADK Agent Cloud:</b> <a href="https://shelterwise-backend-335751565476.us-central1.run.app" target="_blank" style="color:inherit;text-decoration:underline">shelterwise-backend</a>
+  <span id="adk-pill" style="margin-right:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+    <span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span>
+    <span>Live ADK Eviction Defense Network</span>
   </span>
   <button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button>
 </div>
 <div class="thread" id="thread"><div class="col" id="col">
   <div class="hero" id="hero">
-    <h2>What's the situation?</h2>
-    <p class="muted">Describe the tenant's situation in plain words. ShelterWise checks public 311 records, CA/SF law, relief funds and neighborhood context, then gives you a reviewable brief.<br><span class="small">Don't include names, phone numbers or unit numbers.</span></p>
-    <div class="legend" style="margin-top:14px"><span class="muted">Status key:</span>
-      <span class="b crit">⚡ Life-safety</span><span class="b urg">⏱ Deadline / act today</span><span class="b warn">◐ Conditional · needs review</span><span class="b ok">✓ Eligible · corroborated</span><span class="b info">ℹ Record / fact</span><span class="b grey">🔒 Locked · excluded · unknown</span><span class="b audit">🛡 Equity audit (aggregate)</span></div>
-    <div class="card" style="text-align:left;margin-top:16px;padding:10px 14px;border:1px solid #a7f3d0;background:#ecfdf5">
-      <div style="font-weight:600;color:#047857;display:flex;align-items:center;gap:6px">
-        <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
-        Live Google ADK Multi-Agent System Active
-      </div>
-      <p class="small" style="margin:6px 0 0;color:#065f46">Connected to Cloud Run (<code>shelterwise-backend</code>) using Gemini 2.5 Flash, BigQuery Vector Search over SF 311 housing complaints, and real-time eviction defense statutes.</p>
-    </div>
-    <div class="card" style="text-align:left;margin-top:16px;padding:12px 14px;border:1px solid #cbd5e1;background:#f8fafc">
-      <div style="font-weight:600;color:#1e293b;display:flex;align-items:center;gap:6px;font-size:13px">
-        <span>📝 Tenant Intake & Eviction Defense</span>
-      </div>
-      <p class="small" style="margin:6px 0 0;color:#475569">Enter a real tenant intake narrative below (e.g. address/block in SF, habitability conditions, landlord notices, hearing dates) or ask a legal defense question. The live ADK agent pipeline will analyze municipal 311 public records, CA/SF statutes, and rental assistance programs.</p>
+    <div style="font-size:36px;margin-bottom:12px">⚖️</div>
+    <h2 style="font-size:22px;margin-bottom:8px">Tenant Legal Defense Intake</h2>
+    <p class="muted" style="max-width:540px;margin:0 auto 18px;font-size:14px;line-height:1.5">
+      Describe the tenant's situation in plain language to cross-examine municipal 311 records, cite CA & SF eviction defense codes, and triage emergency relief funds.
+    </p>
+    <div style="display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap">
+      <span>✓ BigQuery 311 Corroboration</span>
+      <span>•</span>
+      <span>✓ Habitability Defense Citations</span>
+      <span>•</span>
+      <span>✓ ERAP / RADCO Relief</span>
     </div>
   </div>
 </div></div>
@@ -173,7 +168,7 @@
     <textarea id="inp" rows="1" placeholder="Describe the situation or ask a follow-up…" aria-label="Message" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendBox()}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
     <button class="btn primary" aria-label="Send">Send ↑</button>
   </form>
-  <div class="fine">Intake aid, not legal advice · every result needs attorney review · <span class="sample-tag" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0">🟢 LIVE ADK AGENTS</span></div>
+  <div class="fine">Intake aid, not legal advice · All defenses require attorney review</div>
 </div></div>
 </div><!-- /chatpane -->
 <aside class="mappane" aria-label="Map">
