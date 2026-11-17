@@ -6,6 +6,7 @@ import json
 
 from google.adk.agents import LlmAgent
 from google.adk.agents.readonly_context import ReadonlyContext
+from google.genai import types
 
 from . import config
 from .schemas import BriefDraft, IntakeFacts
@@ -27,7 +28,11 @@ Rules:
 - hearing_date: resolve relative dates ("Monday", "next Tuesday") against today, as YYYY-MM-DD.
 - case_type: nonpayment if behind on rent / pay-or-quit; no_fault for owner move-in, Ellis Act, etc.
 - Use null whenever a fact is not stated. Never guess income, case numbers or dates.
+- household_size: only if the number of people is stated or exactly countable ("mom and 2 kids" = 3).
+  "Single mom, her kid" is ambiguous about how many children: use null.
 - tenant_has_own_dbi_case: true only if the note says the tenant has her own DBI / inspection case number.
+- tenant_complained_to_city: true only if the note explicitly says SHE complained / called 311 / reported it
+  to the city. Having a case number is NOT enough (others can file on a tenant's behalf). Otherwise null.
 - Never copy names, phone numbers, emails or unit numbers into any field.
 - {NO_DEMOGRAPHICS}
 """
@@ -97,6 +102,7 @@ def build_brief_writer() -> LlmAgent:
         description="Writes the memo and summary from code-computed facts.",
         instruction=_brief_writer_instruction,
         include_contents="none",
+        generate_content_config=types.GenerateContentConfig(temperature=0.2),
         output_schema=BriefDraft,
         output_key="brief_draft",
     )

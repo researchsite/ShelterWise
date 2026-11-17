@@ -25,6 +25,28 @@ def _sentences(text: str) -> list[str]:
     return [s.strip() for s in _SENT.split(text or "") if s.strip()]
 
 
+MEMO_SECTIONS = ("corroborat", "legal", "relief", "limit")
+MIN_MEMO_CHARS = 400
+
+
+def _quality_issues(draft: dict, kept_ids: set[str]) -> list[str]:
+    """Catch empty or off-task drafts (e.g. 'Task complete'), which make no claims to over-claim."""
+    issues = []
+    memo = draft.get("memo_markdown") or ""
+    if len(memo) < MIN_MEMO_CHARS:
+        issues.append(f"Memo is too short ({len(memo)} chars); write the full memo with every section.")
+    missing = [sec for sec in MEMO_SECTIONS if sec not in memo.lower()]
+    if missing:
+        issues.append("Memo is missing sections: " + ", ".join(missing)
+                      + ". Use: Client situation; Corroborating city records; Legal analysis; Relief referrals; "
+                        "Open questions; Evidentiary limits.")
+    if kept_ids and not any(k in memo for k in kept_ids):
+        issues.append("Memo must cite the corroborating record IDs: " + ", ".join(sorted(kept_ids)) + ".")
+    if len(draft.get("summary") or "") < 80:
+        issues.append("Summary is missing or too short.")
+    return issues
+
+
 def verify_draft(draft: dict, *, evidence: dict, statutes: list[dict], relief: list[dict]) -> list[str]:
     text = "\n".join([draft.get("summary", ""), draft.get("memo_markdown", ""),
                       *draft.get("questions_for_tenant", [])])
@@ -47,8 +69,10 @@ def verify_draft(draft: dict, *, evidence: dict, statutes: list[dict], relief: l
         if s["verdict"] not in ("NOT_YET", "NOT_APPLICABLE"):
             continue
         for sec in _SECTION.findall(s["code_citation"]):
-            for sent in low_sents:
-                if sec in sent and not any(h in sent for h in _HEDGE_STATUTE):
+            for i, sent in enumerate(low_sents):
+                # a heading like "### § 1942.4" is usually explained in the next sentence
+                window = " ".join(low_sents[i:i + 2])
+                if sec in sent and not any(h in window for h in _HEDGE_STATUTE):
                     issues.append(f"Mentions § {sec} without saying it does not apply yet ({s['verdict']}).")
                     break
 
@@ -68,6 +92,7 @@ def verify_draft(draft: dict, *, evidence: dict, statutes: list[dict], relief: l
             issues.append("Gives eviction filing numbers without saying they are modeled estimates.")
             break
 
+    issues += _quality_issues(draft, kept_ids)
     if "block" not in text.lower():
         issues.append("Must state that 311 evidence is block-level, not proof about her unit.")
     m = _DEMOGRAPHIC.search(text)
