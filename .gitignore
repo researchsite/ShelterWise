@@ -28,3 +28,7 @@ Thumbs.db
 
 # Hualin: Agent Runtime instance id (local)
 hualin/.agent_runtime_id
+
+# Local libraries
+.libs/
+
