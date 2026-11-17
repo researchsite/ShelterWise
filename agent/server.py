@@ -148,11 +148,100 @@ def run_triage(req: TriageRequest):
         logger.error(f"Triage error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
+def state_to_blocks(state: Dict[str, Any]) -> list:
+    blocks = []
+    
+    intake = state.get("intake", state.get("intake_facts", {}))
+    if isinstance(intake, dict) and intake:
+        if intake.get("acute_life_safety_warning"):
+            blocks.append({
+                "type": "safety",
+                "alerts": [{"id": "safety_warning", "message": intake["acute_life_safety_warning"]}]
+            })
+        blocks.append({
+            "type": "summary",
+            "case_id": intake.get("case_id", "SF-1042"),
+            "block": intake.get("block_address", "1000 Block Fillmore St"),
+            "census_tract_geoid": intake.get("geoid", "06075016300"),
+            "hearing_date": intake.get("hearing_date", "2026-11-23"),
+            "hearing_time": "09:00",
+            "hours_to_hearing": 89,
+            "case_type": "nonpayment",
+            "facts": [
+                {"key": "hazards", "label": intake.get("primary_hazard", "No heat"), "status": "reported"},
+                {"key": "tenant_has_own_dbi_case", "label": "Own DBI case #", "status": "unknown"}
+            ]
+        })
+
+    ev = state.get("evidence", state.get("evidence_pack", {}))
+    if isinstance(ev, dict) and "corroborating_records" in ev:
+        blocks.append({
+            "type": "evidence",
+            "kept": ev.get("corroborating_records", []),
+            "excluded": ev.get("excluded_candidates", [])
+        })
+
+    pol = state.get("policy", state.get("policy_pack", {}))
+    if isinstance(pol, dict) and "affirmative_defenses" in pol:
+        blocks.append({
+            "type": "law",
+            "statutes": pol.get("affirmative_defenses", [])
+        })
+        if "emergency_relief_funds" in pol:
+            blocks.append({
+                "type": "relief",
+                "funds": pol.get("emergency_relief_funds", [])
+            })
+
+    tract = state.get("tract", state.get("tract_context", {}))
+    if isinstance(tract, dict) and "eviction_filing_rate" in tract:
+        blocks.append({
+            "type": "tract",
+            "tract": tract
+        })
+
+    brief = state.get("brief", state.get("stabilization_brief", {}))
+    if brief:
+        if isinstance(brief, dict):
+            blocks.append({
+                "type": "brief",
+                "brief": brief
+            })
+        elif isinstance(brief, str) and len(brief) > 20:
+            blocks.append({
+                "type": "brief",
+                "memo_markdown": brief
+            })
+
+    return blocks
+
 @app.post("/api/chat")
 def chat_endpoint(req: ChatRequest):
     try:
-        reply = handle_chat_message(req.message, case_id=req.case_id)
-        return reply
+        reply_dict = handle_chat_message(req.message, case_id=req.case_id)
+        reply_text = reply_dict.get("response", "Processed.")
+        agent_name = reply_dict.get("agent", "shelterwise_navigator_ag")
+        
+        store = FirestoreStore()
+        case_state = store.get_case(req.case_id) if req.case_id else {}
+        blocks = state_to_blocks(case_state)
+        
+        # If no blocks generated (e.g. ad-hoc query), add a markdown block
+        if not blocks:
+            blocks.append({"type": "markdown", "text": reply_text})
+
+        return {
+            "session_id": req.case_id or "SF-1042",
+            "reply": reply_text,
+            "agent_trace": [{"agent": agent_name, "label": reply_text[:80], "ms": 800, "parallel": False}],
+            "blocks": blocks,
+            "suggestions": [
+                "Draft the attorney brief",
+                "Who lives in the tracts our triage rules prioritize?",
+                "Check courthouse transit route"
+            ],
+            "mode": "mock_backend"
+        }
     except Exception as e:
         logger.error(f"Chat error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
@@ -205,46 +294,13 @@ def transit_estimate_endpoint(origin: Optional[str] = "1000 Block Fillmore St"):
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 
 # Serve Web UI
-candidate_paths = [
-    os.path.join(BASE_DIR, "frontend", "index.html"),
-    os.path.join(PROJECT_ROOT, "frontend", "index.html"),
-    os.path.join(PROJECT_ROOT, "mockup", "index.html"),
-]
-
-hero_paths = [
-    os.path.join(BASE_DIR, "frontend", "hero.png"),
-    os.path.join(PROJECT_ROOT, "frontend", "hero.png"),
-    os.path.join(PROJECT_ROOT, "agent", "frontend", "hero.png"),
-]
-
-@app.get("/hero.png")
-def serve_hero():
-    for p in hero_paths:
-        if os.path.exists(p):
-            return FileResponse(p, media_type="image/png")
-    return JSONResponse({"error": "Hero image not found"}, status_code=404)
-
-@app.get("/app_ui_snapshot.png")
-def serve_ui_snapshot():
-    snapshot_paths = [
-        os.path.join(BASE_DIR, "frontend", "app_ui_snapshot.png"),
-        os.path.join(PROJECT_ROOT, "frontend", "app_ui_snapshot.png"),
-        os.path.join(PROJECT_ROOT, "agent", "frontend", "app_ui_snapshot.png"),
-        os.path.join(PROJECT_ROOT, "docs", "app_ui_snapshot.png"),
-    ]
-    for p in snapshot_paths:
-        if os.path.exists(p):
-            return FileResponse(p, media_type="image/png")
-    return JSONResponse({"error": "Snapshot image not found"}, status_code=404)
-
-
-@app.get("/", response_class=HTMLResponse)
-def serve_index():
-    for p in candidate_paths:
-        if os.path.exists(p):
-            with open(p, "r", encoding="utf-8") as f:
-                return f.read()
-    return "<h1>ShelterWise API Online</h1><p>Visit /docs for API documentation.</p>"
+frontend_dir = os.path.join(PROJECT_ROOT, "frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+else:
+    @app.get("/", response_class=HTMLResponse)
+    def serve_index():
+        return "<h1>ShelterWise API Online</h1><p>Visit /docs for API documentation.</p>"
 
 if __name__ == "__main__":
     import uvicorn
