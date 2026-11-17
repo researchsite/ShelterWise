@@ -8,7 +8,7 @@ import time
 import json
 import urllib.request
 import urllib.error
-from datetime import datetime
+from datetime import datetime, timezone
 
 ENDPOINTS = [
     {
@@ -95,7 +95,7 @@ def check_chat_api():
         return False, f"Chat API error: {e} ({latency:.1f}ms)"
 
 def run_all_checks():
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"[{timestamp}] Starting ShelterWise continuous service health check...")
     
     all_ok = True
