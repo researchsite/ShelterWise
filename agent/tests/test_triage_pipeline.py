@@ -64,7 +64,32 @@ def test_bigquery_mcp_toolset():
     assert toolset is not None
 
 def test_runner_with_in_memory_session():
-    """Verify create_runner instantiates Runner backed by InMemorySessionService."""
-    from shelterwise_agent import create_runner
-    runner = create_runner()
-    assert runner is not None
+    """Verify create_runner shares singleton InMemorySessionService and avoids state key collisions."""
+    from google.adk.sessions import InMemorySessionService
+    from shelterwise_agent import SESSION_SERVICE, create_runner, get_session_service
+
+    runner1 = create_runner()
+    runner2 = create_runner()
+    assert runner1 is not None
+    assert isinstance(SESSION_SERVICE, InMemorySessionService)
+    assert get_session_service() is SESSION_SERVICE
+    assert runner1.session_service is SESSION_SERVICE
+    assert runner2.session_service is SESSION_SERVICE
+
+    # Ensure LlmAgent output_keys never overwrite structured tool state dicts
+    reserved_tool_state_keys = {
+        "intake_facts",
+        "evidence_pack",
+        "raw_policy_pack",
+        "tract_context",
+        "stabilization_brief",
+    }
+    pipeline_agents = [
+        intake_structurer_agent,
+        habitability_vector_agent,
+        statute_and_bulletin_agent,
+        tract_displacement_agent,
+        eligibility_and_brief_agent,
+    ]
+    for ag in pipeline_agents:
+        assert ag.output_key not in reserved_tool_state_keys
