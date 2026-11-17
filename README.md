@@ -32,6 +32,9 @@
 
 > 📖 **Comprehensive System Reference**:  
 > For the complete registry of all 11 Google ADK agents, exact source code paths, Google Cloud services, and CLI commands, see **[`docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md`](docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md)**.
+> 
+> 🎨 **Google Stitch Design System & Plain-English Technical Guide**:  
+> For the complete specification of the Stitch-Civic design system, 24 component taxonomy, and plain-English guides, see **[`docs/STITCH_DESIGN_SYSTEM.md`](docs/STITCH_DESIGN_SYSTEM.md)**.
 
 ---
 
@@ -84,6 +87,33 @@ Every day in San Francisco, tenants appear in unlawful detainer (eviction) court
 3. **Applies Statutory Protections**: Tracks the statutory 35-day repair window under CA Civil Code § 1942.4 and unlocks emergency relief funds.
 4. **Protects Advocate Collaboration**: Employs **Cloud Firestore `@firestore.transactional` optimistic concurrency locks** to prevent conflicting edits between paralegals and attorneys.
 5. **Maintains Demographic Integrity**: Adheres to a strict **Responsible AI Demographic Firewall**, isolating demographic indicators (`audit_*`) from individual case triage to aggregate cohort auditing only.
+
+---
+
+## 🎨 Google Stitch Design System Architecture
+
+ShelterWise implements a component-driven design system following **Google Stitch** principles—Google's generative multimodal design architecture that unifies design tokens, modular components, responsive layouts, and trauma-informed interaction patterns.
+
+### 5-Tier Component Taxonomy (24 Modular Components)
+
+| Tier | Components | Purpose & Design Behavior |
+| :--- | :--- | :--- |
+| **Tier 1: Tokens** | Colors, Typography, Spacing, Radii, Shadows | Semantic tokens (`--stitch-brand`, `--stitch-surface`, `--stitch-danger`) with instant `distress-mode` high-contrast overrides. |
+| **Tier 2: Atoms** | `StitchBadge`, `StitchButton`, `StitchInput`, `StitchTooltip`, `StitchAvatar` | Single-purpose, accessible, keyboard-navigable interactive controls with WCAG AAA contrast. |
+| **Tier 3: Molecules** | `DistressModeBanner`, `HabitabilityClockPill`, `ReliefFundingMeter`, `DecoyRejectionCard`, `GeoProximityRadar` | Domain-specific civic-tech components communicating complex legal timelines and monetary balances. |
+| **Tier 4: Organisms** | `UniversalHeader`, `StepStepper`, `EvidenceCandidateList`, `PleadingPaperViewer`, `MultiAgentVisualizer` | Self-contained functional workspaces binding agent outputs to user-actionable controls. |
+| **Tier 5: Templates** | `IntakeFlowLayout`, `MapExplorerLayout`, `CodexReferenceLayout`, `CourtExportLayout` | Responsive page shells ensuring visual consistency and intuitive tab navigation across the entire application. |
+
+### 📖 Plain-English Guide: How Complex Cloud Tech Works in Everyday Language
+
+| Advanced Cloud Feature | What It Actually Is (Technical) | Plain Everyday English Translation |
+| :--- | :--- | :--- |
+| **The City Hall Record Matcher** | BigQuery `AI.EMBED` + `VECTOR_SEARCH` | Matches the *meaning* of your story to official city citations in seconds, even if your words differ from the inspector's technical notes. |
+| **The False Lead Filter** | Decoy Rejection Engine | Weeds out irrelevant records (commercial coffee shops, old closed cases) so only valid residential proof is brought to court. |
+| **Your AI Legal Support Team** | Google ADK Multi-Agent Pipeline (`*_ag`) | A coordinated team of AI legal specialists: intake paralegal, records researcher, housing attorney, neighborhood analyst, and court drafter. |
+| **The Collaborator Shield** | Cloud Firestore Concurrency Lock (`lock_version`) | Prevents tenants and legal aid attorneys from accidentally erasing or overwriting each other's work while editing at the same time. |
+| **The Fairness Firewall** | Responsible AI Demographic Sandbox | Personal demographics are sealed behind a firewall and NEVER used to score individual tenants or alter legal triage. |
+| **The Landlord Repair Deadline** | Statutory Repair Clock (Cal. Civ. Code § 1942.4) | If a landlord fails to fix cited violations within 35 days, California law bars them from demanding rent or evicting. |
 
 ---
 

@@ -237,6 +237,16 @@ def serve_ui_snapshot():
             return FileResponse(p, media_type="image/png")
     return JSONResponse({"error": "Snapshot image not found"}, status_code=404)
 
+# Mount Google Stitch design system static assets
+stitch_dirs = [
+    os.path.join(BASE_DIR, "frontend", "stitch"),
+    os.path.join(PROJECT_ROOT, "frontend", "stitch"),
+]
+for sd in stitch_dirs:
+    if os.path.exists(sd):
+        app.mount("/stitch", StaticFiles(directory=sd), name="stitch")
+        break
+
 
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
