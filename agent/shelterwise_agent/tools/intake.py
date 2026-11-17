@@ -1,4 +1,4 @@
-from google.adk.tools import tool
+from google.adk import tool
 from shelterwise_agent.schemas import IntakeFacts
 
 @tool
