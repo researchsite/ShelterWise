@@ -153,7 +153,7 @@ paralegal ─► navigator (chat) ─► brief_pipeline:
 | **`v_tract_stability_context` SQL view**: 4 quarters pre-summed, **no `audit_*` columns** | `sql/setup.sql` |
 | **Life-safety check first** (water near electrical panel, gas, fire, CO, sewage) → "don't touch the panel, call 911 / DBI" before anything else | step 2, `tools/safety.py` |
 | **Scrub personal info** (names, phone, email, unit numbers) before embedding or logging | step 2, `tools/pii.py` |
-| **pytest set**: each decoy class caught, GEOID leading zero kept, no `audit_*` in case tools | `agent/tests/` |
+| **pytest set**: each decoy class caught, GEOID leading zero kept, no `audit_*` in case tools | `hualin/agent/tests/` |
 
 ## 5. The rules (all in code, all tested)
 
@@ -187,14 +187,14 @@ paralegal ─► navigator (chat) ─► brief_pipeline:
 
 ## 7. Testing
 
-**pytest** (`agent/tests/`): fast, no LLM
+**pytest** (`hualin/agent/tests/`): fast, no LLM
 - all 9 `DECOY-SANF-*` excluded with the right reason, **with the radius turned off** (otherwise distance would hide them)
 - the Fillmore case keeps SF-202665182
 - filings for tract 06075016300 = 65/yr, not 260
 - relief verdicts for: no case / block case only / own case number / income above and below AMI
 - § 1942.4 "not yet" at 16 days, "applies" at 36 days
 
-**ADK eval** (`agent/eval/`): about 5 full intakes, run with `adk eval`
+**ADK eval** (`hualin/agent/eval/`): about 5 full intakes, run with `adk eval`
 - Fillmore heat case (above)
 - a case where a decoy ranks #1 by raw similarity
 - a block with no open records → fallback drafter
@@ -232,22 +232,28 @@ browser (ShelterWise UI) ──► small backend on Cloud Run ──► agent on
 | `rental_relief_program_bulletins` | Public policy text | Fund verdicts |
 | `municipal_housing_ordinance_statutes` | Public statute text | Law matching |
 
-## 10. Code layout
+## 10. Code layout and separation
+
+Hualin's version is kept apart from teammates' work:
+
+| Where | Ours | Shared / teammates' (we don't touch) |
+|---|---|---|
+| Repo | `hualin/` (code), `docs/hualin/` (design) | `agent/`, `docs/`, `mockup/`, other branches |
+| Python package / ADK app | `shelterwise_hualin` | anything else |
+| BigQuery writes | dataset `hualin_shelterwise` only | `a4i_housing` (we only **read** its source tables) |
+| Deployments | names prefixed `hualin-shelterwise-` | everything else |
 
 ```
-agent/shelterwise/
+hualin/agent/shelterwise_hualin/
   agent.py         root_agent = navigator
   pipeline.py      the 6 steps (Sequential / Parallel / Loop)
   llm_agents.py    intake_parser, brief_writer, inspection_request_drafter
   code_agents.py   intake_prep, evidence, context, legal, relief, verifier
-  tools/           evidence.py ★, relief.py, legal.py, tract.py, geocode.py, safety.py, pii.py, mcp.py, explain.py
+  tools/           evidence.py ★, relief.py, legal.py, tract.py, geocode.py, safety.py, pii.py, mcp.py, explain.py, brief.py
   data.py          data access: BigQuery or local parquet (never selects audit_*)
   schemas.py       Pydantic models for every state.* key
-  config.py        project, dataset, models, radius
+  config.py        project, datasets, models, radius, deploy prefix
   rules/           funds_sf.yaml, statutes_sf.yaml
-sql/setup.sql      complaints_embedded + v_tract_stability_context
-agent/tests/       pytest
-agent/eval/        ADK eval set
-ui/                ShelterWise UI + Cloud Run backend
-scripts/equity_audit.py   offline only
+hualin/agent/tests/   pytest
+hualin/sql/setup.sql  hualin_shelterwise.complaints_embedded + v_tract_stability_context
 ```

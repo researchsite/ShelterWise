@@ -1,8 +1,8 @@
 from datetime import date
 
-from shelterwise.tools.legal import check_statutes
-from shelterwise.tools.relief import check_relief_eligibility
-from shelterwise.tools.tract import tract_context
+from shelterwise_hualin.tools.legal import check_statutes
+from shelterwise_hualin.tools.relief import check_relief_eligibility
+from shelterwise_hualin.tools.tract import tract_context
 
 BLOCK_EVIDENCE = {"has_open_residential_nearby": True,
                   "kept": [{"request_id": "SF-202665182", "created_date": "2026-11-03"}]}
@@ -32,7 +32,7 @@ def test_severe_rent_burden(repo):
 def test_no_audit_columns_reach_the_agent(repo):
     for row in repo.acs():
         assert not any(k.startswith("audit_") for k in row)
-    import shelterwise.data as data
+    import shelterwise_hualin.data as data
     assert "audit_" not in " ".join(data.ACS_COLS)
 
 

@@ -170,12 +170,16 @@ class BigQueryRepo:
 
         self.bq = bigquery
         self.project = project or config.PROJECT
-        self.dataset = dataset or config.DATASET
+        self.dataset = dataset or config.DATASET          # shared source tables (read only)
+        self.own_dataset = config.OWN_DATASET             # our embeddings
         self.metro = metro or config.METRO
         self.client = bigquery.Client(project=self.project or None, location=config.BQ_LOCATION)
 
     def _t(self, table: str) -> str:
         return f"`{self.project}.{self.dataset}.{table}`"
+
+    def _own(self, table: str) -> str:
+        return f"`{self.project}.{self.own_dataset}.{table}`"
 
     def _query(self, sql: str, params: list | None = None) -> list[dict]:
         job = self.client.query(sql, job_config=self.bq.QueryJobConfig(query_parameters=params or []))
@@ -219,7 +223,7 @@ class BigQueryRepo:
         sql = f"""
         SELECT {cols}, vs.distance AS cosine_distance
         FROM VECTOR_SEARCH(
-          (SELECT request_id, embedding FROM {self._t('complaints_embedded')} WHERE metro_area = @metro),
+          (SELECT request_id, embedding FROM {self._own('complaints_embedded')} WHERE metro_area = @metro),
           'embedding',
           (SELECT AI.EMBED(@query, connection_id => '{config.VERTEX_CONNECTION}',
                            endpoint => '{config.EMBED_ENDPOINT}').result AS query_vec),

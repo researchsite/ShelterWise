@@ -6,8 +6,8 @@ from google.adk.agents import SequentialAgent
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 
-from shelterwise.code_agents import Verifier
-from shelterwise.pipeline import build_gather_and_decide
+from shelterwise_hualin.code_agents import Verifier
+from shelterwise_hualin.pipeline import build_gather_and_decide
 
 INTAKE_TEXT = ("Tenant at the 1000 block of Fillmore St. No heat for weeks, about 50 degrees inside, her kid "
                "keeps getting sick. Water dripping near the fuse box. Nonpayment hearing Monday Nov 23.")

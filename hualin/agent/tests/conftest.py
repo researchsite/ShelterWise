@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest  # noqa: E402
 
-from shelterwise.data import LocalRepo  # noqa: E402
+from shelterwise_hualin.data import LocalRepo  # noqa: E402
 
 FILLMORE = "1000 block of Fillmore St"
 

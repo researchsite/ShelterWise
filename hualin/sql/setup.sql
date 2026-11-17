@@ -1,10 +1,17 @@
--- ShelterWise one-time BigQuery setup. Run after `bash scripts/load.sh san-francisco`
--- and after creating the `us.a4i-vertex` CLOUD_RESOURCE connection (notebook Section 13, Step A).
--- Replace a4i_housing if you changed the dataset.
+-- Hualin's ShelterWise version: one-time BigQuery setup.
+--
+-- SEPARATION: reads the team's shared source tables in `a4i_housing` (read only) and
+-- writes ONLY to our own dataset `hualin_shelterwise`. Never creates or replaces
+-- anything in a4i_housing, so teammates' tables and views are untouched.
+--
+-- Run:  bq query --use_legacy_sql=false < hualin/sql/setup.sql
 
--- 1. Embeddings, materialized once. The agent joins back to municipal_311_housing_complaints
---    on request_id for every other field (lat/lng, dates, citations).
-CREATE OR REPLACE TABLE `a4i_housing.complaints_embedded` AS
+CREATE SCHEMA IF NOT EXISTS `hualin_shelterwise` OPTIONS (location = 'US',
+  description = "Hualin's ShelterWise version (embeddings + views). Team source data stays in a4i_housing.");
+
+-- 1. Our own embeddings (174 SF rows, pennies). The agent joins back to
+--    a4i_housing.municipal_311_housing_complaints on request_id for every other field.
+CREATE OR REPLACE TABLE `hualin_shelterwise.complaints_embedded` AS
 SELECT request_id, metro_area, embedded.result AS embedding
 FROM (
   SELECT request_id, metro_area,
@@ -16,12 +23,12 @@ WHERE embedded.status = '';
 -- Sanity check: every complaint embedded (expect 0 missing).
 SELECT COUNT(*) AS missing_embeddings
 FROM `a4i_housing.municipal_311_housing_complaints` c
-LEFT JOIN `a4i_housing.complaints_embedded` e USING (request_id)
+LEFT JOIN `hualin_shelterwise.complaints_embedded` e USING (request_id)
 WHERE e.request_id IS NULL;
 
 -- 2. Fan-out-safe tract view (idea from Shiva's design). 4 quarters summed BEFORE the join;
---    NO audit_* columns. For the deck and the BigQuery MCP; the agent computes the same in Python.
-CREATE OR REPLACE VIEW `a4i_housing.v_tract_stability_context` AS
+--    NO audit_* columns.
+CREATE OR REPLACE VIEW `hualin_shelterwise.v_tract_stability_context` AS
 WITH annual_filings AS (
   SELECT census_tract_geoid,
     COUNT(*) AS quarters,
@@ -47,9 +54,6 @@ LEFT JOIN annual_filings f USING (census_tract_geoid)
 LEFT JOIN open_res_311 c USING (census_tract_geoid);
 
 -- 3. Checks for the Rigor slide.
--- GEOIDs are STRING with the leading zero (expect STRING / 11 / 0 bad rows):
-SELECT data_type FROM `a4i_housing.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'acs_tract_housing_tenure' AND column_name = 'census_tract_geoid';
 SELECT COUNTIF(LENGTH(census_tract_geoid) != 11) AS bad_geoids FROM `a4i_housing.acs_tract_housing_tenure`;
--- No 4x fan-out (expect quarters = 4 everywhere; SF total 2359):
-SELECT MIN(quarters), MAX(quarters), SUM(annual_filings_modeled) FROM `a4i_housing.v_tract_stability_context`;
+SELECT MIN(quarters) AS min_q, MAX(quarters) AS max_q, SUM(annual_filings_modeled) AS sf_total
+FROM `hualin_shelterwise.v_tract_stability_context`;  -- expect 4, 4, 2359
