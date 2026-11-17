@@ -197,6 +197,15 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path == "/config.local.js":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript")
+            self.end_headers()
+            maps_key = os.environ.get("GOOGLE_MAPS_API_KEY", "AIzaSyALPqfkpF-3WOekirAfj_8qiBCqcfUuDRo")
+            content = f"window.SW_CONFIG = {{ GOOGLE_MAPS_API_KEY: '{maps_key}' }};\n"
+            self.wfile.write(content.encode("utf-8"))
+            return
+
         if self.path == "/api/status":
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

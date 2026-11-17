@@ -19,10 +19,11 @@ const SWMap = (() => {
   const burdenColor = v => BURDEN_STEPS.find(([t]) => v < t)[1];
   const layerState = { shade: false, pts: false };
 
+  const DEFAULT_MAPS_KEY = 'AIzaSyALPqfkpF-3WOekirAfj_8qiBCqcfUuDRo';
   function key() {
     const u = new URLSearchParams(location.search).get('gmaps_key');
     if (u) localStorage.setItem('sw-gmaps-key', u);
-    return (window.SW_CONFIG && window.SW_CONFIG.GOOGLE_MAPS_API_KEY) || u || localStorage.getItem('sw-gmaps-key') || '';
+    return (window.SW_CONFIG && window.SW_CONFIG.GOOGLE_MAPS_API_KEY) || u || localStorage.getItem('sw-gmaps-key') || DEFAULT_MAPS_KEY;
   }
 
   function dismissKey() {
