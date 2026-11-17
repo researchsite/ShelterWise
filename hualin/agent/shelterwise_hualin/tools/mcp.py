@@ -33,7 +33,12 @@ def firewall_reason(tool_name: str, args: dict[str, Any]) -> Optional[str]:
     """Why a BigQuery MCP call must be blocked, or None if it is allowed."""
     if tool_name not in READ_ONLY_TOOLS:
         return f"Tool '{tool_name}' is not on the read-only allow list."
+    project = args.get("projectId")
+    if config.PROJECT and project and project != config.PROJECT:
+        return f"Only project {config.PROJECT} may be queried."
     sql = json.dumps(args).lower()
+    if "bigquery-public-data" in sql:
+        return "Only ShelterWise tables may be queried."
     if "audit_" in sql:
         return "Race / ethnicity (audit_*) columns are only used in the offline equity audit."
     if "acs_tract_housing_tenure" in sql and re.search(r"select\s+(\w+\.)?\*", sql):
