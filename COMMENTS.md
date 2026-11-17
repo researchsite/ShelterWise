@@ -53,3 +53,8 @@ PR #4 (`researchsite/shiva_stuff`) was merged into `main` (commit `2f28ebd`), de
 ## 4. Verification Summary
 * `pytest agent/tests/test_triage_pipeline.py`: **5 / 5 tests passed**.
 * Zero merge conflicts with `main`.
+
+### E. Session Management & Runner Factory (`create_runner`)
+* **Agent Architecture Clarification**: In Google ADK, agents (`LlmAgent`, `SequentialAgent`, `ParallelAgent`) are declarative blueprints and do **not** take session parameters directly in their constructors.
+* **Session Lifecycle**: State sharing across pipeline steps (`tool_context.state['intake_facts']`, `tool_context.state['evidence_pack']`, etc.) and multi-turn conversations are managed by the execution **`Runner`**.
+* **`create_runner()`**: Implemented factory function in `agent.py` defaulting to `InMemorySessionService()`. This enables local testing, CLI execution, and FastAPI integration (Member 4) out-of-the-box, with the flexibility to swap in `VertexAiSessionService` or `DatabaseSessionService` for production Cloud Run deployments.

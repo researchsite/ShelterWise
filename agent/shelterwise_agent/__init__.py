@@ -13,6 +13,7 @@ from .agent import (
     evidence_explainer_agent,
     equity_audit_agent,
     hazard_311_drafter_agent,
+    create_runner,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "evidence_explainer_agent",
     "equity_audit_agent",
     "hazard_311_drafter_agent",
+    "create_runner",
 ]

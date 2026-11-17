@@ -234,3 +234,20 @@ shelterwise_navigator = LlmAgent(
 )
 
 root_agent = shelterwise_navigator
+
+# --- Runner Factory with Session Support ---
+from google.adk.runners import Runner, InMemoryRunner
+from google.adk.sessions import InMemorySessionService
+
+def create_runner(agent=None, session_service=None) -> Runner:
+    """Creates an execution Runner backed by an in-memory or custom SessionService.
+    
+    In ADK, agents are stateless definitions; state sharing (tool_context.state)
+    and conversation history are managed by the Runner via its SessionService.
+    """
+    return Runner(
+        agent=agent or root_agent,
+        app_name="shelterwise",
+        session_service=session_service or InMemorySessionService(),
+        auto_create_session=True
+    )

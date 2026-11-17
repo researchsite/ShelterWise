@@ -62,3 +62,9 @@ def test_bigquery_mcp_toolset():
     """Verify BigQuery McpToolset initializes with Google-managed endpoint."""
     toolset = get_bigquery_mcp_toolset(project_id="test-project")
     assert toolset is not None
+
+def test_runner_with_in_memory_session():
+    """Verify create_runner instantiates Runner backed by InMemorySessionService."""
+    from shelterwise_agent import create_runner
+    runner = create_runner()
+    assert runner is not None
