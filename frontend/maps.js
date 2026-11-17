@@ -25,9 +25,22 @@ const SWMap = (() => {
     return (window.SW_CONFIG && window.SW_CONFIG.GOOGLE_MAPS_API_KEY) || u || localStorage.getItem('sw-gmaps-key') || '';
   }
 
+  function dismissKey() {
+    const el = document.getElementById('mapkey');
+    if (el) el.hidden = true;
+    localStorage.setItem('sw-mapkey-dismissed', '1');
+  }
+
+  function toggleKeyPrompt() {
+    const el = document.getElementById('mapkey');
+    if (el) el.hidden = !el.hidden;
+  }
+
   function load() {
     const k = key();
-    document.getElementById('mapkey').hidden = !!k;
+    const dismissed = localStorage.getItem('sw-mapkey-dismissed') === '1';
+    const keyEl = document.getElementById('mapkey');
+    if (keyEl) keyEl.hidden = !!k || dismissed;
     window.__swInitMap = init;
     window.gm_authFailure = () => { const b = document.getElementById('mapkey'); b.hidden = false; b.querySelector('.msg').innerHTML = '⚠ Google rejected this API key. Check that <b>Maps JavaScript API</b> is enabled and the key allows this origin.'; };
     const s = document.createElement('script');
@@ -38,7 +51,11 @@ const SWMap = (() => {
 
   function saveKey() {
     const v = document.getElementById('keyinp').value.trim();
-    if (v) { localStorage.setItem('sw-gmaps-key', v); location.reload(); }
+    if (v) { 
+      localStorage.setItem('sw-gmaps-key', v); 
+      localStorage.removeItem('sw-mapkey-dismissed');
+      location.reload(); 
+    }
   }
 
   function init() {
@@ -227,5 +244,5 @@ const SWMap = (() => {
     legend(feats);
   }
 
-  return { load, show, highlight, focus, toggle, saveKey };
+  return { load, show, highlight, focus, toggle, saveKey, dismissKey, toggleKeyPrompt };
 })();
