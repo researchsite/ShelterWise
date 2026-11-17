@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 960" width="1240" height="960" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .t  { font-size: 13px; font-weight: 600; fill: #0f172a; }
+      .s  { font-size: 11px; fill: #334155; }
+      .m  { font-size: 10.5px; fill: #334155; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .h  { font-size: 12px; font-weight: 700; fill: #475569; letter-spacing: .3px; }
+      .n  { font-size: 15px; font-weight: 800; fill: #ffffff; }
+      .llm  { fill: #dbeafe; stroke: #2563eb; stroke-width: 1.5; }
+      .code { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.5; }
+      .mcp  { fill: #ede9fe; stroke: #7c3aed; stroke-width: 1.5; }
+      .data { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.2; }
+      .warn { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; }
+      .out  { fill: #fef3c7; stroke: #d97706; stroke-width: 1.5; }
+      .grp  { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.2; stroke-dasharray: 5 4; }
+      .ln   { stroke: #475569; stroke-width: 1.4; fill: none; }
+      .dln  { stroke: #475569; stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+    </style>
+  </defs>
+
+  <rect width="1240" height="960" fill="#ffffff"/>
+  <text x="40" y="38" font-size="20" font-weight="700" fill="#0f172a">ShelterWise · How it works</text>
+  <text x="40" y="58" class="s">Search wide by meaning → filter strictly by rules → only claim what the record proves</text>
+
+  <!-- ===== LEFT: input / legend / rules ===== -->
+  <rect x="40" y="84" width="210" height="112" rx="10" class="data"/>
+  <text x="54" y="104" class="h">INPUT (adk web)</text>
+  <text x="54" y="124" class="s">"1000 block of Fillmore St.</text>
+  <text x="54" y="140" class="s">No heat for weeks, ~50°F inside.</text>
+  <text x="54" y="156" class="s">Nonpayment hearing Monday.</text>
+  <text x="54" y="172" class="s">Behind 2 months on rent."</text>
+  <text x="54" y="188" class="s" font-style="italic">paralegal · 1 intake per session</text>
+  <line x1="250" y1="116" x2="418" y2="116" class="ln" marker-end="url(#arr)"/>
+
+  <text x="40" y="232" class="h">LEGEND</text>
+  <rect x="40" y="242" width="22" height="16" rx="3" class="llm"/><text x="70" y="254" class="s">LLM: reads / writes language</text>
+  <rect x="40" y="266" width="22" height="16" rx="3" class="code"/><text x="70" y="278" class="s">Code: makes yes/no decisions</text>
+  <rect x="40" y="290" width="22" height="16" rx="3" class="mcp"/><text x="70" y="302" class="s">Google-managed MCP</text>
+  <rect x="40" y="314" width="22" height="16" rx="3" class="data"/><text x="70" y="326" class="s">Data</text>
+  <rect x="40" y="338" width="22" height="16" rx="3" class="warn"/><text x="70" y="350" class="s">Off-limits to the agent</text>
+  <rect x="40" y="362" width="22" height="16" rx="3" class="out"/><text x="70" y="374" class="s">Output</text>
+
+  <text x="40" y="414" class="h">THE RULES (in code, tested)</text>
+  <text x="40" y="436" class="s">1. Top 50 by meaning, then filter</text>
+  <text x="40" y="456" class="s">2. Keep: Residential + still open</text>
+  <text x="54" y="472" class="s">+ within 400 m</text>
+  <text x="40" y="492" class="s">3. Never filter on "DECOY" text</text>
+  <text x="40" y="512" class="s">4. ELIGIBLE only when every</text>
+  <text x="54" y="528" class="s">condition is confirmed</text>
+  <text x="40" y="548" class="s">5. Check statute clocks (35 days)</text>
+  <text x="40" y="568" class="s">6. Sum 4 quarters before joining</text>
+  <text x="40" y="588" class="s">7. GEOID is text, never a number</text>
+  <text x="40" y="608" class="s">8. No audit_* (race) in the agent</text>
+
+  <!-- ===== CENTER: Agent Runtime ===== -->
+  <rect x="272" y="72" width="618" height="868" rx="14" fill="none" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 4"/>
+  <text x="876" y="94" text-anchor="end" class="h">AGENT RUNTIME</text>
+
+  <rect x="420" y="84" width="320" height="64" rx="10" class="llm"/>
+  <text x="580" y="110" text-anchor="middle" class="t">navigator · chat agent</text>
+  <text x="580" y="128" text-anchor="middle" class="s">Gemini Flash · picks a tool, answers follow-ups</text>
+
+  <line x1="580" y1="148" x2="580" y2="164" class="ln"/>
+  <path d="M360,164 H811" class="ln"/>
+  <line x1="360" y1="164" x2="360" y2="180" class="ln" marker-end="url(#arr)"/>
+  <line x1="512" y1="164" x2="512" y2="180" class="ln" marker-end="url(#arr)"/>
+  <line x1="664" y1="164" x2="664" y2="180" class="ln" marker-end="url(#arr)"/>
+  <line x1="811" y1="164" x2="811" y2="180" class="ln" marker-end="url(#arr)"/>
+
+  <rect x="290" y="182" width="140" height="56" rx="8" class="code"/>
+  <text x="360" y="204" text-anchor="middle" class="t">build brief</text>
+  <text x="360" y="222" text-anchor="middle" class="s">runs the 5 steps ↓</text>
+
+  <rect x="442" y="182" width="140" height="56" rx="8" class="code"/>
+  <text x="512" y="204" text-anchor="middle" class="t">explain_exclusion</text>
+  <text x="512" y="222" text-anchor="middle" class="s">"why drop that one?"</text>
+
+  <rect x="594" y="182" width="140" height="56" rx="8" class="mcp"/>
+  <text x="664" y="204" text-anchor="middle" class="t">BigQuery MCP</text>
+  <text x="664" y="222" text-anchor="middle" class="s">ad-hoc data questions</text>
+
+  <rect x="746" y="182" width="130" height="56" rx="8" class="llm"/>
+  <text x="811" y="202" text-anchor="middle" class="t">311 request</text>
+  <text x="811" y="218" text-anchor="middle" class="t">drafter</text>
+  <text x="811" y="232" text-anchor="middle" class="s">if no open record</text>
+
+  <path d="M664,238 V254 H928" class="dln" marker-end="url(#arr)"/>
+
+  <!-- pipeline -->
+  <line x1="360" y1="238" x2="360" y2="272" class="ln" marker-end="url(#arr)"/>
+  <rect x="290" y="274" width="580" height="540" rx="12" fill="#f8fafc" stroke="#475569" stroke-width="1.3"/>
+  <text x="304" y="294" class="h">BRIEF PIPELINE · 5 steps</text>
+
+  <!-- step 1 -->
+  <rect x="310" y="304" width="540" height="58" rx="8" class="llm"/>
+  <circle cx="334" cy="333" r="13" fill="#2563eb"/><text x="334" y="338" text-anchor="middle" class="n">1</text>
+  <text x="356" y="327" class="t">UNDERSTAND · intake_parser (LLM)</text>
+  <text x="356" y="347" class="s">address → lat/lng · hazards · hearing date · rewrite as city-inspector wording</text>
+  <line x1="580" y1="362" x2="580" y2="382" class="ln" marker-end="url(#arr)"/>
+
+  <!-- step 2 -->
+  <rect x="310" y="384" width="540" height="140" rx="8" class="grp"/>
+  <circle cx="334" cy="404" r="13" fill="#16a34a"/><text x="334" y="409" text-anchor="middle" class="n">2</text>
+  <text x="356" y="409" class="t">GATHER · in parallel (code)</text>
+
+  <rect x="326" y="424" width="300" height="90" rx="8" class="code" stroke-width="2.5"/>
+  <text x="340" y="444" class="t">evidence_agent ★ (the tool we built)</text>
+  <text x="340" y="462" class="m">search_corroborating_complaints()</text>
+  <text x="340" y="480" class="s">vector search top 50 → apply rules</text>
+  <text x="340" y="498" class="s">→ kept records + excluded ones with reasons</text>
+
+  <rect x="638" y="424" width="198" height="90" rx="8" class="code"/>
+  <text x="652" y="444" class="t">context_agent</text>
+  <text x="652" y="462" class="s">tract rent burden</text>
+  <text x="652" y="480" class="s">filings/yr (MODELED,</text>
+  <text x="652" y="498" class="s">4 quarters summed first)</text>
+  <line x1="580" y1="524" x2="580" y2="544" class="ln" marker-end="url(#arr)"/>
+
+  <!-- step 3 -->
+  <rect x="310" y="546" width="540" height="122" rx="8" class="grp"/>
+  <circle cx="334" cy="566" r="13" fill="#16a34a"/><text x="334" y="571" text-anchor="middle" class="n">3</text>
+  <text x="356" y="571" class="t">DECIDE · in parallel</text>
+
+  <rect x="326" y="586" width="250" height="72" rx="8" class="llm"/>
+  <text x="340" y="606" class="t">legal_agent (LLM)</text>
+  <text x="340" y="624" class="s">which of 3 SF laws apply</text>
+  <text x="340" y="642" class="s">"yes" / "yes, if" / "not yet (35-day clock)"</text>
+
+  <rect x="588" y="586" width="248" height="72" rx="8" class="code"/>
+  <text x="602" y="606" class="t">relief_agent (code)</text>
+  <text x="602" y="624" class="s">4 SF funds → ELIGIBLE /</text>
+  <text x="602" y="642" class="s">CONDITIONAL (+ what to confirm) / NO</text>
+  <line x1="580" y1="668" x2="580" y2="688" class="ln" marker-end="url(#arr)"/>
+
+  <!-- step 4 + 5 -->
+  <rect x="310" y="690" width="540" height="112" rx="8" class="grp"/>
+  <rect x="326" y="704" width="230" height="64" rx="8" class="llm"/>
+  <circle cx="348" cy="736" r="13" fill="#2563eb"/><text x="348" y="741" text-anchor="middle" class="n">4</text>
+  <text x="370" y="730" class="t">WRITE · brief_writer</text>
+  <text x="370" y="748" class="s">LLM · Gemini Pro</text>
+
+  <rect x="604" y="704" width="232" height="64" rx="8" class="code"/>
+  <circle cx="626" cy="736" r="13" fill="#16a34a"/><text x="626" y="741" text-anchor="middle" class="n">5</text>
+  <text x="648" y="730" class="t">VERIFY · verifier (code)</text>
+  <text x="648" y="748" class="s">every ID real · no over-claim</text>
+
+  <line x1="556" y1="728" x2="602" y2="728" class="ln" marker-end="url(#arr)"/>
+  <path d="M720,768 V786 H441 V770" class="dln" marker-end="url(#arr)"/>
+  <text x="580" y="798" text-anchor="middle" class="s">fails → rewrite (max 2×)</text>
+
+  <!-- output -->
+  <line x1="580" y1="814" x2="580" y2="830" class="ln" marker-end="url(#arr)"/>
+  <rect x="290" y="832" width="580" height="96" rx="10" class="out"/>
+  <text x="304" y="852" class="h">OUTPUT · Tenant Stabilization Brief</text>
+  <text x="304" y="872" class="s">✔ SF-202665182 open no-heat case on the block   ✘ 3 look-alikes excluded (commercial / closed)</text>
+  <text x="304" y="890" class="s">⚖ Prop F: yes · §1942.5: yes, if · §1942.4: not yet (16 of 35 days)</text>
+  <text x="304" y="908" class="s">$ 4 funds CONDITIONAL → ask: own DBI case #? income vs AMI?</text>
+  <text x="304" y="924" class="s">⚠ block ≠ her unit · filings are modeled · draft memo for attorney</text>
+
+  <!-- arrows to BigQuery -->
+  <line x1="850" y1="469" x2="928" y2="469" class="ln" marker-end="url(#arr)"/>
+  <text x="889" y="461" text-anchor="middle" class="s">SQL</text>
+  <path d="M850,622 H902 V451 H928" class="ln" marker-end="url(#arr)"/>
+
+  <!-- ===== RIGHT: BigQuery ===== -->
+  <rect x="930" y="82" width="270" height="610" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="1.3"/>
+  <text x="944" y="104" class="h">BIGQUERY · a4i_housing</text>
+
+  <rect x="946" y="116" width="238" height="58" rx="8" class="data" stroke-width="2"/>
+  <text x="958" y="138" class="t">complaints_embedded</text>
+  <text x="958" y="156" class="s">REAL 311 + 9 planted decoys</text>
+
+  <rect x="946" y="184" width="238" height="58" rx="8" class="data"/>
+  <text x="958" y="206" class="t">AI.EMBED</text>
+  <text x="958" y="224" class="s">gemini-embedding-2</text>
+
+  <rect x="946" y="252" width="238" height="58" rx="8" class="data"/>
+  <text x="958" y="274" class="t">court_eviction_filings</text>
+  <text x="958" y="292" class="s">MODELED · 4 rows per tract</text>
+
+  <rect x="946" y="320" width="238" height="58" rx="8" class="data"/>
+  <text x="958" y="342" class="t">acs_tract_housing_tenure</text>
+  <text x="958" y="360" class="s">REAL Census data</text>
+
+  <rect x="946" y="388" width="238" height="58" rx="8" class="data"/>
+  <text x="958" y="410" class="t">relief bulletins</text>
+  <text x="958" y="428" class="s">4 SF funds + funds_sf.yaml</text>
+
+  <rect x="946" y="456" width="238" height="58" rx="8" class="data"/>
+  <text x="958" y="478" class="t">housing statutes</text>
+  <text x="958" y="496" class="s">3 SF / CA laws</text>
+
+  <rect x="946" y="524" width="238" height="58" rx="8" class="data"/>
+  <text x="958" y="546" class="t">geocode</text>
+  <text x="958" y="564" class="s">block centroid → Maps fallback</text>
+
+  <rect x="946" y="604" width="238" height="74" rx="8" class="warn"/>
+  <text x="958" y="626" class="t">audit_* columns (race)</text>
+  <text x="958" y="644" class="s">never used by the agent</text>
+  <text x="958" y="662" class="s">only in offline equity audit</text>
+
+  <!-- offline -->
+  <rect x="930" y="716" width="270" height="96" rx="10" class="code"/>
+  <text x="944" y="738" class="h">OFFLINE · equity_audit.py</text>
+  <text x="944" y="758" class="s">run many intakes across SF tracts</text>
+  <text x="944" y="776" class="s">→ does "needs open 311" miss</text>
+  <text x="944" y="794" class="s">high-burden neighborhoods?</text>
+  <path d="M1210,764 H1222 V641 H1186" class="dln" marker-end="url(#arr)"/>
+
+  <rect x="930" y="832" width="270" height="96" rx="10" class="data"/>
+  <text x="944" y="854" class="h">TESTS</text>
+  <text x="944" y="874" class="s">pytest: 9 decoys out, 65 not 260,</text>
+  <text x="944" y="890" class="s">fund verdicts, 35-day clock</text>
+  <text x="944" y="910" class="s">adk eval: ~5 full intakes</text>
+</svg>
