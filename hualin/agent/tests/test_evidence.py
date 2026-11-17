@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from shelterwise.tools.evidence import apply_rules, search_corroborating_complaints
-from shelterwise.tools.geocode import locate, normalize_block
+from shelterwise_hualin.tools.evidence import apply_rules, search_corroborating_complaints
+from shelterwise_hualin.tools.geocode import locate, normalize_block
 
 EXPECTED_DECOY_REASONS = {
     **{f"DECOY-SANF-0{i}": "not_residential" for i in (1, 2, 3)},
@@ -30,7 +30,7 @@ def test_all_nine_decoys_excluded_with_the_right_reason_radius_off(repo):
 
 
 def test_rules_never_look_at_decoy_markers():
-    src = (Path(__file__).resolve().parents[1] / "shelterwise").rglob("*.py")
+    src = (Path(__file__).resolve().parents[1] / "shelterwise_hualin").rglob("*.py")
     for f in src:
         code = f.read_text()
         assert "DECOY" not in code and "Planted" not in code, f"{f.name} references decoy markers"

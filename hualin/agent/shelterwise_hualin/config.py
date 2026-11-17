@@ -6,11 +6,17 @@ import os
 from datetime import date
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]  # hualin/agent/shelterwise_hualin/config.py
 
 # --- Google Cloud -----------------------------------------------------------
 PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "")
+# Shared team source tables: READ ONLY, never written by this version.
 DATASET = os.getenv("A4I_DATASET", "a4i_housing")
+# Hualin's own dataset for everything this version creates (embeddings, views).
+# Keeps us from overwriting teammates' objects in the shared project.
+OWN_DATASET = os.getenv("HUALIN_DATASET", "hualin_shelterwise")
+# Prefix for every Cloud Run / Agent Runtime resource this version deploys.
+DEPLOY_PREFIX = os.getenv("HUALIN_DEPLOY_PREFIX", "hualin-shelterwise")
 BQ_LOCATION = os.getenv("A4I_LOCATION", "US")
 VERTEX_CONNECTION = os.getenv("A4I_VERTEX_CONNECTION", "us.a4i-vertex")
 EMBED_ENDPOINT = os.getenv("A4I_EMBED_ENDPOINT", "gemini-embedding-2")

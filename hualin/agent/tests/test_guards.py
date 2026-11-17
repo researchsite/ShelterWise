@@ -1,7 +1,7 @@
-from shelterwise.tools.brief import verify_draft
-from shelterwise.tools.mcp import firewall_reason
-from shelterwise.tools.pii import scrub
-from shelterwise.tools.safety import check_safety
+from shelterwise_hualin.tools.brief import verify_draft
+from shelterwise_hualin.tools.mcp import firewall_reason
+from shelterwise_hualin.tools.pii import scrub
+from shelterwise_hualin.tools.safety import check_safety
 
 EVIDENCE = {"kept": [{"request_id": "SF-202665182"}],
             "excluded": [{"request_id": "DECOY-SANF-01", "reasons": ["not_residential"]}]}
