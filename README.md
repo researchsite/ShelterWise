@@ -35,7 +35,7 @@ Every teammate works on **separate files/folders** and **their own Git branch** 
 
 More than half of low-income renters in America spend over half their paycheck on rent, leaving families one missed shift, medical bill, or broken car transmission away from a court eviction filing. Across major cities, residential tenants hauled into housing court for nonpayment frequently live in buildings the city *already knows* have no heat, raw sewage backups, toxic mold, or unsafe electrical wiring.
 
-Under state and municipal housing codes, active residential habitability hazards unlock emergency rental stabilization grants, rent-escrow protections, and statutory legal defenses. Yet most tenants lose by default or sign away those protections in five-minute hallway settlements because nobody connected the building-code file to the court docket before Monday morning.
+Under state and municipal housing codes, active residential habitability hazards unlock emergency rental stabilization grants, rent-escrow protections, and statutory legal defenses. Yet more tenants lose by default or sign away those protections in five-minute hallway settlements because nobody connected the building-code file to the court docket before Monday morning.
 
 This is not a shortage of municipal records. Cities log hundreds of thousands of 311 and code-enforcement narratives every year. It is a **triage and corroboration problem under a clock**. A right-to-counsel legal-aid clinic has a waiting room full of families, scarce stabilization funds with strict eligibility rules, and minutes to separate active residential hazards from closed repairs, commercial warehouse complaints, and noisy free-text logs.
 
