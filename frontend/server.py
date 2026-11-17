@@ -6,9 +6,15 @@ import socketserver
 import time
 from typing import Dict, Any, List
 
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+try:
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
+    HAS_REQUESTS = True
+except ImportError:
+    import urllib.error
+    import urllib.request
+    HAS_REQUESTS = False
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("frontend_server")
@@ -18,25 +24,38 @@ ADK_BACKEND_URL = os.environ.get("ADK_BACKEND_URL", "https://shelterwise-backend
 APP_NAME = os.environ.get("ADK_APP_NAME", "shelterwise_agent")
 
 # High-performance HTTP connection pool with keep-alive
-session_pool = requests.Session()
-retries = Retry(total=2, backoff_factor=0.3, status_forcelist=[502, 503, 504])
-adapter = HTTPAdapter(pool_connections=15, pool_maxsize=30, max_retries=retries)
-session_pool.mount("https://", adapter)
-session_pool.mount("http://", adapter)
+if HAS_REQUESTS:
+    session_pool = requests.Session()
+    retries = Retry(total=2, backoff_factor=0.3, status_forcelist=[502, 503, 504])
+    adapter = HTTPAdapter(pool_connections=15, pool_maxsize=30, max_retries=retries)
+    session_pool.mount("https://", adapter)
+    session_pool.mount("http://", adapter)
+else:
+    session_pool = None
 
 KNOWN_SESSIONS = set()
 
 def call_adk_json(url: str, data: Dict[str, Any] = None, method: str = "GET", timeout: int = 45) -> Any:
-    headers = {"Content-Type": "application/json"}
-    if method == "POST":
-        resp = session_pool.post(url, json=data if data is not None else {}, headers=headers, timeout=timeout)
+    if HAS_REQUESTS and session_pool:
+        headers = {"Content-Type": "application/json"}
+        if method == "POST":
+            resp = session_pool.post(url, json=data if data is not None else {}, headers=headers, timeout=timeout)
+        else:
+            resp = session_pool.get(url, headers=headers, timeout=timeout)
+        resp.raise_for_status()
+        try:
+            return resp.json()
+        except Exception:
+            return {}
     else:
-        resp = session_pool.get(url, headers=headers, timeout=timeout)
-    resp.raise_for_status()
-    try:
-        return resp.json()
-    except Exception:
-        return {}
+        req = urllib.request.Request(url, method=method)
+        req.add_header("Content-Type", "application/json")
+        body = json.dumps(data).encode("utf-8") if data is not None else None
+        with urllib.request.urlopen(req, data=body, timeout=timeout) as resp:
+            content = resp.read().decode("utf-8")
+            if content:
+                return json.loads(content)
+            return {}
 
 def state_to_blocks(state: Dict[str, Any], events: List[Dict[str, Any]], is_followup: bool = False, msg: str = "") -> List[Dict[str, Any]]:
     blocks = []
