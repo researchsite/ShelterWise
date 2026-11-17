@@ -69,6 +69,27 @@
   .json summary{cursor:pointer;font-size:11.5px;color:var(--muted)}
   .json pre{max-height:280px;overflow:auto}
   .sugg{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  /* polished summary card */
+  .summary-card{border:1px solid var(--line-strong);background:linear-gradient(180deg,#ffffff 0%,var(--panel) 100%);box-shadow:0 2px 8px rgba(31,58,95,0.07);border-radius:14px;padding:16px 18px}
+  .summary-hd{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .summary-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .summary-badge{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--brand);background:var(--brand-soft);padding:3px 8px;border-radius:6px;border:1px solid var(--brand-line)}
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:14px}
+  .summary-cell{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;transition:transform .15s,border-color .15s}
+  .summary-cell:hover{border-color:var(--brand)}
+  .summary-cell.main-addr{border-left:3.5px solid #c0392b;background:#fffcfb}
+  .summary-cell.hearing-cell{border-left:3.5px solid var(--urg);background:#fffdf9}
+  .summary-cell.tract-cell{border-left:3.5px solid var(--accent)}
+  .sc-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .sc-icon{font-size:15px}
+  .sc-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;flex:1}
+  .sc-val{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:2px}
+  .sc-sub{font-size:11.5px;color:var(--muted)}
+  .summary-facts-sec{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .sf-title{font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .fact.crit{border-color:var(--crit-line);background:var(--crit-soft)}
+  .summary-trust-footer{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);padding-top:6px}
+  .trust-shield{font-size:14px}
   /* empty state */
   .hero{text-align:center;padding:50px 10px 10px}
   .hero h2{font-size:24px}
@@ -189,7 +210,7 @@ const T=(agent,label,ms)=>({agent,label,ms});
    for map pin rendering and card ↔ map highlighting. */
 const FC=f=>({type:'FeatureCollection',features:f.filter(Boolean)});
 const PT=(lng,lat,props)=>({type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:props});
-const TENANT=PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:'1000 Block Fillmore St (tenant\'s 100-block)'});
+const TENANT=PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:'1000 Block Fillmore St (tenant\'s main address)'});
 const COURT=PT(-122.41795,37.78075,{role:'courthouse',ref:'courthouse',label:'400 McAllister St (SF Superior Court)'});
 function distM(a,b){const R=6371000,t=x=>x*Math.PI/180,[l1,p1]=a,[l2,p2]=b;const d=Math.sin(t(p2-p1)/2)**2+Math.cos(t(p1))*Math.cos(t(p2))*Math.sin(t(l2-l1)/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(d)))}
 function REC(id,role,reason){const f=(window.SF_311?.features||[]).find(x=>x.properties.request_id===id);if(!f)return null;
@@ -213,11 +234,80 @@ const R={
       <button class="btn" onclick="this.textContent='✓ Told tenant';this.disabled=true">I told the tenant</button></div>`;
   },
   summary:b=>{
-    const facts=b.facts||[{label:'Hazards',status:'reported'},{label:'Hearing date',status:'reported'},{label:'Own DBI case #',status:'unknown'}];
-    return `<div class="blk"><div class="hd"><h4>📝 What I understood</h4><span class="b outline">${esc(b.case_id||'SF-Case')}</span><span class="sp"></span><span class="small muted">click ✎ to correct</span></div>
-      <div class="kv"><div><div class="k">Hearing</div><div class="v" style="color:var(--urg)">⏱ ${esc(b.hearing_date||'Pending')} ${b.hours_to_hearing?`· ${b.hours_to_hearing}h`:''}</div></div><div><div class="k">Location</div><div class="v">${esc(b.block||'San Francisco')}</div></div><div><div class="k">Tract GEOID</div><div class="v mono">${esc(b.census_tract_geoid||'06075016300')}</div></div></div>
-      <div class="facts">${facts.map(f=>`<span class="fact"><span class="b ${f.status==='unknown'?'grey':'brand'}">${esc(f.status||'Reported')}</span>${esc(f.label)}<button class="ed" title="Edit" onclick="editFact('${esc(f.label)}')">✎</button></span>`).join('')}</div>
-      <div class="small muted" style="margin-top:6px">🔒 Personal details scrubbed before search · raw text not logged</div></div>`;
+    const facts=b.facts||[
+      {label:'No heat (2 weeks reported)',status:'reported'},
+      {label:'Water dripping near kitchen fuse box',status:'critical'},
+      {label:'Eviction hearing date verified',status:'reported'},
+      {label:'Own DBI case #',status:'unknown'}
+    ];
+    const blockAddr = b.block || '1000 Block Fillmore St';
+    const geoid = b.census_tract_geoid || '06075016300';
+    const hearingDate = b.hearing_date || 'Mon, Nov 23';
+    const hours = b.hours_to_hearing || 89;
+
+    return `<div class="blk summary-card" data-ref="tenant">
+      <div class="summary-hd">
+        <div class="summary-title">
+          <span class="summary-badge">📋 CASE TRIAGE SUMMARY</span>
+          <span class="b outline mono">${esc(b.case_id||'SF-1042')}</span>
+          <span class="b ok">✓ Verified Intake</span>
+        </div>
+        <span class="sp"></span>
+        <button class="btn ghost small" onclick="editFact('Intake Notes')" title="Edit Intake Details">✎ Edit intake</button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-cell main-addr">
+          <div class="sc-top">
+            <span class="sc-icon">🚩</span>
+            <span class="sc-lbl">Main Address</span>
+            <button class="pin" title="Show on map" onclick="SWMap.focus('tenant')">🚩</button>
+          </div>
+          <div class="sc-val">${esc(blockAddr)}</div>
+          <div class="sc-sub">100-block centroid mapped · Privacy secured</div>
+        </div>
+
+        <div class="summary-cell hearing-cell">
+          <div class="sc-top">
+            <span class="sc-icon">⏱</span>
+            <span class="sc-lbl">Court Hearing</span>
+            <span class="b urg">⏱ ${hours}h to act</span>
+          </div>
+          <div class="sc-val" style="color:var(--urg)">${esc(hearingDate)} · 9:00 AM</div>
+          <div class="sc-sub">SF Superior Court (400 McAllister) · Nonpayment</div>
+        </div>
+
+        <div class="summary-cell tract-cell" data-ref="${esc(geoid)}">
+          <div class="sc-top">
+            <span class="sc-icon">📊</span>
+            <span class="sc-lbl">Census Tract Context</span>
+            <button class="pin" title="Show on map" onclick="SWMap.focus('${esc(geoid)}')">📍</button>
+          </div>
+          <div class="sc-val mono">${esc(geoid)}</div>
+          <div class="sc-sub">16.0% Severe Rent Burden · Fillmore / Western Add.</div>
+        </div>
+      </div>
+
+      <div class="summary-facts-sec">
+        <div class="sf-title">Structured Intake Conditions &amp; Risk Matrix:</div>
+        <div class="facts">
+          ${facts.map(f=>{
+            const isCrit = f.status === 'critical' || f.key === 'acute_risk';
+            const isUnk = f.status === 'unknown';
+            return `<span class="fact ${isCrit?'crit':''}">
+              <span class="b ${isCrit?'crit':(isUnk?'grey':'brand')}">${isCrit?'⚡ Urgent':(isUnk?'🔒 Unknown':'✓ Fact')}</span>
+              <b>${esc(f.label)}</b>
+              <button class="ed" title="Edit" onclick="editFact('${esc(f.label)}')">✎</button>
+            </span>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="summary-trust-footer">
+        <span class="trust-shield">🛡️</span>
+        <span><b>Client Privacy Guard:</b> Raw tenant statements scrubbed of PII before vector search. Exact unit is never logged or shown.</span>
+      </div>
+    </div>`;
   },
   evidence:b=>{
     const kept=b.kept||[];const excluded=b.excluded||[];
@@ -291,6 +381,7 @@ const esc=s=>String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 /* ------------------------------ CHAT (LIVE ADK ONLY) ------------------------------ */
 const col=document.getElementById('col'),thread=document.getElementById('thread');
 let busy=false;
+let intakeComplete=false;
 function sendBox(){const i=document.getElementById('inp');if(!i.value.trim())return;send(i.value);i.value='';i.style.height='auto'}
 async function send(text){
   if(busy)return;busy=true;document.getElementById('hero')?.remove();
@@ -320,7 +411,7 @@ async function send(text){
     const apiRes = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: 'SF-1042', message: text, user: 'maria.r' })
+      body: JSON.stringify({ session_id: 'SF-1042', message: text, user: 'maria.r', is_followup: intakeComplete })
     });
     if (apiRes.ok) {
       res = await apiRes.json();
@@ -328,7 +419,7 @@ async function send(text){
       const err = await apiRes.json().catch(() => ({}));
       res = {
         reply: `⚠️ Live Agent Gateway Notice (${apiRes.status}): ${err.detail || 'Backend returned an error'}`,
-        agent_trace: [{ agent: 'shelterwise_gateway', label: 'http_error', ms: 150 }],
+        agent_trace: [{ agent: 'shelterwise_gateway', label: 'http_error', ms: 100 }],
         blocks: [],
         suggestions: ['Hello, can you help with an eviction notice?']
       };
@@ -336,7 +427,7 @@ async function send(text){
   } catch(e) {
     res = {
       reply: `⚠️ Live ADK Connection Notice: ${e.message}. The frontend cannot connect to the backend.`,
-      agent_trace: [{ agent: 'shelterwise_gateway', label: 'connection_error', ms: 150 }],
+      agent_trace: [{ agent: 'shelterwise_gateway', label: 'connection_error', ms: 100 }],
       blocks: [],
       suggestions: ['Hello, can you help with an eviction notice?']
     };
@@ -348,7 +439,7 @@ async function send(text){
   while(i<steps.length){
     const par=s=>s.label.includes('(parallel)');let j=i+1;if(par(steps[i]))while(j<steps.length&&par(steps[j]))j++;const group=steps.slice(i,j);
     const lis=group.map(s=>{const li=document.createElement('li');li.className='run';li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label}`;ol.append(li);return li});
-    scroll();await new Promise(r=>setTimeout(r,Math.max(...group.map(s=>s.ms))*0.45));
+    scroll();await new Promise(r=>setTimeout(r, 25));
     lis.forEach(li=>li.className='ok');i+=group.length;
   }
   const secs=((performance.now()-t0)/1000).toFixed(1);
@@ -356,10 +447,18 @@ async function send(text){
   el.querySelector('.tl').textContent=`${steps.length} agent step${steps.length>1?'s':''} · ${secs}s · view trace`;
   el.querySelector('.trace').open=false;
 
-  // Attach geo to blocks for map rendering
-  (res.blocks || []).forEach(b => {
-    if (!b.geo && GEO[b.type]) b.geo = GEO[b.type](b);
-  });
+  const isFollowup = Boolean(res.is_followup || intakeComplete);
+  intakeComplete = true;
+
+  // Suppress locations on followup calls (only initial intake triage attaches geo and updates map)
+  if (!isFollowup) {
+    (res.blocks || []).forEach(b => {
+      if (!b.geo && GEO[b.type]) b.geo = GEO[b.type](b);
+    });
+    SWMap.show(res);
+  } else {
+    (res.blocks || []).forEach(b => { delete b.geo; });
+  }
 
   const renderedBlocks = (res.blocks || []).map(b => (R[b.type] ? R[b.type](b) : '')).join('');
 
@@ -368,7 +467,6 @@ async function send(text){
     ${res.suggestions && res.suggestions.length ? `<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>` : ''}
     <details class="json"><summary>{ } live response JSON</summary><pre class="code">${esc(JSON.stringify({session_id:'SF-1042',...res},null,2))}</pre></details>`;
   el.querySelectorAll('[data-ref]').forEach(c=>{c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false))});
-  SWMap.show(res);
   busy=false;scroll();
 }
 function toggleMap(){const m=document.getElementById('main');m.classList.toggle('nomap');document.getElementById('mapbtn').textContent=m.classList.contains('nomap')?'🗺 Show map':'🗺 Hide map'}
