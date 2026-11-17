@@ -53,3 +53,16 @@ bq query --use_legacy_sql=false < hualin/sql/setup.sql
 `SHELTERWISE_DATA=local` runs everything from the repo's `data/*.parquet` with a keyword stand-in for vector search.
 It is for offline development only, and every brief says so.
 
+
+## Deploy to Agent Runtime (live)
+
+```bash
+bash hualin/deploy_agent_runtime.sh            # first run creates, later runs update the same instance
+hualin/agent/.venv/bin/python hualin/query_remote.py "intake text" "follow-up"
+```
+
+- Region `us-central1`, display name `hualin-shelterwise-navigator`.
+- Runs as service account `hualin-shelterwise-agent@<project>` with: aiplatform.user, bigquery.jobUser,
+  bigquery.dataViewer, bigquery.connectionUser, mcp.toolUser, serviceusage.serviceUsageConsumer,
+  logging.logWriter, monitoring.metricWriter, cloudtrace.agent.
+- The instance ID is saved locally in `hualin/.agent_runtime_id` (git-ignored).

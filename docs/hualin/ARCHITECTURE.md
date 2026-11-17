@@ -177,7 +177,7 @@ paralegal ─► navigator (chat) ─► brief_pipeline:
 | Laws | Code rule table (`statutes_sf.yaml`) with clocks, replacing "LLM picks from 3"; the LLM only explains |
 | MCP | BigQuery remote MCP `https://bigquery.googleapis.com/mcp` (confirmed in Google docs), read-only tools only, SQL mentioning `audit_` blocked |
 | Data mode | `SHELTERWISE_DATA=bigquery` (real `VECTOR_SEARCH`) or `local` (parquet + keyword-similarity stand-in, **for offline dev/tests only**, and labeled as such in every result) |
-| Deploy | Vertex AI Agent Runtime. ❓ *Open:* a single Cloud Run service (Shiva's proposal) may be simpler now that we have our own UI. The agent code works with either |
+| Deploy | ✅ **Vertex AI Agent Runtime**, `us-central1`, display name `hualin-shelterwise-navigator`, runtime identity `hualin-shelterwise-agent@` (own service account, least-privilege roles). Deploy / update: `bash hualin/deploy_agent_runtime.sh`; live test: `hualin/query_remote.py` |
 | UI | **`adk web` for building and testing; our own ShelterWise UI for the final demo** (see section 8) |
 | Location | Block centroid from our own data; Google Maps geocoding as fallback; 400 m radius |
 | Models | Gemini Flash everywhere, Gemini Pro for `brief_writer` |
