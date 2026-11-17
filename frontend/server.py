@@ -169,12 +169,13 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
                     }
                 }
                 
-                events = call_adk_json(run_url, data=run_payload, method="POST", timeout=40)
+                events = call_adk_json(run_url, data=run_payload, method="POST", timeout=120)
                 
                 # 3. Extract agent trace and reply text
                 agent_trace = []
                 reply = "Processed by ShelterWise Multi-Agent system."
                 
+                state_deltas = {}
                 if isinstance(events, list):
                     for ev in events:
                         author = ev.get("author") or "shelterwise_agent"
@@ -190,14 +191,20 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
                             "label": txt[:80] if txt else "Executed agent step",
                             "ms": 800
                         })
+                        # Extract any stateDelta produced by this event
+                        delta = ev.get("actions", {}).get("stateDelta", {})
+                        if isinstance(delta, dict):
+                            state_deltas.update(delta)
 
-                # 4. Fetch session state
+                # 4. Fetch session state and merge with state deltas
                 state_data = {}
                 try:
-                    sess_info = call_adk_json(session_url, method="GET", timeout=10)
+                    sess_info = call_adk_json(session_url, method="GET", timeout=15)
                     state_data = sess_info.get("state", {})
                 except Exception as e:
                     logger.warning(f"Error fetching state: {e}")
+                
+                state_data.update(state_deltas)
 
                 blocks = state_to_blocks(state_data, events if isinstance(events, list) else [])
 
@@ -222,14 +229,12 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
 
             except Exception as exc:
                 logger.error(f"Error handling /api/chat via ADK: {exc}", exc_info=True)
-                # Return fallback signal so frontend can gracefully render simulation
-                self.send_response(200)
+                self.send_response(502)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({
-                    "fallback": True,
                     "error": str(exc),
-                    "note": "ADK backend encountered an error or timeout; seamlessly falling back to local case simulator."
+                    "detail": "Live ADK Multi-Agent Gateway error. Ensure backend is reachable."
                 }).encode("utf-8"))
                 return
 

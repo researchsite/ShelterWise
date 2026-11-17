@@ -1,6 +1,7 @@
 # ShelterWise — Google ADK Multi-Agent + BigQuery Vector Search + Firestore (Cloud Shell & Cloud Run)
 google-adk>=0.1.0
 google-genai>=0.1.0
+mcp>=1.0.0
 
 # Databases & Auth (BigQuery AI.EMBED / VECTOR_SEARCH + Firestore Transactional Store)
 google-cloud-bigquery>=3.25.0
