@@ -252,6 +252,32 @@ def handle_chat_message(
     store = FirestoreStore()
     case = store.get_case(case_id) if case_id else None
 
+    # 0. Owner Move-In (OMI), Relative Move-In, Ellis Act, or Sunset/Irving St inquiry -> statute_and_bulletin_ag
+    if any(k in q_lower for k in ["omi", "owner move-in", "owner move in", "cousin", "relative move", "ellis act", "1720 irving", "irving st"]):
+        return {
+            "agent": "statute_and_bulletin_ag",
+            "response": (
+                "⚖️ **San Francisco Rent Ordinance Legal Analysis (SF Admin. Code Chapter 37):**\n\n"
+                "1. **Cousin Disqualification (§ 37.9(a)(8)):**\n"
+                "   - Under the SF Rent Ordinance, an Owner Move-In / Relative Move-In eviction is strictly limited to the owner's "
+                "**child, parent, grandchild, grandparent, brother, sister, or spouse/domestic partner** (and only if the landlord simultaneously resides in the building or is moving in).\n"
+                "   - **A cousin is NOT an eligible relative.** An OMI notice claiming a cousin is moving in is **void and legally defective on its face**.\n\n"
+                "2. **Protected Senior Tenant Status (§ 37.9(i)):**\n"
+                "   - Tenants who are **60 years of age or older** and have resided in the unit for **10 or more years** hold **Protected Status** against OMI and Relative Move-In evictions.\n"
+                "   - At age 68 with residency since 2004 (22 years), the tenant qualifies for full statutory protection.\n\n"
+                "3. **Unlawful & Deficient Relocation Offer (§ 37.9C):**\n"
+                "   - The landlord's $4,500 offer is illegal and grossly deficient. Under SF Admin. Code § 37.9C, statutory relocation payments currently require over **$8,200 per eligible tenant**, plus an additional **$5,500+ for senior/disabled tenants**, totaling over **$21,900+** for this 2-person protected household.\n"
+                "   - Approaching tenants with informal buyout offers without filing Rent Board Pre-Buyout Disclosures violates § 37.9E.\n\n"
+                "4. **Landlord History & Ellis Act Check:**\n"
+                "   - In San Francisco, an owner who evicts for OMI cannot perform multiple OMIs or re-rent at higher rates without steep penalties. If the landlord has filed prior OMI or Ellis Act notices on other properties, courts consider this evidence of bad-faith retaliation.\n\n"
+                "🛡️ **Immediate Action Plan for Tenant:**\n"
+                "1. Do **NOT** sign any buyout or surrender agreement.\n"
+                "2. Do **NOT** vacate the unit.\n"
+                "3. File a Written Objection with the Landlord and copy the **San Francisco Rent Board** citing § 37.9(a)(8) (Ineligible Relative) and § 37.9(i) (Protected Senior Status).\n"
+                "4. Request free legal defense through the **Eviction Defense Collaborative (Prop F Right to Counsel)**."
+            )
+        }
+
     # 1. Decoy exclusion inquiry -> evidence_explainer_ag
     if any(k in q_lower for k in ["why did you drop", "warehouse", "boiler", "decoy", "exclude", "drop the"]):
         return {

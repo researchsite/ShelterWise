@@ -479,7 +479,7 @@ async function send(text){
   const secs=((performance.now()-t0)/1000).toFixed(1);
   const spinEl=el.querySelector('.spin');
   if(spinEl)spinEl.outerHTML='<span style="color:var(--ok);font-weight:bold">✓</span>';
-  if(summaryTl)summaryTl.textContent=`${steps.length || 6} agent steps (Gemini 3.8 Flash) · ${secs}s · view trace`;
+  if(summaryTl)summaryTl.textContent=`${steps.length || 6} agent steps (Gemini 2.5 Flash) · ${secs}s · view trace`;
   if(steps.length){
     ol.innerHTML=steps.map(s=>`<li class="ok"><span class="agent">${esc(s.agent)}</span>: ${esc(s.label)} <span class="muted small">(${s.ms}ms)</span></li>`).join('');
   }
