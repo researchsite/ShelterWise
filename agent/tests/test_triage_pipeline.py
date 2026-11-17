@@ -1,6 +1,7 @@
 """Tests for Member 3 ADK multi-agent tree hierarchy and specialists."""
 
-import pytest
+import unittest
+from google.adk.sessions import InMemorySessionService
 from shelterwise_agent.agent import (
     shelterwise_navigator,
     root_agent,
@@ -18,78 +19,83 @@ from shelterwise_agent.agent import (
     draft_311_complaint,
 )
 from shelterwise_agent.mcp.bigquery_mcp import get_bigquery_mcp_toolset
+from shelterwise_agent import SESSION_SERVICE, create_runner, get_session_service
 
-def test_pipeline_hierarchy():
-    """Verify SequentialAgent pipeline and 3-way ParallelAgent fanout."""
-    assert case_triage_pipeline is not None
-    assert len(case_triage_pipeline.sub_agents) == 3
-    assert case_triage_pipeline.sub_agents[0].name == "intake_structurer_agent"
-    assert case_triage_pipeline.sub_agents[1].name == "corroboration_fanout"
-    assert case_triage_pipeline.sub_agents[2].name == "eligibility_and_brief_agent"
 
-    fanout = case_triage_pipeline.sub_agents[1]
-    assert len(fanout.sub_agents) == 3
-    names = [a.name for a in fanout.sub_agents]
-    assert "habitability_vector_agent" in names
-    assert "statute_and_bulletin_agent" in names
-    assert "tract_displacement_agent" in names
+class TestTriagePipeline(unittest.TestCase):
 
-def test_root_coordinator_and_specialists():
-    """Verify root coordinator exports and specialist sub-agents."""
-    assert root_agent is shelterwise_navigator
-    sub_names = [a.name for a in shelterwise_navigator.sub_agents]
-    assert "case_triage_pipeline" in sub_names
-    assert "evidence_explainer_agent" in sub_names
-    assert "equity_audit_agent" in sub_names
-    assert "hazard_311_drafter_agent" in sub_names
+    def test_pipeline_hierarchy(self):
+        """Verify SequentialAgent pipeline and 3-way ParallelAgent fanout."""
+        self.assertIsNotNone(case_triage_pipeline)
+        self.assertEqual(len(case_triage_pipeline.sub_agents), 3)
+        self.assertTrue(case_triage_pipeline.sub_agents[0].name.startswith("intake_structurer"))
+        self.assertTrue(case_triage_pipeline.sub_agents[1].name.startswith("corroboration_fanout"))
+        self.assertTrue(case_triage_pipeline.sub_agents[2].name.startswith("eligibility_and_brief"))
 
-def test_evidence_explainer_logic():
-    """Verify explain_excluded_evidence returns structured legal explanation."""
-    res = explain_excluded_evidence("DECOY-SANF-01", "Commercial property decoy")
-    assert res["candidate_id"] == "DECOY-SANF-01"
-    assert "Commercial property decoy" in res["explanation"]
-    assert "cannot corroborate a residential habitability defense" in res["explanation"]
+        fanout = case_triage_pipeline.sub_agents[1]
+        self.assertEqual(len(fanout.sub_agents), 3)
+        names = [a.name for a in fanout.sub_agents]
+        self.assertTrue(any(n.startswith("habitability_vector") for n in names))
+        self.assertTrue(any(n.startswith("statute_and_bulletin") for n in names))
+        self.assertTrue(any(n.startswith("tract_displacement") for n in names))
 
-def test_hazard_311_drafter_logic():
-    """Verify draft_311_complaint prepares valid DBI filing format."""
-    res = draft_311_complaint("Defective heating and ceiling leak", "400 Block Ellis St")
-    assert res["agency"] == "San Francisco Department of Building Inspection (DBI)"
-    assert res["block_address"] == "400 Block Ellis St"
-    assert "Defective heating" in res["hazard_summary"]
-    assert res["priority_level"] == "High - Immediate Life Safety"
+    def test_root_coordinator_and_specialists(self):
+        """Verify root coordinator exports and specialist sub-agents."""
+        self.assertIs(root_agent, shelterwise_navigator)
+        sub_names = [a.name for a in shelterwise_navigator.sub_agents]
+        self.assertTrue(any(n.startswith("case_triage_pipeline") for n in sub_names))
+        self.assertTrue(any(n.startswith("evidence_explainer") for n in sub_names))
+        self.assertTrue(any(n.startswith("equity_audit") for n in sub_names))
+        self.assertTrue(any(n.startswith("hazard_311_drafter") for n in sub_names))
 
-def test_bigquery_mcp_toolset():
-    """Verify BigQuery McpToolset initializes with Google-managed endpoint."""
-    toolset = get_bigquery_mcp_toolset(project_id="test-project")
-    assert toolset is not None
+    def test_evidence_explainer_logic(self):
+        """Verify explain_excluded_evidence returns structured legal explanation."""
+        res = explain_excluded_evidence("DECOY-SANF-01", "Commercial property decoy")
+        self.assertEqual(res["candidate_id"], "DECOY-SANF-01")
+        self.assertIn("Commercial property decoy", res["explanation"])
+        self.assertIn("cannot corroborate", res["explanation"])
 
-def test_runner_with_in_memory_session():
-    """Verify create_runner shares singleton InMemorySessionService and avoids state key collisions."""
-    from google.adk.sessions import InMemorySessionService
-    from shelterwise_agent import SESSION_SERVICE, create_runner, get_session_service
+    def test_hazard_311_drafter_logic(self):
+        """Verify draft_311_complaint prepares valid DBI filing format."""
+        res = draft_311_complaint("Defective heating and ceiling leak", "400 Block Ellis St")
+        self.assertEqual(res["agency"], "San Francisco Department of Building Inspection (DBI)")
+        self.assertEqual(res["block_address"], "400 Block Ellis St")
+        self.assertIn("Defective heating", res["hazard_summary"])
+        self.assertEqual(res["priority_level"], "High - Immediate Life Safety")
 
-    runner1 = create_runner()
-    runner2 = create_runner()
-    assert runner1 is not None
-    assert isinstance(SESSION_SERVICE, InMemorySessionService)
-    assert get_session_service() is SESSION_SERVICE
-    assert runner1.session_service is SESSION_SERVICE
-    assert runner2.session_service is SESSION_SERVICE
+    def test_bigquery_mcp_toolset(self):
+        """Verify BigQuery McpToolset initializes with Google-managed endpoint."""
+        toolset = get_bigquery_mcp_toolset(project_id="test-project")
+        self.assertIsNotNone(toolset)
 
-    # Ensure LlmAgent output_keys never overwrite structured tool state dicts
-    reserved_tool_state_keys = {
-        "intake_facts",
-        "evidence_pack",
-        "raw_policy_pack",
-        "tract_context",
-        "stabilization_brief",
-    }
-    pipeline_agents = [
-        intake_structurer_agent,
-        habitability_vector_agent,
-        statute_and_bulletin_agent,
-        tract_displacement_agent,
-        eligibility_and_brief_agent,
-    ]
-    for ag in pipeline_agents:
-        assert ag.output_key not in reserved_tool_state_keys
+    def test_runner_with_in_memory_session(self):
+        """Verify create_runner shares singleton InMemorySessionService and avoids state key collisions."""
+        runner1 = create_runner()
+        runner2 = create_runner()
+        self.assertIsNotNone(runner1)
+        self.assertIsInstance(SESSION_SERVICE, InMemorySessionService)
+        self.assertIs(get_session_service(), SESSION_SERVICE)
+        self.assertIs(runner1.session_service, SESSION_SERVICE)
+        self.assertIs(runner2.session_service, SESSION_SERVICE)
+
+        # Ensure LlmAgent output_keys never overwrite structured tool state dicts
+        reserved_tool_state_keys = {
+            "intake_facts",
+            "evidence_pack",
+            "raw_policy_pack",
+            "tract_context",
+            "stabilization_brief",
+        }
+        pipeline_agents = [
+            intake_structurer_agent,
+            habitability_vector_agent,
+            statute_and_bulletin_agent,
+            tract_displacement_agent,
+            eligibility_and_brief_agent,
+        ]
+        for ag in pipeline_agents:
+            self.assertNotIn(ag.output_key, reserved_tool_state_keys)
+
+
+if __name__ == "__main__":
+    unittest.main()

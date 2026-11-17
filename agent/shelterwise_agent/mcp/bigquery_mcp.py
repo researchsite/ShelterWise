@@ -1,19 +1,19 @@
-"""Managed BigQuery MCPToolset integration.
-
-Connects to Google-managed BigQuery MCP server (https://bigquery.googleapis.com/mcp)
-or provides tools for ad-hoc SQL queries and schema inspection.
 """
-
+Google-Managed BigQuery MCP Integration and Safe Query Execution.
+Connects to BigQuery MCP endpoint or provides safe parameterized query execution.
+"""
 import asyncio
 import inspect
 import logging
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 import google.auth
 from google.auth.transport.requests import Request
 from google.adk.tools import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
-from shelterwise_agent.config import get_settings
+
+from shelterwise_agent.config import PROJECT_ID, DATASET, get_settings
+from shelterwise_agent.db.bigquery_client import BQClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,28 @@ _BQ_SCOPES = [
     "https://www.googleapis.com/auth/bigquery",
     "https://www.googleapis.com/auth/cloud-platform",
 ]
+
+
+def query_bigquery_mcp(sql_query: str) -> Dict[str, Any]:
+    """
+    Executes a read-only SQL query against the a4i_housing BigQuery dataset.
+    Used by the coordinator agent for ad-hoc paralegal questions.
+    """
+    bq = BQClient()
+    if not bq.client:
+        return {"error": "BigQuery client unavailable"}
+    
+    # Enforce read-only safety guard
+    sanitized = sql_query.strip()
+    upper = sanitized.upper()
+    if any(forbidden in upper for forbidden in ["DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "CREATE"]):
+        return {"error": "Modification statements are prohibited. Only SELECT queries are permitted."}
+
+    try:
+        results = [dict(r.items()) for r in bq.client.query(sanitized).result()]
+        return {"row_count": len(results), "rows": results[:20]}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 class ResilientBigQueryMcpToolset(McpToolset):
@@ -56,7 +78,7 @@ def get_bigquery_mcp_toolset(project_id: Optional[str] = None) -> McpToolset:
     except Exception:
         pass
     resolved_project = (
-        project_id or settings.project_id or adc_project or "qwiklabs-gcp-04-99fa355171e1"
+        project_id or settings.project_id or adc_project or PROJECT_ID or "qwiklabs-gcp-04-99fa355171e1"
     )
     cached_auth: dict[str, Any] = {"creds": None, "request": None}
 
