@@ -10,7 +10,7 @@
   .msg.user{display:flex;justify-content:flex-end}
   .msg.user .bub{background:var(--brand);color:#fff;padding:10px 14px;border-radius:14px 14px 3px 14px;max-width:80%;white-space:pre-wrap}
   .msg.bot{display:flex;gap:10px;align-items:flex-start}
-  .ava{width:30px;height:30px;border-radius:8px;background:#14213d;color:#fff;display:grid;place-items:center;flex:none;font-size:15px}
+  .ava{width:30px;height:30px;border-radius:8px;background:var(--appbar);border:2px solid var(--accent);color:#fff;display:grid;place-items:center;flex:none;font-size:15px}
   .body{flex:1;min-width:0}
   .reply{margin:2px 0 8px}
   .blocks{display:grid;gap:10px}
@@ -18,53 +18,53 @@
   .trace{font-size:12px;color:var(--muted);margin-bottom:6px}
   .trace summary{cursor:pointer;list-style:none;display:inline-flex;gap:6px;align-items:center}
   .trace summary::-webkit-details-marker{display:none}
-  .trace ol{margin:6px 0 0;padding:8px 10px 8px 28px;background:#fff;border:1px solid var(--line);border-radius:8px}
+  .trace ol{margin:6px 0 0;padding:8px 10px 8px 28px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
   .trace li{margin:2px 0}
   .trace li.run{color:var(--brand)} .trace li.ok::marker{color:var(--ok)}
-  .spin{width:11px;height:11px;border:2px solid #c6d6f1;border-top-color:var(--brand);border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
+  .spin{width:11px;height:11px;border:2px solid var(--brand-line);border-top-color:var(--brand);border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
   /* blocks */
-  .blk{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+  .blk{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
   .blk>.hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .blk>.hd h4{margin:0;color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px}
+  .blk>.hd h4{margin:0;color:var(--ink);text-transform:none;letter-spacing:0;font-size:14px;font-family:var(--font-head)}
   .blk>.hd .sp{flex:1}
   .facts{display:flex;flex-wrap:wrap;gap:6px}
-  .fact{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border:1px solid var(--line);border-radius:7px;background:#fafbfc;font-size:12.5px}
+  .fact{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border:1px solid var(--line);border-radius:7px;background:var(--sunk);font-size:12.5px}
   .fact .ed{border:0;background:none;color:var(--brand);cursor:pointer;font-size:12px;padding:0}
   .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
-  .kv div{background:#f7f9fb;border-radius:8px;padding:8px 10px}
+  .kv div{background:var(--sunk);border-radius:8px;padding:8px 10px}
   .kv .k{font-size:11px;color:var(--muted)} .kv .v{font-weight:700}
   .rec{border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:9px 11px;margin:6px 0}
-  .rec.x{border-left-color:#9ca3af;background:#fafafa}
+  .rec.x{border-left-color:var(--grey-line);background:var(--sunk)}
   .rec .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .rec .id{font:700 12.5px ui-monospace,Menlo,monospace}
-  .rec .qt{font-style:italic;color:#334155;font-size:13px;margin:5px 0}
+  .rec .qt{font-style:italic;color:var(--muted);font-size:13px;margin:5px 0}
   .rule{font-size:11.5px;padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
-  .rule.p{background:var(--ok-soft);color:var(--ok);border-color:#b7e0c9}
-  .rule.f{background:var(--bad-soft);color:var(--bad);border-color:#f5c2be;font-weight:700}
+  .rule.p{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+  .rule.f{background:var(--grey-soft);color:var(--ink);border-color:var(--grey-line);font-weight:700}
   .cav{font-size:12px;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:5px 8px;margin-top:6px}
   details.more>summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:13px;padding:4px 0}
   .li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line)}
   .li:first-of-type{border-top:0}
-  .li .s{font-size:12.5px;color:#475569;grid-column:1/3}
-  .clock{height:8px;background:#eef1f5;border-radius:4px;margin-top:6px;position:relative}
-  .clock i{position:absolute;inset:0 auto 0 0;background:var(--warn);border-radius:4px}
+  .li .s{font-size:12.5px;color:var(--muted);grid-column:1/3}
+  .clock{height:8px;background:var(--grey-soft);border-radius:4px;margin-top:6px;position:relative}
+  .clock i{position:absolute;inset:0 auto 0 0;background:var(--grey);border-radius:4px}
   .ask{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
   .ask .lbl{font-size:12px;color:var(--muted);align-self:center}
-  .mini{font-size:12px;padding:4px 9px;border-radius:99px;border:1px solid #c6d6f1;background:var(--brand-soft);color:var(--brand);cursor:pointer;font-weight:600}
-  .mini:hover{background:#dbe6f7}
+  .mini{font-size:12px;padding:4px 9px;border-radius:99px;border:1px solid var(--brand-line);background:var(--brand-soft);color:var(--brand);cursor:pointer;font-weight:600}
+  .mini:hover{background:var(--brand-hover)}
   .strip{margin:8px 0 12px}.strip .l{display:flex;justify-content:space-between;font-size:12.5px}
   .strip svg{width:100%;height:34px;overflow:visible}
   .steps{margin:0;padding-left:20px}.steps li{margin:3px 0}
-  .fence{border:2px solid var(--info);border-radius:12px;overflow:hidden;background:#fff}
-  .fence .fh{background:var(--info);color:#fff;font-size:12px;font-weight:700;padding:7px 12px}
+  .fence{border:2px solid var(--audit);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .fence .fh{background:var(--audit);color:#fff;font-size:12px;font-weight:700;padding:7px 12px}
   .fence .fb{padding:12px 14px}
   .bars .r{display:grid;grid-template-columns:170px 1fr 52px;gap:8px;align-items:center;font-size:12.5px;margin:6px 0}
-  .bars .t{height:12px;background:#eef1f5;border-radius:3px}.bars .t i{display:block;height:100%;background:var(--info);border-radius:0 4px 4px 0}
+  .bars .t{height:12px;background:var(--grey-soft);border-radius:3px}.bars .t i{display:block;height:100%;background:var(--audit);border-radius:0 4px 4px 0}
   .brief section{padding:8px 0;border-top:1px solid var(--line);font-size:13px}
-  .brief section h5{margin:0 0 3px;font-size:13px;color:#1e3a6e}
+  .brief section h5{margin:0 0 3px;font-size:13px;color:var(--brand);font-family:var(--font-head)}
   .ck label{display:flex;gap:8px;padding:3px 0;cursor:pointer}
-  pre.code{margin:0;white-space:pre-wrap;background:#0f172a;color:#cbd5e1;padding:10px;border-radius:8px;font:12px/1.5 ui-monospace,Menlo,monospace}
+  pre.code{margin:0;white-space:pre-wrap;background:var(--code-bg);color:var(--code-ink);padding:10px;border-radius:8px;font:12px/1.5 ui-monospace,Menlo,monospace}
   .json{margin-top:6px}
   .json summary{cursor:pointer;font-size:11.5px;color:var(--muted)}
   .json pre{max-height:280px;overflow:auto}
@@ -73,24 +73,24 @@
   .hero{text-align:center;padding:50px 10px 10px}
   .hero h2{font-size:24px}
   .starters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;text-align:left}
-  .starter{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;box-shadow:var(--shadow)}
-  .starter:hover{border-color:#9db3d8}
+  .starter{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;box-shadow:var(--shadow)}
+  .starter:hover{border-color:var(--accent)}
   .starter b{display:block;margin-bottom:3px}
   /* composer */
-  .composer{border-top:1px solid var(--line);background:#fff}
+  .composer{border-top:1px solid var(--line);background:var(--panel)}
   .composer .col{padding:12px 20px 14px}
-  .box{display:flex;gap:8px;align-items:flex-end;border:1px solid #c9d1db;border-radius:14px;padding:8px 8px 8px 12px;background:#fff}
-  .box:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px #dbe6f7}
+  .box{display:flex;gap:8px;align-items:flex-end;border:1px solid var(--line-strong);border-radius:14px;padding:8px 8px 8px 12px;background:var(--panel)}
+  .box:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-hover)}
   .box textarea{flex:1;border:0;outline:0;padding:6px 0;max-height:160px;min-height:24px;resize:none}
   .box .btn{white-space:nowrap}
   .fine{font-size:11.5px;color:var(--muted);margin-top:6px;text-align:center}
   .tp-btn{position:fixed;right:18px;top:56px;z-index:20}
-  .tp{position:fixed;top:0;right:-460px;width:440px;height:100%;background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.15);transition:right .25s;z-index:40;display:flex;flex-direction:column}
+  .tp{position:fixed;top:0;right:-460px;width:440px;height:100%;background:var(--panel);box-shadow:-10px 0 30px rgba(0,0,0,.15);transition:right .25s;z-index:40;display:flex;flex-direction:column}
   .tp.open{right:0}
   .tp .hd{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
   .tp ol{margin:0;padding:10px 16px 20px 36px;overflow:auto;flex:1}
   .tp li{margin:0 0 10px}
-  .tp .pt{font-size:13px;background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:7px 9px;user-select:all;white-space:pre-wrap}
+  .tp .pt{font-size:13px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:7px 9px;user-select:all;white-space:pre-wrap}
   .tp .ex{font-size:11.5px;color:var(--muted);margin:3px 0}
 </style></head>
 <body>
@@ -98,7 +98,9 @@
   <div class="hero" id="hero">
     <h2>What's the situation?</h2>
     <p class="muted">Describe the tenant's situation in plain words. ShelterWise checks public 311 records, CA/SF law, relief funds and neighborhood context, then gives you a reviewable brief.<br><span class="small">Don't include names, phone numbers or unit numbers.</span></p>
-    <details class="card" style="text-align:left;margin-top:16px;padding:10px 14px;border:1px dashed #f1d9a6;background:#fffcf3">
+    <div class="legend" style="margin-top:14px"><span class="muted">Status key:</span>
+      <span class="b crit">⚡ Life-safety</span><span class="b urg">⏱ Deadline / act today</span><span class="b warn">◐ Conditional · needs review</span><span class="b ok">✓ Eligible · corroborated</span><span class="b info">ℹ Record / fact</span><span class="b grey">🔒 Locked · excluded · unknown</span><span class="b audit">🛡 Equity audit (aggregate)</span></div>
+    <details class="card" style="text-align:left;margin-top:16px;padding:10px 14px;border:1px dashed var(--warn-line);background:var(--warn-soft)">
       <summary style="cursor:pointer;font-weight:600">📌 Note: proposed backend contract (DRAFT, to confirm with the team)</summary>
       <pre class="code" style="margin-top:8px">POST /api/chat  { session_id, message }
 → { reply, agent_trace:[{agent,label,ms}], blocks:[{type, ...data}], suggestions:[...] }</pre>
@@ -213,12 +215,12 @@ const R={
    <div style="margin-top:3px">Tell the tenant: <b>do NOT touch the wet fuse box or nearby switches.</b> Sparking, burning smell or spreading water → <b>call 911</b>. Otherwise request an <b>emergency DBI inspection via 311</b>.</div></div>
    <button class="btn" onclick="this.textContent='✓ Told tenant 15:41';this.disabled=true">I told the tenant</button></div>`,
  summary:()=>`<div class="blk"><div class="hd"><h4>📝 What I understood</h4><span class="b outline">SF-1042</span><span class="sp"></span><span class="small muted">click ✎ to correct</span></div>
-   <div class="kv"><div><div class="k">Hearing</div><div class="v" style="color:var(--bad)">Mon 11/23 9:00 · 89h</div></div><div><div class="k">Location</div><div class="v">1000 Block Fillmore St</div></div><div><div class="k">Tract GEOID</div><div class="v mono">06075016300</div></div></div>
+   <div class="kv"><div><div class="k">Hearing</div><div class="v" style="color:var(--urg)">⏱ Mon 11/23 9:00 · 89h</div></div><div><div class="k">Location</div><div class="v">1000 Block Fillmore St</div></div><div><div class="k">Tract GEOID</div><div class="v mono">06075016300</div></div></div>
    <div class="facts">${[['No heat ~2 wks, ~50°F','Reported'],['Water near fuse box','Reported'],['~2 months behind','Reported'],['Parent + 2 children','Reported'],['Own DBI case #','Unknown'],['Income','Unknown']]
      .map(([f,l])=>`<span class="fact"><span class="b ${l==='Unknown'?'grey':'brand'}">${l}</span>${f}<button class="ed" title="Edit" onclick="editFact('${f}')">✎</button></span>`).join('')}</div>
    <div class="small muted" style="margin-top:6px">🔒 3 personal details scrubbed before search · raw text not logged</div></div>`,
- evidence:()=>`<div class="blk"><div class="hd"><h4>🔎 Public 311 evidence</h4><span class="b ok">1 corroborating</span><span class="b grey">3 look-alikes excluded</span><span class="sp"></span><span class="small muted">25 searched by meaning → filtered by rules</span></div>
-   <div class="rec"><div class="top"><span class="id">SF-202665182</span><span class="b warn">Open: Active DBI Case</span><span class="small muted">created 2026-11-03 · same block · 12 m</span></div>
+ evidence:()=>`<div class="blk"><div class="hd"><h4>🔎 Public 311 evidence</h4><span class="b ok">✓ 1 corroborating</span><span class="b grey">✕ 3 look-alikes excluded</span><span class="sp"></span><span class="small muted">25 searched by meaning → filtered by rules</span></div>
+   <div class="rec"><div class="top"><span class="id">SF-202665182</span><span class="b info">Open: Active DBI Case</span><span class="small muted">created 2026-11-03 · same block · 12 m</span></div>
      <div class="qt">"…resident has been without heat… its 52 degrees in the dwelling unit."</div>
      <div class="row" style="gap:5px"><span class="rule p">✓ Residential</span><span class="rule p">✓ Open</span><span class="rule p">✓ Active</span><span class="b outline">Public: SF 311</span></div>
      <div class="cav">⚠ Block-level record, not proof about her unit. The caller may be a third party.</div></div>
@@ -226,19 +228,19 @@ const R={
      ${[['DECOY-SANF-01','#1','Commercial property','Emergency boiler shutdown… commercial retail warehouse storefront'],['DECOY-SANF-04','#2','Closed: Abated','Broken central boiler… landlord replaced boiler, inspector verified'],['DECOY-SANF-07','#4','Closed: No Violation','Winter readiness inspection… boiler at 71F, zero defects']]
       .map(([id,rk,r,t])=>`<div class="rec x"><div class="top"><span class="id">${id}</span><span class="small muted">semantic rank ${rk}</span><span class="rule f">✗ ${r}</span><span class="sp"></span><button class="mini" onclick="send('Why did you exclude ${id}${id.endsWith('01')?' (the boiler shutdown complaint)':id.endsWith('04')?' (the abated one)':''}?')">Why?</button></div><div class="qt">"${t}…"</div></div>`).join('')}
    </details></div>`,
- law:()=>`<div class="blk"><div class="hd"><h4>⚖️ Law to review</h4><span class="b warn">attorney review required</span></div>
+ law:()=>`<div class="blk"><div class="hd"><h4>⚖️ Law to review</h4><span class="b warn">◐ attorney review required</span></div>
    <div class="li"><b>SF Admin. Code Ch. 37 &amp; Prop F</b><span class="b ok">✓ Likely applies</span><div class="s">Just cause + city-funded lawyer. <b>Call Right to Counsel before Monday.</b></div></div>
    <div class="li"><b>Cal. Civ. Code § 1942.5</b><span class="b warn">◐ Applies if…</span><div class="s">Anti-retaliation, but only if the tenant herself complained to the city.</div></div>
-   <div class="li"><b>Cal. Civ. Code § 1941.1 &amp; § 1942.4</b><span class="b bad">✕ Not yet</span><div class="s">Rent-demand bar needs a citation unabated &gt; 35 days. Day <b>16 / 35</b>; recheck 2026-12-09.<div class="clock"><i style="width:45.7%"></i></div></div></div></div>`,
+   <div class="li"><b>Cal. Civ. Code § 1941.1 &amp; § 1942.4</b><span class="b grey">⏳ Not yet</span><div class="s">Rent-demand bar needs a citation unabated &gt; 35 days. Day <b>16 / 35</b>; recheck 2026-12-09.<div class="clock"><i style="width:45.7%"></i></div></div></div></div>`,
  relief:b=>`<div class="blk"><div class="hd"><h4>💵 Relief funds</h4><span class="sp"></span><span class="small muted">gated on the evidence above</span></div>
-   ${b.funds.map(f=>`<div class="li"><div><b>${f.name}</b> ${f.urgent?'<span class="b bad">call today</span>':''}<div class="small muted">${f.agency} · ${f.amount} · ${f.gated?'🔒 needs open habitability case':'general fund'}</div></div><span class="b ${f.verdict[0]}">${f.verdict[1]}</span><div class="s">${f.verdict[2]}</div></div>`).join('')}
+   ${b.funds.map(f=>`<div class="li"><div><b>${f.name}</b> ${f.urgent?'<span class="b urg">⏱ call today</span>':''}<div class="small muted">${f.agency} · ${f.amount} · ${f.gated?'🔒 needs open habitability case':'general fund'}</div></div><span class="b ${f.verdict[0]}">${f.verdict[1]}</span><div class="s">${f.verdict[2]}</div></div>`).join('')}
    ${b.ask.length?`<div class="ask"><span class="lbl">Answer to unlock more:</span>${b.ask.map(a=>`<button class="mini" onclick="send('${a[1]}')">${a[1]}</button>`).join('')}</div>`:''}</div>`,
  relief_fallback:()=>`<div class="blk"><div class="hd"><h4>💵 Funds while inspection is pending</h4></div>
    <div class="li"><b>SF ERAP</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $12,000</div></div>
    <div class="li"><b>MEDA Family Stabilization Grant</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $7,500</div></div>
    <div class="li"><b>Prop F / DBI Bridge</b><span class="b grey">🔒 Locked</span><div class="s">Require an open habitability case. Revisit once the 311 is filed.</div></div></div>`,
  tract:()=>{const st=(t,me,med,min,max,u,read)=>{const x=v=>(v-min)/(max-min)*100;const r=rngd(t.length,41,med,(max-min)/3);
-   return `<div class="strip"><div class="l"><b>${t}</b><span>this tract <b>${me}${u}</b> · SF median ${med}${u}</span></div><svg aria-label="${t}"><line x1="0" x2="100%" y1="16" y2="16" stroke="#e2e6eb"/>${r.map((v,i)=>`<circle cx="${Math.min(100,Math.max(0,x(v)))}%" cy="${16+(i%5)-2}" r="3.5" fill="#b8c1cc" stroke="#fff" stroke-width="1.2"><title>SF tract: ${v.toFixed(1)}${u}</title></circle>`).join('')}<line x1="${x(med)}%" x2="${x(med)}%" y1="4" y2="28" stroke="#1b2430" stroke-width="2"/><circle cx="${x(me)}%" cy="16" r="7" fill="#2b5cab" stroke="#fff" stroke-width="2"><title>This tract: ${me}${u}</title></circle></svg><div class="small muted">${read}</div></div>`};
+   return `<div class="strip"><div class="l"><b>${t}</b><span>this tract <b>${me}${u}</b> · SF median ${med}${u}</span></div><svg aria-label="${t}"><line x1="0" x2="100%" y1="16" y2="16" stroke="var(--line)"/>${r.map((v,i)=>`<circle cx="${Math.min(100,Math.max(0,x(v)))}%" cy="${16+(i%5)-2}" r="3.5" fill="var(--line-strong)" stroke="#fff" stroke-width="1.2"><title>SF tract: ${v.toFixed(1)}${u}</title></circle>`).join('')}<line x1="${x(med)}%" x2="${x(med)}%" y1="4" y2="28" stroke="var(--ink)" stroke-width="2"/><circle cx="${x(me)}%" cy="16" r="7" fill="var(--brand)" stroke="#fff" stroke-width="2"><title>This tract: ${me}${u}</title></circle></svg><div class="small muted">${read}</div></div>`};
    return `<div class="blk"><div class="hd"><h4>📊 Neighborhood context</h4><span class="b outline mono">06075016300</span><span class="sp"></span><span class="small muted">● this tract · | SF median · grey = other 41 tracts</span></div>
    ${st('Severe rent burden','16.0',16.1,4,30,'%','About typical')}${st('Annual eviction filings [Modeled]',65,55,15,100,'','Higher than 76% of SF tracts')}
    <div class="small muted">Context only, never an individual risk score. Filings are modeled, not her docket.</div></div>`},
@@ -249,7 +251,7 @@ const R={
    <li>Collect income → apply to SF ERAP</li></ol>
    <div class="ask"><span class="lbl">Evidence gaps:</span><span class="b grey">Own DBI case #</span><span class="b grey">Income / AMI</span><span class="b grey">Proof landlord was told</span></div></div>`,
  brief_cta:()=>`<div class="blk row"><div><b>📄 Tenant Stabilization Brief v1</b><div class="small muted">9 sections · 6-item reviewer checklist · saved to case SF-1042</div></div><span class="sp"></span><button class="btn primary" onclick="send('Draft the attorney brief')">Open brief</button></div>`,
- brief:()=>`<div class="blk brief"><div class="hd"><h4>📄 Tenant Stabilization Brief · SF-1042 · v${S.own||S.inc?2:1}</h4><span class="b warn">DRAFT</span><span class="sp"></span><button class="btn" onclick="toast('Copied as Markdown')">Copy</button><button class="btn" onclick="print()">PDF</button></div>
+ brief:()=>`<div class="blk brief"><div class="hd"><h4>📄 Tenant Stabilization Brief · SF-1042 · v${S.own||S.inc?2:1}</h4><span class="b warn">◐ DRAFT</span><span class="sp"></span><button class="btn" onclick="toast('Copied as Markdown')">Copy</button><button class="btn" onclick="print()">PDF</button></div>
    ${[['1. Case snapshot','SF · tract 06075016300 · nonpayment hearing Mon 11/23 9:00 · heat + electrical hazard'],['2. Tenant-reported','No heat ~2 wks (~50°F) · water near fuse box · ~2 months behind'],['3. Evidence','SF-202665182 open DBI case, same block (block-level). 3 look-alikes excluded by rule.'],['4. Law','Prop F likely · §1942.5 if she complained · §1942.4 not yet (16/35)'],['5. Assistance',`Prop F ${S.own?'eligible':'conditional'} · ERAP ${S.inc?'eligible':'needs income'} · MEDA conditional · DBI Bridge ${S.own?'eligible':'conditional'}`],['6. Gaps',(S.own?'':'Own DBI case # · ')+(S.inc?'':'Income · ')+'Proof of notice · photos'],['7. Next steps','Prop F intake today → DBI case → document → ERAP'],['8. Limitations','Block-level evidence; filings modeled; not a legal determination']]
      .map(([h,t])=>`<section><h5>${h}</h5>${t}</section>`).join('')}
    <section class="ck"><h5>9. Reviewer checklist <span class="b outline" data-c>0/6</span></h5>${['Facts confirmed with tenant','Hearing deadline verified','DBI case & citation age verified','Statute applicability confirmed','Fund eligibility confirmed','Source dates checked'].map(c=>`<label><input type="checkbox" onchange="ck(this)"> ${c}</label>`).join('')}</section>
@@ -263,11 +265,11 @@ const R={
    <div class="r"><span>Silent distress (6 tracts)</span><div class="t"><i style="width:53.4%"></i></div><b>53.4%</b></div></div>
    <details class="more"><summary>Cohort composition table</summary><table class="small"><tr><th>Cohort</th><th>Asian</th><th>Hispanic</th><th>White</th></tr><tr><td>SF metro</td><td>28.5%</td><td>11.8%</td><td>48.6%</td></tr><tr><td>≥ 2 open 311s</td><td>28.5%</td><td>12.7%</td><td>47.6%</td></tr><tr><td>Silent distress</td><td>37.9%</td><td>13.4%</td><td>35.8%</td></tr></table></details>
    <p class="small" style="margin:8px 0 0"><b>Reading:</b> silent-distress tracts (few 311s, high burden) have the least car access, so a rule that waits for complaints misses them. <b>Recommend mobile / in-person outreach.</b></p></div></div>`,
- draft_311:()=>`<div class="blk" style="border-color:#f1d9a6;background:#fffcf3"><div class="hd"><h4>📝 Draft SF 311 / DBI inspection request</h4><span class="sp"></span><button class="btn" onclick="toast('Copied')">Copy</button></div>
+ draft_311:()=>`<div class="blk" style="border-color:var(--warn-line);background:var(--warn-soft)"><div class="hd"><h4>📝 Draft SF 311 / DBI inspection request</h4><span class="sp"></span><button class="btn" onclick="toast('Copied')">Copy</button></div>
    <div class="small"><b>Category:</b> Housing Inspection Services → Mold / Leak</div>
    <p style="font-style:italic;margin:6px 0">"Residents of the 2400 block of Mission St report an active leak and spreading mold in a residential unit. Requesting an inspection under the SF Housing Code."</p>
    <div class="small"><b>Safe photo checklist:</b> ☐ dated photos of mold ☐ leak source ☐ damaged belongings ☐ written notice to landlord</div></div>`,
- transit:()=>`<div class="blk row" style="background:#ecfdf5;border-color:#b7e0c9"><span style="font-size:26px">🚌</span><div><b>1000 Block Fillmore St → 400 McAllister St</b><div class="small">≈ 1.2 km · roughly 10–15 min by bus (illustrative; verify with SFMTA)</div></div><span class="sp"></span><div style="text-align:right"><div class="small muted">Leave by</div><b style="font-size:20px">8:00am</b></div></div>`,
+ transit:()=>`<div class="blk row" style="background:var(--ok-soft);border-color:var(--ok-line)"><span style="font-size:26px">🚌</span><div><b>1000 Block Fillmore St → 400 McAllister St</b><div class="small">≈ 1.2 km · roughly 10–15 min by bus (illustrative; verify with SFMTA)</div></div><span class="sp"></span><div style="text-align:right"><div class="small muted">Leave by</div><b style="font-size:20px">8:00am</b></div></div>`,
  lock:()=>`<pre class="code">Firestore transaction ✓  cases/SF-1042
 assigned_attorney : "Chen"
 status            : review → attorney_ready
