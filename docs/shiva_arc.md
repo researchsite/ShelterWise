@@ -308,11 +308,13 @@ ShelterWise/
 
 ---
 
-## 8. Parallel Team Execution Split
+## 8. 6-Member Parallel Implementation Plan (Zero-Collision Split)
 
-| Lane | Immediate Deliverable | Contract / Dependency |
-|---|---|---|
-| **Data Lane** | 1. Run `bash scripts/load.sh san-francisco`<br>2. Create `us.a4i-vertex` connection + grant `roles/aiplatform.user`<br>3. Run `sql/setup_vector_and_views.sql` | Unblocks live `complaints_embedded` & `v_tract_stability_context` in `<10` min. |
-| **Agent & Custom Tools Lane** | Implement `agent/shelterwise_agent/` (`schemas.py`, 8 custom tools, ADK `Sequential`+`Parallel` agent tree, BigQuery `MCPToolset`, Firestore store, FastAPI `server.py`) & deploy to Cloud Run (`--min-instances=1`). | Uses offline San Francisco test fixtures immediately so development never waits on GCP IAM propagation. |
-| **Frontend Lane** | Build Case Workspace UI (`Intake` → `Evidence Room (Valid + Excluded Decoys)` → `Statutes & Relief` → `Evidence Gaps / 311 Drafter` → `Stabilization Brief + Paralegal Lock`) against `schemas.py`. | Swaps mock API URL to Cloud Run `POST /api/triage` & `POST /api/chat`. |
-| **Story & QA Lane** | 1. Verify all 9 `DECOY-*` exclusions on screen<br>2. Pull exact SF Equity Audit table from `equity_audit_agent` into slides<br>3. Record crisp `<=3:00` walkthrough of the Thursday 3:40pm SF scenario. | Answers all 4 asynchronous judging rubrics directly in deck + video. |
+| Member | Role & Branch | Immediate Deliverables | Exclusive Files Owned |
+|---|---|---|---|
+| **Member 1** | **BigQuery Data, Embeddings & Views** (`data-bq`) | 1. `bash scripts/load.sh san-francisco`<br>2. Create `us.a4i-vertex` + `roles/aiplatform.user`<br>3. Run `sql/setup_vector_and_views.sql` (`complaints_embedded` + `v_tract_stability_context`)<br>4. Verify Section 12's 26 checks | `sql/setup_vector_and_views.sql`, `scripts/setup_bigquery.sh` |
+| **Member 2 (Shiva)** | **Schemas & 5 Core Triage Custom Tools** (`shiva`) | 1. `schemas.py` + `config.py` (ship first to unblock M3, M4, M5)<br>2. `bigquery_client.py` (with offline SF fixtures)<br>3. 5 Core Tools: `intake`, `evidence` (`VECTOR_SEARCH` + 9-decoy post-filter), `policy`, `tract`, `brief` | `agent/shelterwise_agent/config.py`, `schemas.py`, `db/bigquery_client.py`, `tools/{intake,evidence,policy,tract,brief}.py` |
+| **Member 3** | **ADK Multi-Agent Tree & Managed MCP** (`adk-agents`) | 1. Managed BigQuery `MCPToolset` (`bigquery_mcp.py`)<br>2. ADK `LlmAgent` + `SequentialAgent` + `ParallelAgent` (`agent.py`)<br>3. Specialist Sub-Agents (`evidence_explainer_agent`, `equity_audit_agent`, `hazard_311_drafter_agent`) | `agent/shelterwise_agent/agent.py`, `__init__.py`, `mcp/bigquery_mcp.py` |
+| **Member 4** | **Firestore, Bonus Tools, FastAPI & Cloud Run** (`platform-deploy`) | 1. Cloud Firestore (`nam5`) + `firestore_store.py` (`@firestore.transactional` lock)<br>2. Bonus/Audit Tools: `drafter_311`, `equity_audit`, `logistics` (`400 McAllister St` transit + case lock)<br>3. FastAPI `server.py` + `Dockerfile` + Cloud Run deploy (`--min-instances=1`) | `agent/shelterwise_agent/db/firestore_store.py`, `tools/{drafter_311,equity_audit,logistics}.py`, `agent/server.py`, `Dockerfile`, `requirements.txt`, `deploy_cloud_run.sh` |
+| **Member 5** | **Case Workspace Web UI** (`frontend`) | Case Workspace UI (`Intake` → `Safety Banner` → `Evidence Room (Valid + Excluded Decoys)` → `Statutes & Relief` → `Stabilization Brief + Paralegal Lock` + `Multi-Turn Chat`) | `frontend/*` |
+| **Member 6** | **QA Red-Team, Pitch Deck & <=3m Video** (`story-qa`) | 1. `pytest` & live red-team suite (`agent/tests/*`)<br>2. Update SF slides + provenance + SF Post-Output Equity Audit table<br>3. Record `<=3:00` walkthrough video & submit | `agent/tests/*`, `slides/*`, `qa/*` |
