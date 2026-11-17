@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShelterWise · 3 Pipeline Tracker</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .pipe{display:grid;grid-template-columns:220px 40px 1fr 40px 240px;align-items:center}
+  .arrow{text-align:center;font-size:22px;color:#a0aab6}
+  .stage{background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px;transition:border-color .2s,background .2s}
+  .stage .t{font-weight:700}
+  .stage .st{margin-top:6px}
+  .lanes{display:grid;gap:10px;padding:12px;border:2px dashed #c6d0dc;border-radius:14px;background:#f9fafc;position:relative}
+  .lanes::before{content:"corroboration_fanout · ParallelAgent";position:absolute;top:-10px;left:14px;background:var(--bg);padding:0 6px;font:600 11px ui-monospace,Menlo,monospace;color:var(--muted)}
+  .lane{display:grid;grid-template-columns:1fr 70px;gap:4px 10px;background:#fff;border:2px solid var(--line);border-radius:10px;padding:9px 11px}
+  .lane .bar{grid-column:1/3;height:6px;background:#eef1f5;border-radius:4px;overflow:hidden}
+  .lane .bar i{display:block;height:100%;width:0;background:var(--brand);transition:width linear}
+  .lane .sum{grid-column:1/3;font-size:12px;color:var(--muted);min-height:16px}
+  .tm{font:600 12px ui-monospace,Menlo,monospace;text-align:right;color:var(--muted)}
+  .running{border-color:var(--brand)!important;background:#f5f8fe}
+  .done{border-color:#7cc49c!important}
+  .done .bar i{background:var(--ok)}
+  .key{font:11px ui-monospace,Menlo,monospace;background:#eef6f1;color:var(--ok);padding:1px 6px;border-radius:4px;border:1px solid #c9e7d6}
+  .log{font:12px/1.6 ui-monospace,Menlo,monospace;background:#0f172a;color:#cbd5e1;border-radius:10px;padding:12px;height:260px;overflow:auto}
+  .log .ts{color:#64748b} .log .ag{color:#93c5fd} .log .ok{color:#86efac} .log .wr{color:#fcd34d}
+  .cmp .r{display:grid;grid-template-columns:150px 1fr 60px;gap:10px;align-items:center;margin:8px 0}
+  .cmp .track{height:18px;background:#eef1f5;border-radius:5px;overflow:hidden}
+  .cmp .track i{display:block;height:100%;border-radius:5px}
+  .state{font:12px ui-monospace,Menlo,monospace}
+  .state div{padding:3px 0;border-bottom:1px dashed var(--line)}
+  .state .pending{color:#a0aab6}
+</style></head>
+<body>
+<div class="propbanner"><b>Proposal 3: Live Agent Pipeline Tracker.</b> Shows the ADK tree running: <code>case_triage_pipeline</code> (SequentialAgent) → <code>corroboration_fanout</code> (ParallelAgent, 3 lanes) → <span class="agent">eligibility_and_brief_agent</span>. Each lane writes its own <code>output_key</code> so they never collide. The live version streams ADK events from <code>/api/triage</code> (SSE). Press <b>Run</b>.</div>
+<div class="wrap grid">
+  <div class="card">
+    <div class="row" style="margin-bottom:14px"><h3 style="margin:0">Triage run · SF-1042 · Brief v1</h3><span id="status" class="b grey">Idle</span><span class="sp"></span><span class="tm" id="clock">0.0s</span><button class="btn primary" onclick="run()">▶ Run case_triage_pipeline</button></div>
+    <div class="pipe">
+      <div class="stage" id="s1"><div class="small muted">Step 1 · LlmAgent</div><div class="t">intake_structurer_agent</div><div class="small">structure_intake</div><div class="st"><span class="key">intake_facts</span></div><div class="sum small muted" id="s1sum"></div></div>
+      <div class="arrow">→</div>
+      <div class="lanes">
+        <div class="lane" id="p1"><div><b>habitability_vector_agent</b><div class="small muted">AI.EMBED + VECTOR_SEARCH top_k=25</div></div><div class="tm" id="p1t">—</div><div class="bar"><i></i></div><div class="sum" id="p1s"></div></div>
+        <div class="lane" id="p2"><div><b>statute_and_bulletin_agent</b><div class="small muted">fetch_statutes_and_bulletins</div></div><div class="tm" id="p2t">—</div><div class="bar"><i></i></div><div class="sum" id="p2s"></div></div>
+        <div class="lane" id="p3"><div><b>tract_displacement_agent</b><div class="small muted">v_tract_stability_context + BQ MCP</div></div><div class="tm" id="p3t">—</div><div class="bar"><i></i></div><div class="sum" id="p3s"></div></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage" id="s3"><div class="small muted">Step 3 · LlmAgent</div><div class="t">eligibility_and_brief_agent</div><div class="small">reconcile_gaps_and_generate_brief</div><div class="st"><span class="key">stabilization_brief</span></div><div class="sum small muted" id="s3sum"></div></div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.4fr 1fr">
+    <div class="card"><div class="row"><h4 style="margin:0">ADK event stream</h4><span class="sp"></span><span class="small muted">/api/triage · SSE</span></div><div class="log" id="log" aria-live="polite"></div></div>
+    <div class="grid">
+      <div class="card"><h4>session.state</h4>
+        <div class="state" id="state">
+          <div id="k_intake_facts" class="pending">intake_facts · pending</div>
+          <div id="k_evidence_pack" class="pending">evidence_pack · pending</div>
+          <div id="k_raw_policy_pack" class="pending">raw_policy_pack · pending</div>
+          <div id="k_tract_context" class="pending">tract_context · pending</div>
+          <div id="k_stabilization_brief" class="pending">stabilization_brief · pending</div>
+        </div>
+        <p class="small muted" style="margin:8px 0 0">The 3 parallel lanes write separate keys. The cross-check (open residential 311 → unlocks gated funds) runs only in Step 3, after all three finish.</p>
+      </div>
+      <div class="card cmp"><h4>Latency: why ParallelAgent</h4>
+        <div class="r"><span class="small">Sequential (est.)</span><div class="track"><i style="width:100%;background:#cbd5e1"></i></div><span class="tm">~16s</span></div>
+        <div class="r"><span class="small"><b>This run</b></span><div class="track"><i id="cmpbar" style="width:0;background:var(--ok);transition:width .4s"></i></div><span class="tm" id="cmpt">—</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="row"><span class="sp"></span><a class="btn primary" href="4-evidence-room.html">Open Evidence Room →</a></div>
+</div>
+<script src="shared.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let t0,tick;
+function log(html){const l=$('log');const s=((performance.now()-t0)/1000).toFixed(2).padStart(5,' ');l.insertAdjacentHTML('beforeend',`<div><span class="ts">${s}s</span> ${html}</div>`);l.scrollTop=l.scrollHeight}
+function setKey(k,v){const e=$('k_'+k);e.className='';e.innerHTML=`<span class="key">${k}</span> ${v}`}
+function lane(id,ms,summary,key,val){
+  const el=$(id),bar=el.querySelector('.bar i');el.classList.add('running');
+  bar.style.transitionDuration=ms+'ms';requestAnimationFrame(()=>bar.style.width='100%');
+  const st=performance.now();const iv=setInterval(()=>$(id+'t').textContent=((performance.now()-st)/1000).toFixed(1)+'s',100);
+  return new Promise(r=>setTimeout(()=>{clearInterval(iv);el.classList.replace('running','done');$(id+'s').innerHTML=summary;setKey(key,val);log(`<span class="ok">✓</span> <span class="ag">${el.querySelector('b').textContent}</span> → state['${key}']`);r()},ms));
+}
+async function run(){
+  ['s1','s3','p1','p2','p3'].forEach(i=>{$(i).classList.remove('done','running');});
+  document.querySelectorAll('.bar i').forEach(b=>{b.style.transitionDuration='0ms';b.style.width='0'});
+  ['p1','p2','p3'].forEach(i=>{$(i+'t').textContent='—';$(i+'s').textContent=''});$('s1sum').textContent='';$('s3sum').textContent='';
+  ['intake_facts','evidence_pack','raw_policy_pack','tract_context','stabilization_brief'].forEach(k=>{const e=$('k_'+k);e.className='pending';e.textContent=k+' · pending'});
+  $('log').innerHTML='';$('cmpbar').style.width='0';$('cmpt').textContent='—';
+  t0=performance.now();clearInterval(tick);tick=setInterval(()=>$('clock').textContent=((performance.now()-t0)/1000).toFixed(1)+'s',100);
+  $('status').className='b brand';$('status').textContent='Running';
+  log('<span class="ag">shelterwise_navigator</span> safety gate: <span class="wr">⚠ electrical_water_intrusion</span> → banner sent to UI');
+  log('<span class="ag">shelterwise_navigator</span> → transfer to <b>case_triage_pipeline</b>');
+  $('s1').classList.add('running');log('<span class="ag">intake_structurer_agent</span> call structure_intake(…)');
+  await new Promise(r=>setTimeout(r,900));
+  $('s1').classList.replace('running','done');$('s1sum').innerHTML='GEOID <code>06075016300</code> · 89h · 3 PII scrubbed';
+  setKey('intake_facts','{hazards:[heat,electrical], hours_to_hearing:89}');log('<span class="ok">✓</span> <span class="ag">intake_structurer_agent</span> → state[\'intake_facts\']');
+  log('<b>corroboration_fanout</b> start 3 branches in parallel');
+  await Promise.all([
+    lane('p1',2400,'<b>1</b> corroborating · <b>3</b> excluded (Commercial, Abated, No-Violation) of 25','evidence_pack','{corroborating:1, excluded:3, has_open_residential_311:true}'),
+    lane('p2',1500,'3 statutes · 4 bulletins · <span class="b warn">1 deadline-sensitive</span>','raw_policy_pack','{statutes:3, bulletins:4}'),
+    lane('p3',1900,'Burden 16.0% (SF 16.1%) · 65 filings/yr <span class="b grey">MODELED</span>','tract_context','{severe_burden:16.0, filings:65, silent_distress:false}'),
+  ]);
+  $('s3').classList.add('running');log('<span class="ag">eligibility_and_brief_agent</span> cross-check has_open_residential_311=true vs requires_open_habitability_case');
+  await new Promise(r=>setTimeout(r,1100));
+  $('s3').classList.replace('running','done');$('s3sum').innerHTML='Brief v1 · 9 sections · saved to Firestore';
+  setKey('stabilization_brief','{version:1, sections:9, checklist:0/6}');log('<span class="ok">✓</span> Firestore <code>cases/SF-1042</code> brief v1 saved (lock_version 3→4)');
+  clearInterval(tick);const tot=((performance.now()-t0)/1000);$('clock').textContent=tot.toFixed(1)+'s';
+  $('status').className='b ok';$('status').textContent='✓ Complete';
+  $('cmpbar').style.width=(tot/16*100)+'%';$('cmpt').textContent=tot.toFixed(1)+'s';
+}
+</script>
+</body></html>
