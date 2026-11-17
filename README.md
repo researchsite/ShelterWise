@@ -1,8 +1,33 @@
-# Affordable Housing Stability & Eviction Prevention Navigator
+# ShelterWise — Affordable Housing Stability & Eviction Prevention Navigator
 
-> **ShelterWise team kit included:** this fork adds our team plan, docs, role prompts and pitch deck. Start at [docs/SHELTERWISE_README.md](docs/SHELTERWISE_README.md).
+**Agents for Impact 2026 · Default Metro: San Francisco, CA (`FIPS 06`)**
 
-**Agents for Impact 2026**
+> **Approved Team Architecture Blueprint:** [`docs/shiva_arc.md`](docs/shiva_arc.md) — Multi-Agent Google ADK (`LlmAgent` + `SequentialAgent` + `ParallelAgent`) + BigQuery (`AI.EMBED` + `VECTOR_SEARCH` + Managed MCP) + Cloud Firestore (Multi-Paralegal Transactional Store) on Cloud Run (`--min-instances=1`).
+
+---
+
+## ShelterWise 6-Member Implementation Plan (Zero-Collision Split)
+
+Every teammate works on **separate files/folders** and **their own Git branch** so nobody hits merge conflicts:
+
+| Member | Role & Branch | Exact Deliverables (from [`docs/shiva_arc.md`](docs/shiva_arc.md)) | Exclusive Files Owned |
+|---|---|---|---|
+| **Member 1** | **BigQuery Data, Embeddings & Views**<br>`branch: data-bq` | 1. Run `bash scripts/load.sh san-francisco` (`a4i_housing` in `US`)<br>2. Create Vertex connection `us.a4i-vertex` + grant `roles/aiplatform.user`<br>3. Run `sql/setup_vector_and_views.sql` (`complaints_embedded` + fan-out-safe `v_tract_stability_context`)<br>4. Verify Section 12's 26 checks + export SF Equity Audit cohort query | `sql/setup_vector_and_views.sql`<br>`scripts/setup_bigquery.sh` |
+| **Member 2 (Shiva)** | **Schemas & 5 Core Triage Custom Tools**<br>`branch: shiva` | 1. Canonical JSON contracts (`schemas.py` + `config.py`) **← ship first to unblock M3, M4, M5**<br>2. `bigquery_client.py` (with offline SF fixtures for instant local dev)<br>3. **5 Core Custom ADK `FunctionTool`s**: `structure_intake`, `search_public_evidence` (`VECTOR_SEARCH` + 9-decoy post-filter), `fetch_statutes_and_bulletins`, `get_tract_displacement_baseline`, `reconcile_gaps_and_generate_brief` | `agent/shelterwise_agent/config.py`<br>`agent/shelterwise_agent/schemas.py`<br>`agent/shelterwise_agent/db/bigquery_client.py`<br>`agent/shelterwise_agent/tools/{intake,evidence,policy,tract,brief}.py` |
+| **Member 3 (Rohith)** | **ADK Multi-Agent Tree & Managed MCP**<br>`branch: projectname/rohith` | 1. Google-managed **BigQuery `MCPToolset`** (`https://bigquery.googleapis.com/mcp`)<br>2. ADK Agent Hierarchy (`agent.py`): Root `shelterwise_navigator` (`LlmAgent`) + `case_triage_pipeline` (`SequentialAgent` → 3-way `ParallelAgent` `corroboration_fanout`)<br>3. Specialist Sub-Agents: `evidence_explainer_agent`, isolated `equity_audit_agent`, `hazard_311_drafter_agent` | `agent/shelterwise_agent/agent.py`<br>`agent/shelterwise_agent/__init__.py`<br>`agent/shelterwise_agent/mcp/bigquery_mcp.py` |
+| **Member 4** | **Firestore, Bonus Tools, FastAPI & Cloud Run**<br>`branch: platform-deploy` | 1. Provision Cloud Firestore (`nam5`) + `firestore_store.py` (`@firestore.transactional` multi-paralegal lock)<br>2. **Bonus & Post-Output Tools**: `draft_311_inspection_request`, `run_metro_equity_audit`, `claim_or_update_case_task` + `estimate_courthouse_transit` (`400 McAllister St`)<br>3. FastAPI gateway (`server.py`: `/api/triage`, `/api/chat`, `/api/cases/{id}`) + `Dockerfile` + Cloud Run deploy (`--min-instances=1`) | `agent/shelterwise_agent/db/firestore_store.py`<br>`agent/shelterwise_agent/tools/{drafter_311,equity_audit,logistics}.py`<br>`agent/server.py`<br>`agent/requirements.txt`<br>`agent/Dockerfile`<br>`agent/deploy_cloud_run.sh` |
+| **Member 5** | **Case Workspace Web UI**<br>`branch: frontend` | Interactive **ShelterWise Case Workspace** (not a blank chatbox):<br>1. One-click SF Demo Case loader (*3:40pm Thu · 400 Block · cold radiators + wet fuse box · Mon 9am court*)<br>2. Immediate Life-Safety Alert Banner<br>3. **Evidence Room** tabs: **Valid Open Residential 311s** vs. **Excluded Decoys** (`cosine_distance` & exclusion reason)<br>4. **Statutes + 4 Relief Funds** (`requires_open_habitability_case` badge) + **Tract Baseline** (`[Modeled]` badge)<br>5. **9-Section Brief + 6-Item Reviewer Checklist + Paralegal Lock** + **Multi-Turn Chat Sidebar** | `frontend/*` |
+| **Member 6** | **QA Red-Team, Pitch Deck & <=3m Video**<br>`branch: story-qa` | 1. `pytest` & live red-team suite (`agent/tests/*`): verify all 9 `DECOY-*` caught, `'06075...'` GEOIDs intact, 0 `audit_*` in case outputs, no 4× fan-out<br>2. Update slides for **San Francisco (`FIPS 06`)**, architecture diagram, real vs. `[Modeled]` provenance, & SF Post-Output Equity Audit table (`audit_*` + `no_vehicle_rate`)<br>3. Script & record crisp **`<= 3:00` live walkthrough video** + AngelHack portal submission | `agent/tests/*`<br>`slides/*`<br>`qa/*` |
+
+### Sync Checkpoints
+1. **Checkpoint 1 (15 mins):** Member 2 pushes `schemas.py` + offline SF fixtures → unblocks Member 3 (`agent.py`), Member 4 (`server.py` + Firestore), Member 5 (`frontend/`), and Member 6 (`tests/`). Member 1 loads SF BigQuery + `complaints_embedded` + `v_tract_stability_context`.
+2. **Checkpoint 2 (60 mins):** Member 3 + Member 4 merge ADK agents + FastAPI + Firestore and deploy to Cloud Run (`--min-instances=1`), sharing the live URL with Member 5 & Member 6.
+3. **Checkpoint 3 (105 mins):** Member 5 wires UI to live Cloud Run endpoints; Member 6 runs full red-team QA + pulls SF Equity Audit numbers into slides.
+4. **Final 45 mins:** Feature freeze, end-to-end demo rehearsal on deployed URL, record `<=3:00` video, and submit.
+
+---
+
+*(Official Agents for Impact 2026 Challenge Brief below for reference)*
 
 ---
 
