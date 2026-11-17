@@ -94,3 +94,20 @@ def test_income_vs_ami(repo, fillmore_case):
 def test_no_case_means_ineligible_until_filed(repo, fillmore_case):
     v = check_relief_eligibility({**fillmore_case, "tenant_has_own_dbi_case": False}, NO_EVIDENCE, repo=repo)
     assert _fund(v, "BUL-CA-04")["verdict"] == "INELIGIBLE"
+
+
+def test_income_vs_published_mohcd_limits(repo, fillmore_case):
+    # 2 people, $45k: under 80% ($103,750) and 60% ($77,800) limits
+    v = check_relief_eligibility({**fillmore_case, "household_size": 2, "annual_income_usd": 45000},
+                                 NO_EVIDENCE, repo=repo)
+    assert _fund(v, "BUL-CA-01")["verdict"] == "ELIGIBLE"
+    assert _fund(v, "BUL-CA-03")["verdict"] == "CONDITIONAL"  # still needs medical / wage loss
+    # 1 person, $90,760: $10 over the published 80% limit ($90,750), not the scaled 80% x $113,450
+    over = check_relief_eligibility({**fillmore_case, "household_size": 1, "annual_income_usd": 90760},
+                                    NO_EVIDENCE, repo=repo)
+    assert _fund(over, "BUL-CA-01")["verdict"] == "INELIGIBLE"
+    # household of 6 is not in the chart: never guessed
+    big = check_relief_eligibility({**fillmore_case, "household_size": 6, "annual_income_usd": 50000},
+                                   NO_EVIDENCE, repo=repo)
+    assert _fund(big, "BUL-CA-01")["verdict"] == "CONDITIONAL"
+    assert any("not in the chart" in t for t in _fund(big, "BUL-CA-01")["to_confirm"])

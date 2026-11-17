@@ -10,9 +10,18 @@
 #   medical_or_wage_loss    acute medical leave or wage loss
 #   facing_eviction         an unlawful detainer / eviction case is pending
 
-# Fill this from the official MOHCD AMI chart before relying on income checks.
-# Leave it empty and income stays "to confirm" (never guessed).
-ami_100pct_by_household_size: {}
+# 2026 SF MOHCD income limits (sample tiers), annual USD by household size.
+# Published limits are compared directly (they are rounded, so we don't scale 100%).
+# Household sizes not listed -> income stays "to confirm" (never guessed).
+# TODO before the demo: verify these figures against the official MOHCD chart.
+income_limits_source: "2026 SF MOHCD Income Limits (sample tiers), provided by team"
+income_limits_usd:
+  60:  {1: 68050,  2: 77800,  3: 87550,  4: 97250}
+  80:  {1: 90750,  2: 103750, 3: 116700, 4: 129700}
+  100: {1: 113450, 2: 129700, 3: 145900, 4: 162100}
+  120: {1: 136150, 2: 155650, 3: 175100, 4: 194500}
+  148: {1: 167900, 2: 191950, 3: 215950, 4: 239900}
+  200: {1: 226900, 2: 259400, 3: 291800, 4: 324200}
 
 programs:
   BUL-CA-02:
