@@ -3,233 +3,278 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ShelterWise – Case Workspace</title>
+<title>ShelterWise – AI Housing Stability & Eviction Defense Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f7f9; --panel:#fff; --ink:#1b2430; --mute:#5d6b7c; --line:#dde2e8;
-  --brand:#1f5fbf; --brand-soft:#e7effb; --ok:#1d7a4a; --ok-soft:#e3f4ea;
-  --warn:#9a6200; --warn-soft:#fff3d6; --bad:#b3261e; --bad-soft:#fdeceb;
-  --user:#6a3fb5; --user-soft:#f0eafa; --code:#f0f2f5;
-  --llm:#dbeafe; --llm-b:#2563eb; --cod:#dcfce7; --cod-b:#16a34a; --mcp:#ede9fe; --mcp-b:#7c3aed;
+  --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --bg:#f8fafc; --panel:#ffffff; --panel-elevated:#ffffff; --ink:#0f172a; --ink-light:#334155; --mute:#64748b; --line:#e2e8f0;
+  --brand:#2563eb; --brand-light:#3b82f6; --brand-soft:#eff6ff; --brand-border:#bfdbfe;
+  --ok:#059669; --ok-soft:#ecfdf5; --ok-border:#a7f3d0;
+  --warn:#d97706; --warn-soft:#fffbeb; --warn-border:#fde68a;
+  --bad:#dc2626; --bad-soft:#fef2f2; --bad-border:#fecaca;
+  --code:#f1f5f9; --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow:0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg:0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
 }
 @media (prefers-color-scheme: dark){:root{
-  --bg:#12161c; --panel:#1a2029; --ink:#e6eaf0; --mute:#97a3b3; --line:#2c3541;
-  --brand:#6ea3f5; --brand-soft:#1c2b44; --ok:#5fd194; --ok-soft:#173326;
-  --warn:#f0b84a; --warn-soft:#3a2f12; --bad:#f2827b; --bad-soft:#3a1c1a;
-  --user:#b79af0; --user-soft:#2b2340; --code:#232b36;
-  --llm:#1c2b44; --cod:#173326; --mcp:#2b2340;
+  --bg:#090d16; --panel:#111827; --panel-elevated:#1f2937; --ink:#f8fafc; --ink-light:#cbd5e1; --mute:#94a3b8; --line:#1e293b;
+  --brand:#3b82f6; --brand-light:#60a5fa; --brand-soft:#172554; --brand-border:#1e3a8a;
+  --ok:#10b981; --ok-soft:#064e3b; --ok-border:#065f46;
+  --warn:#f59e0b; --warn-soft:#451a03; --warn-border:#78350f;
+  --bad:#ef4444; --bad-soft:#450a0a; --bad-border:#7f1d1d;
+  --code:#1e293b;
 }}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
-header h1{font-size:18px;margin:0}
-header .tag{font-size:12px;color:var(--mute)}
-.live-badge{margin-left:auto;font-size:12px;background:var(--ok-soft);color:var(--ok);padding:4px 10px;border-radius:99px;font-weight:600}
-.tabs{display:flex;gap:4px;padding:0 20px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs button{background:none;border:0;padding:11px 14px;font:inherit;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
-.tabs button.on{color:var(--brand);border-color:var(--brand);font-weight:600}
-main{max-width:1180px;margin:0 auto;padding:20px}
+body{margin:0;font:15px/1.6 var(--font-sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm)}
+.brand-lockup{display:flex;align-items:center;gap:12px}
+.brand-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#4f46e5);display:grid;place-items:center;color:#fff;font-size:20px;box-shadow:0 2px 8px rgba(37,99,235,0.35)}
+header h1{font-size:19px;font-weight:800;letter-spacing:-0.02em;margin:0}
+header .tagline{font-size:12.5px;color:var(--mute);font-weight:500}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.live-pill{font-size:12px;font-weight:600;padding:5px 12px;border-radius:99px;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-border);display:flex;align-items:center;gap:6px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px rgba(16,185,129,0.25);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Hero Section */
+.hero-card{background:linear-gradient(135deg,rgba(37,99,235,0.06),rgba(99,102,241,0.02));border:1px solid var(--brand-border);border-radius:16px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1.2fr;gap:24px;align-items:center;box-shadow:var(--shadow)}
+@media(max-width:960px){.hero-card{grid-template-columns:1fr}}
+.hero-text h2{font-size:26px;font-weight:800;letter-spacing:-0.02em;line-height:1.2;margin:0 0 10px;color:var(--ink)}
+.hero-text p{font-size:14.5px;color:var(--ink-light);margin:0 0 18px}
+.hero-metrics{display:flex;gap:12px;flex-wrap:wrap}
+.metric-chip{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px;box-shadow:var(--shadow-sm)}
+.metric-chip b{display:block;font-size:17px;font-weight:800;color:var(--brand)}
+.metric-chip span{font-size:11.5px;color:var(--mute);font-weight:500}
+.hero-img-box{border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-lg);background:#000}
+.hero-img-box img{width:100%;height:auto;display:block;object-fit:cover;transition:transform 0.3s ease}
+.hero-img-box:hover img{transform:scale(1.02)}
+
+/* Tabs */
+.nav-tabs{display:flex;gap:4px;padding:0 24px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.nav-tabs button{background:none;border:0;padding:12px 18px;font:inherit;font-size:13.5px;font-weight:600;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.15s ease}
+.nav-tabs button:hover{color:var(--ink)}
+.nav-tabs button.on{color:var(--brand);border-color:var(--brand)}
+
+/* Main Workspace */
+main{max-width:1280px;margin:0 auto;padding:24px}
 .view{display:none}.view.on{display:block}
-.layout{display:grid;grid-template-columns:250px 1fr;gap:20px}
-@media(max-width:820px){.layout{grid-template-columns:1fr}}
-.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-@media(max-width:820px){.steps{flex-direction:row;overflow-x:auto}}
-.steps li button{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center;white-space:nowrap}
-.steps li button .n{width:22px;height:22px;border-radius:50%;background:var(--code);display:grid;place-items:center;font-size:12px;flex:none}
-.steps li button small{display:block;color:var(--mute);font-size:11px;line-height:1.1}
-.steps li button.on{border-color:var(--brand);background:var(--brand-soft)}
-.steps li button.on .n{background:var(--brand);color:#fff}
-.steps li button.done .n{background:var(--ok);color:#fff}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
-.card h2{margin:0 0 4px;font-size:18px}.card h3{margin:16px 0 6px;font-size:15px}
-.sub{color:var(--mute);margin:0 0 14px}
-label{display:block;font-weight:600;font-size:13px;margin:12px 0 4px}
-input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--bg);color:var(--ink)}
+.layout{display:grid;grid-template-columns:270px 1fr;gap:24px}
+@media(max-width:880px){.layout{grid-template-columns:1fr}}
+
+/* Stepper */
+.stepper{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+@media(max-width:880px){.stepper{flex-direction:row;overflow-x:auto;padding-bottom:8px}}
+.stepper li button{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font:inherit;color:var(--ink);cursor:pointer;display:flex;gap:12px;align-items:center;transition:all 0.15s ease;box-shadow:var(--shadow-sm)}
+.stepper li button:hover{border-color:var(--brand-border);transform:translateY(-1px)}
+.stepper li button .step-num{width:26px;height:26px;border-radius:50%;background:var(--code);color:var(--mute);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.stepper li button.on{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 1px var(--brand)}
+.stepper li button.on .step-num{background:var(--brand);color:#fff}
+.stepper li button.done .step-num{background:var(--ok);color:#fff}
+.stepper li button small{display:block;color:var(--mute);font-size:11px;font-weight:500;margin-top:2px}
+
+/* Cards & Surfaces */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow-sm)}
+.card h2{margin:0 0 6px;font-size:20px;font-weight:800;letter-spacing:-0.01em}
+.card h3{margin:20px 0 8px;font-size:15.5px;font-weight:700}
+.sub{color:var(--mute);margin:0 0 16px;font-size:13.5px}
+
+/* Buttons & Inputs */
+.btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 20px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s ease;box-shadow:var(--shadow-sm)}
+.btn:hover{background:var(--brand-light);box-shadow:var(--shadow)}
+.btn:active{transform:scale(0.98)}
+.btn.ghost{background:var(--panel);color:var(--brand);border:1px solid var(--brand-border)}
+.btn.ghost:hover{background:var(--brand-soft)}
+.btn.sm{padding:6px 12px;font-size:12.5px;border-radius:8px}
+.btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center}
+input,select,textarea{width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px;background:var(--bg);color:var(--ink);transition:border-color 0.15s ease}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,0.15)}
 textarea{min-height:120px;resize:vertical}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:600px){.row{grid-template-columns:1fr}}
-.btn{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer;font-weight:600}
-.btn.ghost{background:none;color:var(--brand);border:1px solid var(--brand)}
-.btn.sm{padding:5px 11px;font-size:13px}
-.btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-.pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;font-weight:600;margin:0 4px 2px 0}
-.p-user{background:var(--user-soft);color:var(--user)}
-.p-ok{background:var(--ok-soft);color:var(--ok)}
-.p-warn{background:var(--warn-soft);color:var(--warn)}
-.p-bad{background:var(--bad-soft);color:var(--bad)}
-.p-info{background:var(--brand-soft);color:var(--brand)}
+label{display:block;font-weight:600;font-size:13px;margin:12px 0 6px}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-weight:500;cursor:pointer}
+.chk input{width:auto;margin-top:4px}
+
+/* Badges & Pills */
+.pill{display:inline-flex;align-items:center;font-size:11.5px;padding:3px 10px;border-radius:99px;font-weight:700;margin:0 4px 2px 0;letter-spacing:0.02em}
+.p-ok{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-border)}
+.p-warn{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-border)}
+.p-bad{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad-border)}
+.p-info{background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border)}
+.p-user{background:#f3e8ff;color:#7e22ce;border:1px solid #d8b4fe}
 .p-mute{background:var(--code);color:var(--mute)}
-.note{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:6px;font-size:14px;margin:12px 0}
+
+/* Alerts & Notices */
+.note{border-left:4px solid var(--warn);background:var(--warn-soft);padding:14px 18px;border-radius:10px;font-size:14px;margin:16px 0;line-height:1.5}
 .note.info{border-color:var(--brand);background:var(--brand-soft)}
 .note.bad{border-color:var(--bad);background:var(--bad-soft)}
 .note.ok{border-color:var(--ok);background:var(--ok-soft)}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
-.scroll{overflow-x:auto}
-code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--code);padding:1px 5px;border-radius:4px}
-pre{background:var(--code);padding:12px;border-radius:8px;overflow-x:auto;font-size:12.5px;margin:8px 0}
-.cand{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--panel)}
+.firewall{border:2px dashed var(--bad-border);border-radius:12px;padding:16px;background:var(--bad-soft);font-size:13.5px}
+
+/* Tables & Pre */
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:0.04em;background:var(--code)}
+code,.mono{font-family:var(--font-mono);font-size:12.5px;background:var(--code);padding:2px 6px;border-radius:6px}
+pre{background:var(--code);padding:14px;border-radius:10px;overflow-x:auto;font-family:var(--font-mono);font-size:12.5px;margin:10px 0;border:1px solid var(--line)}
+
+/* Candidate Cards */
+.cand{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--panel);box-shadow:var(--shadow-sm);transition:all 0.15s ease}
 .cand.rej{background:var(--bad-soft);border-color:transparent}
-.cand.acc{border-left:4px solid var(--ok)}
-.cand.cond{border-left:4px solid var(--warn)}
-.cand .h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+.cand.acc{border-left:5px solid var(--ok)}
+.cand.cond{border-left:5px solid var(--warn)}
+.cand .h{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
 .bar{height:6px;background:var(--code);border-radius:4px;overflow:hidden;width:120px;display:inline-block;vertical-align:middle}
 .bar i{display:block;height:100%;background:var(--brand)}
-.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.tbl{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--panel);cursor:pointer}
-.tbl:hover,.tbl.on{border-color:var(--brand)}
-.tbl h4{margin:0 0 4px;font-size:14px;font-family:ui-monospace,Consolas,monospace}
-.tbl small{color:var(--mute)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:820px){.two{grid-template-columns:1fr}}
-.kpi{display:flex;gap:12px;flex-wrap:wrap}
-.kpi div{flex:1 1 130px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
-.kpi b{font-size:22px;display:block}.kpi span{font-size:12px;color:var(--mute)}
-.chk{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-weight:400}.chk input{width:auto;margin-top:4px}
-.brief h3{border-bottom:1px solid var(--line);padding-bottom:4px}
-.cite{font-size:12px;color:var(--brand);font-family:ui-monospace,Consolas,monospace}
-.hidden{display:none}
-.firewall{border:2px dashed var(--bad);border-radius:10px;padding:12px;background:var(--bad-soft)}
-footer{color:var(--mute);font-size:12px;text-align:center;padding:24px}
-.agent{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px;border-radius:10px;border:1.5px solid;margin-bottom:12px;font-size:13px}
-.agent.LLM{background:var(--llm);border-color:var(--llm-b)}
-.agent.code{background:var(--cod);border-color:var(--cod-b)}
-.agent.mcp{background:var(--mcp);border-color:var(--mcp-b)}
-.agent b{font-size:14px}
-.agent .rw{color:var(--mute);width:100%;font-size:12px}
-.rule{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin:0 4px 2px 0;font-weight:600}
+.cite{font-size:11.5px;color:var(--brand);font-family:var(--font-mono);margin-top:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:880px){.two{grid-template-columns:1fr}}
+.kpi{display:flex;gap:14px;flex-wrap:wrap}
+.kpi div{flex:1 1 140px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.kpi b{font-size:24px;font-weight:800;display:block;color:var(--ink)}.kpi span{font-size:12px;color:var(--mute);font-weight:500}
+
+/* Chat & Pipeline */
+.chat{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{padding:10px 16px;border-radius:14px;max-width:88%;font-size:14px;line-height:1.5;box-shadow:var(--shadow-sm)}
+.msg.u{background:linear-gradient(135deg,var(--brand),#4f46e5);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.msg.a{background:var(--panel);border:1px solid var(--line);margin-right:auto;border-bottom-left-radius:4px}
+.agent-banner{display:flex;gap:8px;align-items:center;padding:10px 14px;border-radius:10px;border:1.5px solid;margin-bottom:14px;font-size:13px;background:var(--brand-soft);border-color:var(--brand-border)}
+.rule{display:inline-block;font-size:11.5px;border-radius:6px;padding:2px 8px;margin:0 4px 2px 0;font-weight:700}
 .rule.y{background:var(--ok-soft);color:var(--ok)}.rule.n{background:var(--bad-soft);color:var(--bad)}.rule.x{background:var(--code);color:var(--mute);text-decoration:line-through}
-.pipe{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.pipe .st{flex:1 1 150px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);opacity:.35;transition:.3s}
-.pipe .st.on{opacity:1;border-color:var(--brand)}
-.pipe .st b{display:block;font-size:13px}.pipe .st span{font-size:12px;color:var(--mute)}
-details{margin-top:8px}
-details summary{cursor:pointer;color:var(--brand);font-size:13px;font-weight:600}
-details table{margin-top:6px}
-.chat{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);max-height:480px;overflow-y:auto}
-.msg{padding:8px 12px;border-radius:10px;margin:8px 0;max-width:92%;font-size:14px}
-.msg.u{background:var(--brand);color:#fff;margin-left:auto}
-.msg.a{background:var(--panel);border:1px solid var(--line)}
-.flowcol{display:grid;gap:8px}
-.flowcol .arrow{text-align:center;color:var(--mute);line-height:1}
-.par{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
-.chip{cursor:pointer;border:1.5px solid;border-radius:10px;padding:8px 10px;font-size:13px}
-.chip.LLM{background:var(--llm);border-color:var(--llm-b)}.chip.code{background:var(--cod);border-color:var(--cod-b)}.chip.mcp{background:var(--mcp);border-color:var(--mcp-b)}
-.chip.on{outline:3px solid var(--brand)}
-.chip small{display:block;color:var(--mute)}
-.stephd{font-size:12px;font-weight:700;color:var(--mute);letter-spacing:.04em;margin-top:4px}
+.pipe{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.pipe .st{flex:1 1 150px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);opacity:.4;transition:all 0.3s ease}
+.pipe .st.on{opacity:1;border-color:var(--brand);background:var(--panel);box-shadow:var(--shadow-sm)}
+.pipe .st b{display:block;font-size:13px;font-weight:700}.pipe .st span{font-size:11.5px;color:var(--mute)}
+.hidden{display:none}
+footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;border-top:1px solid var(--line);margin-top:40px}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>🏠 ShelterWise</h1>
-  <span class="tag">AI-assisted housing stability navigator · Google ADK + BigQuery Vector Search · San Francisco</span>
-  <span class="live-badge" id="backend-status">● LIVE BACKEND CONNECTED</span>
+  <div class="brand-lockup">
+    <div class="brand-icon">🏠</div>
+    <div>
+      <h1>ShelterWise</h1>
+      <div class="tagline">Grounded Housing Stability &amp; Habitability Defense Platform · San Francisco</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="live-pill" id="backend-status">
+      <span class="live-dot"></span>
+      <span>GOOGLE CLOUD RUN LIVE</span>
+    </div>
+  </div>
 </header>
-<nav class="tabs" id="tabs">
-  <button data-v="demo" class="on">① Guided demo (paralegal flow)</button>
-  <button data-v="arch">② Multi-agent architecture (ADK *_ag)</button>
-  <button data-v="data">③ Datasets &amp; schema (BigQuery)</button>
-  <button data-v="rules">④ Rules &amp; guardrails (Responsible AI)</button>
+
+<nav class="nav-tabs" id="tabs">
+  <button data-v="demo" class="on">① Case Workspace (Paralegal Flow)</button>
+  <button data-v="arch">② Multi-Agent Architecture (ADK *_ag)</button>
+  <button data-v="data">③ Datasets &amp; Provenance (BigQuery)</button>
+  <button data-v="rules">④ Responsible AI &amp; Defense Rules</button>
 </nav>
+
 <main>
 
-<section class="view on" id="v-demo">
-<div class="layout">
-  <ol class="steps" id="steps"></ol>
-  <div id="stage"></div>
+<!-- HERO EXPLAINER SECTION -->
+<div class="hero-card">
+  <div class="hero-text">
+    <h2>Stabilizing San Francisco Tenants with Grounded Multi-Agent AI</h2>
+    <p>Low-income tenants frequently lose eviction cases simply because chronic habitability issues—like broken winter heat or ceiling leaks—lack corroboration. ShelterWise deploys a coordinated Google ADK multi-agent pipeline to automatically pair tenant statements with official municipal 311 inspection citations, statutory affirmative defenses, and emergency relief grants in seconds.</p>
+    <div class="hero-metrics">
+      <div class="metric-chip"><b>42</b><span>SF Census Tracts</span></div>
+      <div class="metric-chip"><b>165</b><span>Public 311 Records</span></div>
+      <div class="metric-chip"><b>100%</b><span>Grounded Briefs</span></div>
+      <div class="metric-chip"><b>9 / 9</b><span>Decoy Traps Filtered</span></div>
+    </div>
+  </div>
+  <div class="hero-img-box">
+    <img src="/hero.png" alt="San Francisco Housing Stability Initiative Architecture and Problem Explainer">
+  </div>
 </div>
+
+<!-- VIEW 1: DEMO WORKSPACE -->
+<section class="view on" id="v-demo">
+  <div class="layout">
+    <ol class="stepper" id="steps"></ol>
+    <div id="stage"></div>
+  </div>
 </section>
 
+<!-- VIEW 2: ARCHITECTURE -->
 <section class="view" id="v-arch">
   <div class="card">
     <h2>Multi-Agent Architecture (Google Agent Development Kit)</h2>
-    <p class="sub">Coordinated multi-agent system where <b>every agent name strictly ends with <code>_ag</code></b>. Click any agent to inspect its role, tools, and BigQuery tables.</p>
+    <p class="sub">Coordinated multi-agent system where <b>every agent name strictly ends with <code>_ag</code></b>. Running on Gemini 2.5 Flash with Vertex AI Agent Runtime.</p>
     <div class="two">
-      <div class="flowcol" id="archflow"></div>
-      <div id="archdetail" class="card" style="margin:0;position:sticky;top:70px;align-self:start"></div>
+      <div class="stepper" id="archlist"></div>
+      <div id="archdetail" class="card" style="margin:0;position:sticky;top:80px"></div>
     </div>
-    <div style="margin-top:10px;font-size:12px"><span class="pill p-info">blue = LLM Agent</span><span class="pill p-ok">green = Code / Custom Tool</span><span class="pill" style="background:var(--mcp);color:var(--mcp-b)">purple = Google-managed MCP</span></div>
   </div>
   <div class="card">
-    <h2>Retrieval Pattern: BigQuery AI.EMBED + VECTOR_SEARCH → Decoy Traps Filter</h2>
-    <pre>-- habitability_vector_ag executes BigQuery AI.EMBED + VECTOR_SEARCH:
-SELECT base.request_id, base.block_address, base.property_type, base.inspection_status, base.closed_date,
-       ROUND(distance, 4) AS cosine_distance
-FROM VECTOR_SEARCH(
-  TABLE `a4i_housing.complaints_embedded`, 'embedding',
-  (SELECT AI.EMBED(@search_query, connection_id => 'us.a4i-vertex', endpoint => 'gemini-embedding-2').result AS query_vec),
-  top_k => 25, options => '{"use_brute_force": true}'
-);
--- Decoy post-filters run in Python:
--- 1. Discard property_type != 'Residential' (DECOY 1-3)
--- 2. Discard closed_date IS NOT NULL or 'abated' in status (DECOY 4-6)
--- 3. Discard 'no violation' in status (DECOY 7-9)</pre>
-  </div>
-  <div class="card">
-    <h2>Dual Data Layer: BigQuery + Cloud Firestore</h2>
+    <h2>Dual Data Layer: BigQuery Vector Search + Cloud Firestore</h2>
     <div class="two">
-      <div class="cand"><b>BigQuery · <code>a4i_housing</code></b> <span class="pill p-info">analytical &amp; vector</span>
-        <ul style="margin:6px 0 0">
-          <li><code>complaints_embedded</code>: 174 rows (165 real SF 311s + 9 decoys embedded with Vertex AI)</li>
-          <li><code>v_tract_stability_context</code>: 42 SF census tracts pre-summing 4 filing quarters; <b>no</b> demographic columns</li>
-          <li><code>v_metro_equity_audit</code>: Responsible AI cohort analysis (firewalled from case triage)</li>
-        </ul>
+      <div class="cand acc">
+        <div class="h"><b>BigQuery · <code>a4i_housing</code></b> <span class="pill p-info">Analytical &amp; Vector</span></div>
+        <p>Executes scalar <code>VECTOR_SEARCH</code> with <code>AI.EMBED</code> using <code>gemini-embedding-2</code>. Joins 165 real SF 311 records against 42 census tract baselines.</p>
       </div>
-      <div class="cand"><b>Cloud Firestore · Transactional Case Store</b> <span class="pill p-warn">transactional</span>
-        <ul style="margin:6px 0 0">
-          <li><code>cases/{case_id}</code>: brief versions, corroborated records, and locked advocate state</li>
-          <li><code>@firestore.transactional</code> optimistic concurrency lock (<code>lock_version</code>)</li>
-          <li><code>cases/{case_id}/checklist/{item_id}</code>: Attorney Review Checklist state</li>
-        </ul>
+      <div class="cand cond">
+        <div class="h"><b>Cloud Firestore · Native Database</b> <span class="pill p-warn">Transactional Case Store</span></div>
+        <p>Guarantees advocate concurrency via <code>@firestore.transactional</code> optimistic locks (<code>lock_version</code>) and persists the 7-item Attorney Review Checklist.</p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- VIEW 3: DATASETS -->
 <section class="view" id="v-data">
   <div class="card">
-    <h2>Dataset <span class="mono">a4i_housing</span> · 6 tables · BigQuery US Location</h2>
-    <p class="sub">Click a table to inspect schema, data types, nullability, and data provenance.</p>
-    <div class="grid3" id="tblgrid"></div>
+    <h2>BigQuery Dataset <span class="mono">a4i_housing</span> (US Location)</h2>
+    <p class="sub">Explore the 6 tables powering semantic vector search, affirmative defense statutes, and relief programs.</p>
+    <div class="grid3" id="tblgrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px"></div>
   </div>
   <div class="card" id="tbldetail"></div>
 </section>
 
+<!-- VIEW 4: RULES -->
 <section class="view" id="v-rules">
   <div class="two">
     <div class="card">
       <h2>The 8 Grounded Rules (All Tested in Code)</h2>
-      <ol>
+      <ol style="padding-left:20px;line-height:1.7">
         <li><b>Search wide, then filter:</b> Vector search retrieves candidate semantic hits; Python rules filter out decoys.</li>
-        <li><b>Strict Residential Keep Rule:</b> Keep only if <code>property_type == 'Residential'</code>, <code>closed_date IS NULL</code>, and status is open.</li>
-        <li><b>Zero Decoy Leaks:</b> Never hardcode strings like "DECOY". Filter strictly on business rules (Commercial, Abated, No Violation).</li>
-        <li><b>Relief Funds Verification:</b> Unlocks only when every statutory condition is confirmed. Open 311 prerequisite tracked.</li>
+        <li><b>Strict Residential Keep Rule:</b> Keep only if <code>property_type == 'Residential'</code> and <code>closed_date IS NULL</code>.</li>
+        <li><b>Zero Decoy Leaks:</b> Never hardcode "DECOY". Filter strictly on business rules (Commercial, Abated, No Violation).</li>
+        <li><b>Relief Funds Verification:</b> Grants unlock only when prerequisites (such as open DBI records) are satisfied.</li>
         <li><b>Statutory Repair Clocks:</b> Calculates 35-day repair window under CA Civil Code § 1942.4 from citation date.</li>
-        <li><b>Eviction Court Grain:</b> Pre-aggregates 4 quarters of court filings per tract before joining ACS data.</li>
-        <li><b>11-Digit Text GEOIDs:</b> Preserves leading zeros (<code>06075...</code>).</li>
+        <li><b>Eviction Court Grain:</b> Pre-aggregates 4 quarters of court filings per tract to prevent 400% over-counting.</li>
+        <li><b>11-Digit Text GEOIDs:</b> Preserves leading zeros (<code>06075...</code>) in census tract identifiers.</li>
         <li><b>Demographic Firewall:</b> <code>audit_*</code> columns are strictly isolated from individual case triage.</li>
       </ol>
     </div>
     <div class="card">
-      <h2>Product &amp; Ethical Guardrails</h2>
-      <ul>
+      <h2>Ethical AI Guardrails &amp; Human-in-the-Loop</h2>
+      <ul style="padding-left:20px;line-height:1.7">
         <li><b>Grounding Before Answer:</b> Every external claim cites BigQuery provenance or is labeled <code>[Tenant-Reported]</code>.</li>
-        <li><b>Absence ≠ Proof:</b> No 311 record on a block never means conditions are acceptable.</li>
-        <li><b>Block ≠ Unit:</b> A building-wide 311 complaint does not replace unit-specific testimony.</li>
-        <li><b>Human-in-the-Loop Review:</b> Mandatory 6-item Attorney Review Checklist before filing.</li>
-        <li><b>No Autonomous Action:</b> No automated filing without paralegal/attorney sign-off.</li>
+        <li><b>Absence ≠ Proof:</b> The absence of a 311 record never implies conditions are safe.</li>
+        <li><b>Block ≠ Unit:</b> Building-level 311 records corroborate neglect but do not replace unit-specific testimony.</li>
+        <li><b>Mandatory Attorney Review:</b> A 7-item checklist must be signed off by counsel before filing court motions.</li>
+        <li><b>Strict Data Privacy:</b> Tenant intake sandboxed; protected demographic traits are never used to score tenants.</li>
       </ul>
     </div>
   </div>
 </section>
+
 </main>
-<footer>ShelterWise Navigator · Agents for Impact 2026 · Powered by Google ADK &amp; BigQuery Vector Search</footer>
+
+<footer>ShelterWise Navigator · Agents for Impact 2026 · Built with Google ADK, BigQuery Vector Search, Cloud Firestore &amp; Cloud Run</footer>
 
 <script>
-/* =================== CONSTANTS & DATA =================== */
-const PROV_PUB='Public: SF Department of Building Inspection Complaints (100-block redacted)';
-const PROV_DECOY='Synthetic Planted Teaching Case: Semantic Near-Miss Decoy for Post-Search Constraint Filtering';
-const PROV_POL='Public Statutory & Program Policy Text: Summarized Municipal/State Ordinances & Relief Guidelines';
+/* =================== APPLICATION DATA & LOGIC =================== */
+const PROV_PUB='Public: SF Department of Building Inspection (100-block coarsened)';
+const PROV_DECOY='Synthetic Planted Teaching Case: Semantic Near-Miss Decoy';
+const PROV_POL='Public Statutory & Municipal Relief Guidelines';
 
 const INTAKE_TEXT="Tenant at the 1000 block of Fillmore St. No heat for weeks, she says it's about 50 degrees inside and her kid keeps getting sick. Nonpayment hearing Monday Nov 23 at 9am. Single mom, behind about two months on rent. What do we have?";
 
@@ -246,10 +291,10 @@ const STATE_INTAKE={
 
 const FACTS=[
  ['No heat for weeks (~50°F inside)','Tenant-reported','SF Housing Code § 701 violation claim'],
- ['Child repeatedly sick','Tenant-reported','Context only; not used to score priority'],
+ ['Child repeatedly sick','Tenant-reported','Contextual fact; not used to score priority'],
  ['Nonpayment hearing Mon Nov 23, 9am','Tenant-reported','Emergency clock (< 72h / 4 days)'],
- ['Behind ~2 months on rent','Tenant-reported','Exact arrears amount pending verification'],
- ['Single parent household','Tenant-reported','Household size/income verification needed for ERAP'],
+ ['Behind ~2 months on rent','Tenant-reported','Arrears amount pending verification'],
+ ['Single parent household','Tenant-reported','Income verification required for SF ERAP'],
  ['Own DBI case number','Unknown','tenant_has_own_dbi_case = null']
 ];
 
@@ -273,9 +318,9 @@ const CANDS=[
 ];
 
 const STATUTES=[
- {r:{statute_section_id:'STAT-CA-02',code_citation:'SF Admin. Code Ch. 37 & Prop F',ordinance_title:'San Francisco Rent Ordinance Just Cause & Universal Right to Counsel',raw_statute_text:'Guarantees city-funded full legal representation in unlawful detainer proceedings and caps rent increases.',data_provenance:PROV_POL},v:'Yes',cls:'p-ok',why:'Just-cause protection and universal right to legal counsel for eviction hearings.'},
- {r:{statute_section_id:'STAT-CA-03',code_citation:'Cal. Civ. Code § 1942.5',ordinance_title:'California Statutory Anti-Retaliation Protection',raw_statute_text:'180-day statutory bar against retaliatory eviction notices or rent hikes after tenant complains of housing defects.',data_provenance:PROV_POL},v:'Yes, if',cls:'p-warn',why:'Applies if tenant or advocate submitted complaint to city; verify tenant communication.'},
- {r:{statute_section_id:'STAT-CA-01',code_citation:'Cal. Civ. Code § 1941.1 & § 1942.4',ordinance_title:'California Implied Warranty of Habitability & Rent Demand Bar',raw_statute_text:'Bars landlord from demanding rent or serving notice when an official housing citation for heating/water remains unabated past 35 days.',data_provenance:PROV_POL},v:'Not yet',cls:'p-bad',why:'35-day repair window: case opened 2026-11-03 (16 days elapsed). Statutory bar takes effect 2026-12-09.'}
+ {r:{code_citation:'SF Admin. Code Ch. 37 & Prop F',ordinance_title:'San Francisco Rent Ordinance Just Cause & Universal Right to Counsel',raw_statute_text:'Guarantees city-funded full legal representation in unlawful detainer proceedings and caps rent increases.'},v:'Yes',cls:'p-ok',why:'Just-cause protection and universal right to legal counsel for eviction hearings.'},
+ {r:{code_citation:'Cal. Civ. Code § 1942.5',ordinance_title:'California Statutory Anti-Retaliation Protection',raw_statute_text:'180-day statutory bar against retaliatory eviction notices or rent hikes after tenant complains of housing defects.'},v:'Yes, if',cls:'p-warn',why:'Applies if tenant or advocate submitted complaint to city; verify tenant communication.'},
+ {r:{code_citation:'Cal. Civ. Code § 1941.1 & § 1942.4',ordinance_title:'California Implied Warranty of Habitability & Rent Demand Bar',raw_statute_text:'Bars landlord from demanding rent or serving notice when an official housing citation for heating/water remains unabated past 35 days.'},v:'Not yet',cls:'p-bad',why:'35-day repair window: case opened 2026-11-03 (16 days elapsed). Statutory bar takes effect 2026-12-09.'}
 ];
 
 const PROGRAMS=[
@@ -300,29 +345,27 @@ const TRACT={
 };
 
 const TABLES={
-  complaints_embedded:{rows:'174 rows (165 SF 311s + 9 decoys)',who:'habitability_vector_ag',prov:'Derived from SF 311; 768-dim embeddings via gemini-embedding-2',use:'BigQuery AI.EMBED + VECTOR_SEARCH top_k=25',cols:[['request_id','STRING'],['block_address','STRING'],['property_type','STRING'],['inspection_status','STRING'],['closed_date','DATE'],['complaint_narrative','STRING'],['embedding','ARRAY<FLOAT64>']]},
+  complaints_embedded:{rows:'174 rows (165 SF 311s + 9 decoys)',who:'habitability_vector_ag',prov:'SF 311; 768-dim embeddings via gemini-embedding-2',use:'BigQuery AI.EMBED + VECTOR_SEARCH top_k=25',cols:[['request_id','STRING'],['block_address','STRING'],['property_type','STRING'],['inspection_status','STRING'],['closed_date','DATE'],['complaint_narrative','STRING'],['embedding','ARRAY<FLOAT64>']]},
   municipal_311_housing_complaints:{rows:'1,044 rows',who:'evidence_explainer_ag',prov:'SF Department of Building Inspection (100-block coarsened)',use:'Grounded public 311 source of truth for citations',cols:[['request_id','STRING'],['block_address','STRING'],['census_tract_geoid','STRING'],['property_type','STRING'],['inspection_status','STRING'],['complaint_narrative','STRING'],['created_date','DATE'],['closed_date','DATE']]},
   v_tract_stability_context:{rows:'42 SF Census Tracts',who:'tract_displacement_ag',prov:'Census ACS 5-Year + 4-Quarter Eviction Court Model',use:'Tract stability context (firewalled against audit_* columns)',cols:[['census_tract_geoid','STRING'],['renter_occupied_units','INT64'],['severe_rent_burden_pct','FLOAT64'],['annual_filings_total','INT64'],['is_silent_distress_candidate','BOOL']]},
   municipal_housing_ordinance_statutes:{rows:'18 rows (3 per metro)',who:'statute_and_bulletin_ag',prov:'Public Statutory References',use:'Affirmative defenses & repair clocks',cols:[['statute_section_id','STRING'],['code_citation','STRING'],['ordinance_title','STRING'],['raw_statute_text','STRING']]},
   rental_relief_program_bulletins:{rows:'24 rows (4 per metro)',who:'eligibility_and_brief_ag',prov:'Municipal & Philanthropic Relief Guidelines',use:'Relief grants eligibility & habitability prerequisites',cols:[['bulletin_id','STRING'],['program_name','STRING'],['requires_open_habitability_case','BOOL'],['raw_bulletin_text','STRING']]}
 };
 
-/* ALL AGENT NAMES STRICTLY END WITH _ag */
 const AGENTS=[
- {n:'shelterwise_navigator_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Root Coordinator',reads:'user messages / paralegal intake',writes:'invokes triage pipeline & specialist tools',tables:[],rule:'Runs acute life-safety gate first; delegates crisis intake to case_triage_pipeline_ag; handles multi-turn follow-ups.'},
- {n:'case_triage_pipeline_ag',kind:'code',model:'SequentialAgent',step:'Pipeline Coordinator',reads:'intake narrative',writes:'stabilization_brief',tables:[],rule:'Sequential orchestration: intake_structurer_ag → corroboration_fanout_ag → eligibility_and_brief_ag.'},
- {n:'intake_structurer_ag',kind:'LLM',model:'gemini-2.5-flash',step:'1 UNDERSTAND',reads:'tenant narrative',writes:'state.intake',tables:[],rule:'Extracts facts verbatim; detects life-safety hazards; normalizes 11-char GEOID (06075...); generates inspector search query.'},
- {n:'corroboration_fanout_ag',kind:'code',model:'ParallelAgent',step:'2 GATHER (Parallel)',reads:'state.intake',writes:'evidence, policy, tract packs',tables:[],rule:'Fans out parallel calls to habitability_vector_ag, statute_and_bulletin_ag, and tract_displacement_ag.'},
- {n:'habitability_vector_ag',kind:'LLM',model:'gemini-2.5-flash',step:'2 GATHER · Evidence',reads:'inspector query',writes:'state.evidence',tables:['complaints_embedded','municipal_311_housing_complaints'],rule:'BigQuery AI.EMBED + VECTOR_SEARCH. Discards commercial, abated, and zero-violation decoys.'},
- {n:'statute_and_bulletin_ag',kind:'LLM',model:'gemini-2.5-flash',step:'2 GATHER · Policy',reads:'metro area',writes:'state.policy',tables:['municipal_housing_ordinance_statutes','rental_relief_program_bulletins'],rule:'Fetches ordinances and relief bulletins; evaluates 35-day repair window under CA Civil Code § 1942.4.'},
- {n:'tract_displacement_ag',kind:'LLM',model:'gemini-2.5-flash',step:'2 GATHER · Tract',reads:'11-digit GEOID',writes:'state.tract',tables:['v_tract_stability_context'],rule:'Retrieves ACS rent burden and court eviction filing velocity. STRICTLY FIREWALLED against demographic columns.'},
- {n:'eligibility_and_brief_ag',kind:'LLM',model:'gemini-2.5-flash',step:'3 BRIEF & ELIGIBILITY',reads:'all gathered packs',writes:'state.brief',tables:[],rule:'Reconciles evidence gaps; determines relief eligibility based on open 311 status; formats 9-section brief.'},
- {n:'evidence_explainer_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Specialist Agent',reads:'decoy ID & exclusion reason',writes:'explanation',tables:['municipal_311_housing_complaints'],rule:'Explains to paralegals why specific decoy records were dropped under municipal habitability rules.'},
- {n:'equity_audit_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Responsible AI',reads:'v_metro_equity_audit',writes:'aggregate audit',tables:['v_metro_equity_audit'],rule:'Identifies silent distress tracts across the metro. STRICTLY FIREWALLED from scoring individuals.'},
- {n:'hazard_311_drafter_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Specialist Agent',reads:'unrecorded hazard details',writes:'draft 311 request',tables:[],rule:'Drafts formal SF DBI emergency inspection request when zero records exist on the block.'}
+ {n:'shelterwise_navigator_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Root Coordinator',reads:'user messages / paralegal intake',writes:'invokes triage pipeline & specialist tools',rule:'Runs acute life-safety gate first; delegates crisis intake to case_triage_pipeline_ag; handles multi-turn follow-ups.'},
+ {n:'case_triage_pipeline_ag',kind:'code',model:'SequentialAgent',step:'Pipeline Coordinator',reads:'intake narrative',writes:'stabilization_brief',rule:'Sequential orchestration: intake_structurer_ag → corroboration_fanout_ag → eligibility_and_brief_ag.'},
+ {n:'intake_structurer_ag',kind:'LLM',model:'gemini-2.5-flash',step:'1 UNDERSTAND',reads:'tenant narrative',writes:'state.intake',rule:'Extracts facts verbatim; detects life-safety hazards; normalizes 11-char GEOID (06075...); generates inspector search query.'},
+ {n:'corroboration_fanout_ag',kind:'code',model:'ParallelAgent',step:'2 GATHER (Parallel)',reads:'state.intake',writes:'evidence, policy, tract packs',rule:'Fans out parallel calls to habitability_vector_ag, statute_and_bulletin_ag, and tract_displacement_ag.'},
+ {n:'habitability_vector_ag',kind:'LLM',model:'gemini-2.5-flash',step:'2 GATHER · Evidence',reads:'inspector query',writes:'state.evidence',rule:'BigQuery AI.EMBED + VECTOR_SEARCH. Discards commercial, abated, and zero-violation decoys.'},
+ {n:'statute_and_bulletin_ag',kind:'LLM',model:'gemini-2.5-flash',step:'2 GATHER · Policy',reads:'metro area',writes:'state.policy',rule:'Fetches ordinances and relief bulletins; evaluates 35-day repair window under CA Civil Code § 1942.4.'},
+ {n:'tract_displacement_ag',kind:'LLM',model:'gemini-2.5-flash',step:'2 GATHER · Tract',reads:'11-digit GEOID',writes:'state.tract',rule:'Retrieves ACS rent burden and court eviction filing velocity. STRICTLY FIREWALLED against demographic columns.'},
+ {n:'eligibility_and_brief_ag',kind:'LLM',model:'gemini-2.5-flash',step:'3 BRIEF & ELIGIBILITY',reads:'all gathered packs',writes:'state.brief',rule:'Reconciles evidence gaps; determines relief eligibility based on open 311 status; formats 9-section brief.'},
+ {n:'evidence_explainer_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Specialist Agent',reads:'decoy ID & exclusion reason',writes:'explanation',rule:'Explains to paralegals why specific decoy records were dropped under municipal habitability rules.'},
+ {n:'equity_audit_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Responsible AI',reads:'v_metro_equity_audit',writes:'aggregate audit',rule:'Identifies silent distress tracts across the metro. STRICTLY FIREWALLED from scoring individuals.'},
+ {n:'hazard_311_drafter_ag',kind:'LLM',model:'gemini-2.5-flash',step:'Specialist Agent',reads:'unrecorded hazard details',writes:'draft 311 request',rule:'Drafts formal SF DBI emergency inspection request when zero records exist on the block.'}
 ];
 
-/* =================== APPLICATION STATE & HELPERS =================== */
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 let currentCaseId = "SF-CASE-LIVE";
 const S={ownCase:false,income:'unk',noRecord:false,radius:true,rejShown:true,fuse:false,locked:false};
@@ -332,8 +375,8 @@ const gateHtml=()=>S.fuse
   :`<div class="note ok" style="margin:6px 0">✓ Life-Safety Gate Passed: No active electrical arcing, gas leaks, or raw sewage backup detected. Cold radiators constitute a habitability breach under SF Housing Code § 701.</div>`;
 
 function agentTag(n){
-  const a=AGENTS.find(x=>x.n===n)||{n,kind:'LLM',model:'gemini-2.5-flash',step:'Tool',reads:'-',writes:'-',tables:[],rule:'-'};
-  return `<div class="agent ${a.kind}"><b>${a.n}</b><span class="pill p-mute">${a.kind}</span><span>${a.model}</span><span class="pill p-mute">${a.step}</span><span class="rw">reads <code>${a.reads}</code> → writes <code>${a.writes}</code>${a.tables.length?' · tables: '+a.tables.map(t=>`<code>${t}</code>`).join(' '):''}</span></div>`;
+  const a=AGENTS.find(x=>x.n===n)||{n,kind:'LLM',model:'gemini-2.5-flash',step:'Tool',reads:'-',writes:'-',rule:'-'};
+  return `<div class="agent-banner"><b>🤖 ${a.n}</b><span class="pill p-mute">${a.kind}</span><span class="pill p-info">${a.model}</span><span class="pill p-mute">${a.step}</span></div>`;
 }
 
 const relief=()=>{
@@ -348,10 +391,10 @@ const relief=()=>{
 const vcls={ELIGIBLE:'p-ok',CONDITIONAL:'p-warn',INELIGIBLE:'p-bad'};
 
 function controls(){
-  return `<div class="note info" style="margin-top:0"><b>Interactive Advocate Updates</b> (re-evaluates relief eligibility):
+  return `<div class="note info" style="margin-top:0"><b>Interactive Advocate Updates</b> (re-evaluates relief eligibility in real time):
    <label class="chk"><input type="checkbox" ${S.ownCase?'checked':''} onchange="S.ownCase=this.checked;rerenderRelief()"> Tenant has her <b>own</b> verified DBI case number (<code>tenant_has_own_dbi_case = true</code>)</label>
    <label style="display:inline-block;margin:6px 8px 0 0">Household Income vs. AMI Band:</label>
-   <select style="width:auto" onchange="S.income=this.value;rerenderRelief()">
+   <select style="width:auto;display:inline-block" onchange="S.income=this.value;rerenderRelief()">
     <option value="unk" ${S.income==='unk'?'selected':''}>Unknown / Unverified</option>
     <option value="le60" ${S.income==='le60'?'selected':''}>≤ 60% AMI (e.g. 2-person ~$45,000/yr)</option>
     <option value="le80" ${S.income==='le80'?'selected':''}>61–80% AMI</option>
@@ -389,20 +432,20 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
 
 /* =================== 10 GUIDED STEPS =================== */
 const STEPS=[
-  ['Intake','paralegal · adk web'],
+  ['Intake','Paralegal Intake Sandbox'],
   ['Understand','intake_structurer_ag'],
   ['Gather · Evidence','habitability_vector_ag'],
   ['Gather · Context','tract_displacement_ag'],
   ['Decide · Law','statute_and_bulletin_ag'],
   ['Decide · Funds','eligibility_and_brief_ag'],
-  ['Write & Verify','eligibility_and_brief_ag'],
-  ['Brief','Tenant Stabilization Brief'],
+  ['Write & Verify','Automated Verification'],
+  ['Defense Brief','Tenant Stabilization Brief'],
   ['Follow-ups','shelterwise_navigator_ag'],
   ['Human Review','Attorney Review Checklist']
 ];
 
 let cur=0,maxDone=-1;
-const nav=()=>`<div class="btns">${cur>0?'<button class="btn ghost" onclick="go(cur-1)">← Back</button>':''}${cur<STEPS.length-1?'<button class="btn" onclick="go(cur+1)">Continue →</button>':''}</div>`;
+const nav=()=>`<div class="btns">${cur>0?'<button class="btn ghost" onclick="go(cur-1)">← Previous Step</button>':''}${cur<STEPS.length-1?'<button class="btn" onclick="go(cur+1)">Next Step →</button>':''}</div>`;
 
 function go(i){
   if(i>cur) maxDone=Math.max(maxDone,cur);
@@ -410,10 +453,8 @@ function go(i){
 }
 
 function renderSteps(){
-  document.getElementById('steps').innerHTML=STEPS.map((s,i)=>`<li><button class="${i===cur?'on':''} ${i<=maxDone&&i!==cur?'done':''}" onclick="go(${i})"><span class="n">${i<=maxDone&&i!==cur?'✓':i+1}</span><span>${s[0]}<small>${s[1]}</small></span></button></li>`).join('');
+  document.getElementById('steps').innerHTML=STEPS.map((s,i)=>`<li><button class="${i===cur?'on':''} ${i<=maxDone&&i!==cur?'done':''}" onclick="go(${i})"><span class="step-num">${i<=maxDone&&i!==cur?'✓':i+1}</span><span><b>${s[0]}</b><small>${s[1]}</small></span></button></li>`).join('');
 }
-
-const tbls=(...t)=>`<div class="note info"><b>BigQuery Tables:</b> ${t.map(x=>`<code>${x}</code>`).join(' ')}</div>`;
 
 const V=[
 /* 0 intake */
@@ -422,7 +463,6 @@ const V=[
  <h3>Life-Safety Hazard Gate <span class="pill p-ok">Runs before any tool execution</span></h3>
  <label class="chk"><input type="checkbox" ${S.fuse?'checked':''} onchange="S.fuse=this.checked;document.getElementById('gate').innerHTML=gateHtml()"> Simulate Acute Hazard: Tenant reports “water dripping from ceiling into fuse box”</label>
  <div id="gate">${gateHtml()}</div>
- <div class="note info">Architecture Note: Runs on Google ADK with Gemini 2.5 Flash on Vertex AI. All sub-agents enforce strict grounding against BigQuery.</div>
  <div class="btns"><button class="btn" onclick="executeTriageAPI()">▶ Send &amp; Run Triage (Calls case_triage_pipeline_ag)</button></div></div>`,
 
 /* 1 understand */
@@ -435,13 +475,13 @@ const V=[
 
 /* 2 evidence */
 ()=>`<div class="card"><h2>2 · Gather: Evidence (habitability_vector_ag)</h2><p class="sub">BigQuery AI.EMBED + VECTOR_SEARCH over 311 housing complaints with strict business rule post-filtering.</p>
- ${agentTag('habitability_vector_ag')}${tbls('complaints_embedded','municipal_311_housing_complaints')}
+ ${agentTag('habitability_vector_ag')}
  <div class="pipe" id="pipe">
-  <div class="st"><b>1 · AI.EMBED</b><span>BigQuery ML connection to Vertex AI</span></div>
+  <div class="st"><b>1 · AI.EMBED</b><span>Vertex AI Connection</span></div>
   <div class="st"><b>2 · VECTOR_SEARCH</b><span>top_k => 25 cosine similarity</span></div>
-  <div class="st"><b>3 · Business Filter</b><span>Residential · closed_date IS NULL · status open</span></div>
+  <div class="st"><b>3 · Business Filter</b><span>Residential · closed_date IS NULL</span></div>
   <div class="st"><b>4 · Grounding Join</b><span>Block address, DBI status, provenance</span></div></div>
- <div class="btns" style="margin:0 0 6px"><button class="btn" onclick="runPipe()">▶ Run Vector Search</button>
+ <div class="btns" style="margin:0 0 10px"><button class="btn" onclick="runPipe()">▶ Run Vector Search</button>
   <label class="chk" style="margin:0;align-items:center"><input type="checkbox" ${S.radius?'checked':''} onchange="S.radius=this.checked;drawCands()"> 400m Proximity Filter</label>
   <label class="chk" style="margin:0;align-items:center"><input type="checkbox" ${S.noRecord?'checked':''} onchange="S.noRecord=this.checked;drawCands()"> Simulate: Zero open records on block</label></div>
  <div id="cands" class="hidden"></div>
@@ -449,7 +489,7 @@ const V=[
 
 /* 3 context */
 ()=>`<div class="card"><h2>3 · Gather: Tract Displacement Context (tract_displacement_ag)</h2><p class="sub">Neighborhood gentrification and court baseline context from fan-out-safe <code>v_tract_stability_context</code> view.</p>
- ${agentTag('tract_displacement_ag')}${tbls('v_tract_stability_context')}
+ ${agentTag('tract_displacement_ag')}
  <h3>Census Tract 06075016300 (Western Addition / Fillmore)</h3>
  <div class="kpi">
    <div><b>${TRACT.renter_occupied_units.toLocaleString()}</b><span>Renter Units</span></div>
@@ -465,18 +505,18 @@ const V=[
    <tr><td>Active Open Residential 311s</td><td>2 cases</td><td>2 cases</td><td>[Real 311 Public Records]</td></tr>
    <tr><td>Silent Distress Candidate?</td><td><span class="pill p-ok">No</span></td><td colspan="2">Tract actively reports complaints</td></tr>
  </table>
- <div class="firewall" style="margin-top:12px"><b>🔒 Responsible AI Demographic Firewall Active:</b> No individual-level or tract-level demographic columns (<code>audit_*</code>) were queried or returned in this case triage.</div>${nav()}</div>`,
+ <div class="firewall" style="margin-top:14px"><b>🔒 Responsible AI Demographic Firewall Active:</b> No individual-level or tract-level demographic columns (<code>audit_*</code>) were queried or returned in this case triage.</div>${nav()}</div>`,
 
 /* 4 law */
 ()=>`<div class="card"><h2>4 · Decide: Governing Statutes (statute_and_bulletin_ag)</h2><p class="sub">Applies municipal and state housing ordinances. Validates statutory repair clocks.</p>
- ${agentTag('statute_and_bulletin_ag')}${tbls('municipal_housing_ordinance_statutes')}
- ${STATUTES.map(s=>`<div class="cand ${s.v==='Yes'?'acc':s.v==='Yes, if'?'cond':'rej'}"><div class="h"><b>${s.r.code_citation}</b><span class="pill ${s.cls}">${s.v}</span><span class="pill p-info">Enforceable</span></div><i>${s.r.ordinance_title}</i><p style="margin:4px 0">${s.r.raw_statute_text}</p><div><b>Application Rationale:</b> ${s.why}</div><div class="cite">${s.r.data_provenance}</div></div>`).join('')}
+ ${agentTag('statute_and_bulletin_ag')}
+ ${STATUTES.map(s=>`<div class="cand ${s.v==='Yes'?'acc':s.v==='Yes, if'?'cond':'rej'}"><div class="h"><b>${s.r.code_citation}</b><span class="pill ${s.cls}">${s.v}</span><span class="pill p-info">Enforceable</span></div><i>${s.r.ordinance_title}</i><p style="margin:4px 0">${s.r.raw_statute_text}</p><div><b>Application Rationale:</b> ${s.why}</div><div class="cite">${PROV_POL}</div></div>`).join('')}
  <h3>CA Civil Code § 1942.4 Repair Clock Tracker</h3>
  <div><span class="bar" style="width:260px"><i style="width:${16/35*100}%"></i></span> <b>16 of 35 Statutory Days Elapsed</b> (Citation Issued: 2026-11-03 · Rent-Demand Bar Matures: <b>2026-12-09</b>)</div>${nav()}</div>`,
 
 /* 5 funds */
 ()=>`<div class="card"><h2>5 · Decide: Emergency Relief Funds (eligibility_and_brief_ag)</h2><p class="sub">Cross-references open habitability case prerequisites against municipal rental relief programs.</p>
- ${agentTag('eligibility_and_brief_ag')}${tbls('rental_relief_program_bulletins')}
+ ${agentTag('eligibility_and_brief_ag')}
  <div id="ctl">${controls()}</div><div id="reliefbox">${reliefCards()}</div>${nav()}</div>`,
 
 /* 6 write & verify */
@@ -537,7 +577,7 @@ const V=[
 /* 8 follow-ups */
 ()=>`<div class="card"><h2>8 · Interactive Follow-up Chat (shelterwise_navigator_ag)</h2><p class="sub">Ask follow-up questions to query specialist agents, re-verify relief, check transit, or lock case in Firestore.</p>
  ${agentTag('shelterwise_navigator_ag')}
- <div class="btns" style="margin:0 0 10px">
+ <div class="btns" style="margin:0 0 12px">
    <button class="btn ghost sm" onclick="askAPI('Why did you drop the warehouse boiler one?')">Why did you drop the warehouse boiler one?</button>
    <button class="btn ghost sm" onclick="askAPI('She has her own DBI case number')">She has her own DBI case number</button>
    <button class="btn ghost sm" onclick="askAPI('2-person household, about $45k a year')">2-person household, about $45k a year</button>
@@ -545,7 +585,6 @@ const V=[
    <button class="btn ghost sm" onclick="askAPI('Can she reach the courthouse by bus before 9am Monday?')">Transit before 9am Monday?</button>
    <button class="btn ghost sm" onclick="askAPI('Lock this case for Attorney Chen')">Lock case in Firestore</button>
    <button class="btn ghost sm" onclick="askAPI('Who lives in the tracts we prioritize, and where might 311 under-reporting blind us?')">Metro Equity Audit</button>
-   <button class="btn ghost sm" onclick="askAPI('Note: tenant is Black; can that raise priority?')">Demographic query</button>
  </div>
  <div class="chat" id="chat"><div class="msg a">ShelterWise Navigator online. Stabilization Brief compiled. Ask me anything or select a prompt above.</div></div>
  <div class="btns" style="margin-top:10px">
@@ -564,15 +603,15 @@ const V=[
    'Relief grant eligibility verified against open habitability case prerequisites',
    'Transit route and arrival time before 9:00 AM roll call verified with tenant'
  ].map((t,idx)=>`<label class="chk"><input type="checkbox" onchange="toggleChecklistAPI(${idx}, this.checked)"> ${t}</label>`).join('')}
- <div class="kpi" style="margin-top:14px">
+ <div class="kpi" style="margin-top:16px">
    <div><b id="revn">0/7</b><span>Checklist Verified</span></div>
    <div><b>9/9</b><span>Decoy Traps Filtered</span></div>
    <div><b>100%</b><span>Grounded Provenance</span></div>
  </div>
  <h3>Responsible AI Metro Equity Audit (equity_audit_ag)</h3>
  <div class="firewall"><b>🔒 Isolated Demographic Analysis:</b> Evaluates reporting disparities in aggregate across 42 San Francisco census tracts. Strictly firewalled from individual case triage.</div>
- <div class="btns" style="margin-top:10px"><button class="btn ghost" onclick="runEquityAuditAPI()">▶ Run Aggregate Equity Audit</button></div>
- <div id="audit-out" style="margin-top:10px"></div>${nav()}</div>`
+ <div class="btns" style="margin-top:12px"><button class="btn ghost" onclick="runEquityAuditAPI()">▶ Run Aggregate Equity Audit</button></div>
+ <div id="audit-out" style="margin-top:12px"></div>${nav()}</div>`
 ];
 
 function render(){
@@ -581,7 +620,6 @@ function render(){
   if(cur===2) drawCands(false);
 }
 
-/* =================== STEP 2 VECTOR SEARCH ANIMATION =================== */
 function runPipe(){
   const st=[...document.querySelectorAll('#pipe .st')];
   st.forEach(s=>s.classList.remove('on'));
@@ -620,13 +658,12 @@ function drawCands(show){
 
   if(!kept){
     h+=`<div class="note bad"><b>No open residential record on this block.</b> Absence of a record does not mean absence of a habitability crisis.</div>
-     <div class="agent LLM"><b>hazard_311_drafter_ag</b><span class="pill p-mute">LLM</span><span>Fallback Drafting Agent</span></div>
+     <div class="agent-banner"><b>hazard_311_drafter_ag</b><span class="pill p-mute">LLM</span><span>Fallback Drafting Agent</span></div>
      <div class="cand"><b>Drafted SF DBI Emergency Service Request:</b><p>“Residents of 1000 Block Fillmore St report zero heat since early autumn, indoor temperature at ~50°F, and ceiling water leak near fuse box. Urgent DBI housing inspection requested.”</p><b>Paralegal Guidance:</b> Assist tenant with filing to unlock habitability-contingent relief grants.</div>`;
   }
   el.innerHTML=h;
 }
 
-/* =================== STEP 6 VERIFIER ANIMATION =================== */
 function runVerify(){
   const o=document.getElementById('vout');
   if(!o) return;
@@ -640,10 +677,9 @@ function runVerify(){
     ['p-ok','verifier: ✓ Decoy candidates (DECOY-SANF-01/04/07) verified excluded'],
     ['p-ok','PASS → Final Brief Saved to Cloud Firestore']
   ];
-  steps.forEach((s,i)=>setTimeout(()=>{o.insertAdjacentHTML('beforeend',`<div style="margin:6px 0"><span class="pill ${s[0]}">${i+1}</span> ${s[1]}</div>`)},i*400));
+  steps.forEach((s,i)=>setTimeout(()=>{o.insertAdjacentHTML('beforeend',`<div style="margin:8px 0"><span class="pill ${s[0]}">${i+1}</span> ${s[1]}</div>`)},i*350));
 }
 
-/* =================== LIVE BACKEND API INTEGRATION =================== */
 async function executeTriageAPI(){
   const btn = event.target;
   btn.textContent = "Processing Multi-Agent Pipeline...";
@@ -666,7 +702,6 @@ async function executeTriageAPI(){
       go(1);
     }
   } catch(e) {
-    console.log("Local fallback mode:", e);
     go(1);
   }
 }
@@ -728,42 +763,35 @@ async function runEquityAuditAPI(){
 
 /* =================== ARCHITECTURE TAB =================== */
 (function(){
-  const f=document.getElementById('archflow');
-  const chip=n=>{
-    const a=AGENTS.find(x=>x.n===n)||{n,kind:'LLM',model:'gemini-2.5-flash'};
-    return `<div class="chip ${a.kind}" data-n="${n}"><b>${n}</b><small>${a.model}</small></div>`;
-  };
-  f.innerHTML=`<div class="chip" style="border-color:var(--line);background:var(--panel)"><b>Paralegal Advocate</b><small>Intake Sandbox</small></div><div class="arrow">↓</div>
-   <div class="stephd">ROOT COORDINATOR</div>${chip('shelterwise_navigator_ag')}
-   <div class="par">${chip('evidence_explainer_ag')}${chip('hazard_311_drafter_ag')}${chip('equity_audit_ag')}</div>
-   <div class="arrow">↓ executes crisis triage</div>
-   <div class="stephd">SEQUENTIAL TRIAGE PIPELINE</div>${chip('case_triage_pipeline_ag')}<div class="arrow">↓</div>
-   <div class="stephd">1 · UNDERSTAND</div>${chip('intake_structurer_ag')}<div class="arrow">↓</div>
-   <div class="stephd">2 · PARALLEL CORROBORATION FAN-OUT</div>${chip('corroboration_fanout_ag')}
-   <div class="par">${chip('habitability_vector_ag')}${chip('statute_and_bulletin_ag')}${chip('tract_displacement_ag')}</div><div class="arrow">↓</div>
-   <div class="stephd">3 · BRIEF &amp; ELIGIBILITY</div>${chip('eligibility_and_brief_ag')}<div class="arrow">↓</div>
-   <div class="chip" style="border-color:#d97706;background:var(--warn-soft)"><b>Tenant Stabilization Brief</b><small>Cloud Firestore Lock &amp; Review Checklist</small></div>`;
+  const list = document.getElementById('archlist');
+  list.innerHTML = AGENTS.map((a,idx)=>`<li><button class="${idx===0?'on':''}" data-n="${a.n}"><span class="step-num">${idx+1}</span><span><b>${a.n}</b><small>${a.step} · ${a.model}</small></span></button></li>`).join('');
 
-  const show=n=>{
-    const a=AGENTS.find(x=>x.n===n);
-    f.querySelectorAll('.chip[data-n]').forEach(e=>e.classList.toggle('on',e.dataset.n===n));
-    document.getElementById('archdetail').innerHTML=`<h3 style="margin-top:0"><code>${a.n}</code> <span class="pill ${a.kind==='LLM'?'p-info':a.kind==='code'?'p-ok':'p-mute'}">${a.kind}</span></h3><p>${a.model} · ${a.step}</p><p><b>Reads:</b> <code>${a.reads}</code><br><b>Writes:</b> <code>${a.writes}</code></p><p><b>BigQuery Tables:</b> ${a.tables.length?a.tables.map(t=>`<code>${t}</code>`).join(' '):'None (Tool orchestration)'}</p><div class="note"><b>Architecture Rule:</b> ${a.rule}</div>`;
+  const show = n => {
+    const a = AGENTS.find(x=>x.n===n);
+    list.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.n===n));
+    document.getElementById('archdetail').innerHTML = `<h3 style="margin-top:0"><code>${a.n}</code> <span class="pill ${a.kind==='LLM'?'p-info':'p-ok'}">${a.kind}</span></h3>
+    <p><b>Model / Engine:</b> ${a.model}<br><b>Lifecycle Stage:</b> ${a.step}</p>
+    <p><b>Reads:</b> <code>${a.reads}</code><br><b>Writes:</b> <code>${a.writes}</code></p>
+    <div class="note"><b>Architecture Rule:</b> ${a.rule}</div>`;
   };
-  f.querySelectorAll('.chip[data-n]').forEach(e=>e.onclick=()=>show(e.dataset.n));
+  list.querySelectorAll('button').forEach(b=>b.onclick=()=>show(b.dataset.n));
   show('shelterwise_navigator_ag');
 })();
 
 /* =================== DATA TAB =================== */
 (function(){
-  const g=document.getElementById('tblgrid');
-  g.innerHTML=Object.entries(TABLES).map(([k,v])=>`<div class="tbl" data-k="${k}"><h4>${k}</h4><small>${v.cols.length} columns · ${v.rows}</small><p style="margin:6px 0 0;font-size:13px">${v.use}</p><span class="pill p-info">${v.who}</span></div>`).join('');
-  const show=k=>{
-    const v=TABLES[k];
-    g.querySelectorAll('.tbl').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
-    document.getElementById('tbldetail').innerHTML=`<h2 class="mono" style="font-size:16px">${k}</h2><p><b>Data Provenance:</b> ${v.prov}</p><p><b>ShelterWise Application:</b> ${v.use}</p><p><b>ADK Agent:</b> <code>${v.who}</code></p>
-    <div class="scroll"><table><tr><th>#</th><th>column_name</th><th>data_type</th></tr>${v.cols.map((c,i)=>`<tr><td>${i+1}</td><td><code>${c[0]}</code></td><td>${c[1]}</td></tr>`).join('')}</table></div>`;
+  const g = document.getElementById('tblgrid');
+  g.innerHTML = Object.entries(TABLES).map(([k,v])=>`<div class="cand" data-k="${k}" style="cursor:pointer"><h4>${k}</h4><small>${v.cols.length} columns · ${v.rows}</small><p style="margin:6px 0 0;font-size:13px">${v.use}</p><span class="pill p-info">${v.who}</span></div>`).join('');
+  const show = k => {
+    const v = TABLES[k];
+    g.querySelectorAll('.cand').forEach(e=>e.classList.toggle('acc',e.dataset.k===k));
+    document.getElementById('tbldetail').innerHTML = `<h2 class="mono" style="font-size:18px">${k}</h2>
+    <p><b>Data Provenance:</b> ${v.prov}</p>
+    <p><b>ShelterWise Application:</b> ${v.use}</p>
+    <p><b>Governing Agent:</b> <code>${v.who}</code></p>
+    <div class="scroll"><table><tr><th>#</th><th>Column Name</th><th>Data Type</th></tr>${v.cols.map((c,i)=>`<tr><td>${i+1}</td><td><code>${c[0]}</code></td><td>${c[1]}</td></tr>`).join('')}</table></div>`;
   };
-  g.querySelectorAll('.tbl').forEach(e=>e.onclick=()=>show(e.dataset.k));
+  g.querySelectorAll('.cand').forEach(e=>e.onclick=()=>show(e.dataset.k));
   show('complaints_embedded');
 })();
 
