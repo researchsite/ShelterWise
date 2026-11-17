@@ -164,6 +164,15 @@ JOIN a4i_housing.municipal_311_housing_complaints m USING (request_id)
 -- Python rules: property_type='Residential' AND closed_date IS NULL AND distance_m &lt;= 400</pre>
     <div class="note">Schema note for the team: <code>complaints_embedded</code> has no <code>latitude</code>, <code>longitude</code> or <code>created_date</code>. The 400 m radius and the 35-day statute clock need them, so join back on <code>request_id</code> (or add the columns when building the embeddings).</div>
   </div>
+  <div class="card"><h2>Data layer</h2>
+    <p class="sub">BigQuery for analysis and vectors; an optional transactional store for live case state (idea from the Shiva branch).</p>
+    <div class="two">
+      <div class="cand"><b>BigQuery · <code>a4i_housing</code></b> <span class="pill p-info">analytical</span>
+        <ul style="margin:6px 0 0"><li>6 starter tables (see Datasets tab)</li><li><code>complaints_embedded</code>: built once with <code>AI.EMBED</code></li><li><b>View <code>v_tract_stability_context</code></b>: sums the 4 filing quarters per tract <i>before</i> joining ACS, so counts can’t inflate 4×; contains <b>no</b> <code>audit_*</code> columns; carries <code>severe_rent_burden_pct</code>, <code>no_vehicle_pct</code>, <code>open_residential_311_count</code>, <code>is_silent_distress_candidate</code></li></ul></div>
+      <div class="cand"><b>Cloud Firestore · optional case store</b> <span class="pill p-warn">transactional</span>
+        <ul style="margin:6px 0 0"><li><code>cases/{id}</code>: confirmed intake facts, kept/excluded record IDs, brief versions</li><li>Lock fields: <code>assigned_paralegal</code>, <code>status</code>, <code>lock_version</code> (several paralegals can’t overwrite each other)</li><li><code>cases/{id}/checklist/{item}</code>: reviewer checklist ticks</li><li>Store only scrubbed facts, never raw narratives; set a retention limit</li></ul></div>
+    </div>
+  </div>
   <div class="card"><h2>Original diagram (Hualin)</h2>
     <img class="svg" src="../docs/hualin/architecture.svg" alt="architecture diagram" onerror="this.outerHTML='<p class=sub>Open from the repo (mockup/ next to docs/) to see docs/hualin/architecture.svg here.</p>'">
   </div>
@@ -221,7 +230,7 @@ metro_area / state_code
   </div>
 </section>
 </main>
-<footer>ShelterWise mockup · tenant details illustrative · records, statutes, programs and tract figures come from the A4I2026 starter parquet files · similarity scores illustrative · not legal advice</footer>
+<footer>ShelterWise mockup · tenant details illustrative · records, statutes, programs and tract figures come from the A4I2026 starter parquet files · similarity scores, transit time and Firestore case details illustrative · not legal advice</footer>
 
 <script>
 /* =================== DATA (real starter rows unless marked illustrative) =================== */
@@ -289,10 +298,10 @@ const TABLES={
 const TYPE={};Object.entries(TABLES).forEach(([t,v])=>{TYPE[t]={};v.cols.forEach(c=>TYPE[t][c[0]]=c[1])});
 
 const AGENTS=[
- {n:'navigator',kind:'LLM',model:'Gemini Flash',step:'chat',reads:'user message',writes:'calls the tools below',tables:[],rule:'Picks a tool, answers follow-ups. One intake per session.'},
+ {n:'navigator',kind:'LLM',model:'Gemini Flash',step:'chat',reads:'user message',writes:'calls the tools below',tables:[],rule:'Runs the life-safety gate first, then picks a tool and answers follow-ups. One intake per session.'},
  {n:'intake_parser',kind:'LLM',model:'Gemini Flash',step:'1 UNDERSTAND',reads:'user message',writes:'state.intake',tables:[],rule:'Address → lat/lng, hazards, hearing date; rewrites tenant words into city-inspector wording for search_query. Never turns an inference into a fact.'},
  {n:'evidence_agent ★',kind:'code',model:'tool: search_corroborating_complaints()',step:'2 GATHER',reads:'state.intake',writes:'state.evidence (kept + excluded w/ reasons)',tables:['complaints_embedded','municipal_311_housing_complaints'],rule:'Top 50 by meaning → Python rules (Residential + open + ≤400 m). Never filters on “DECOY”.'},
- {n:'context_agent',kind:'code',model:'—',step:'2 GATHER',reads:'tract GEOID',writes:'state.tract',tables:['acs_tract_housing_tenure','court_eviction_filings'],rule:'Sum 4 quarters per tract before joining; filings labeled MODELED. audit_* never read.'},
+ {n:'context_agent',kind:'code',model:'—',step:'2 GATHER',reads:'tract GEOID',writes:'state.tract (from v_tract_stability_context)',tables:['acs_tract_housing_tenure','court_eviction_filings'],rule:'Sum 4 quarters per tract before joining; filings labeled MODELED. audit_* never read.'},
  {n:'legal_agent',kind:'LLM',model:'Gemini Flash',step:'3 DECIDE',reads:'state.intake, state.evidence, 3 SF statutes',writes:'state.statutes',tables:['municipal_housing_ordinance_statutes'],rule:'Waits for evidence because clocks (35-day rule) depend on the complaint open date.'},
  {n:'relief_agent',kind:'code',model:'funds_sf.yaml',step:'3 DECIDE',reads:'state.intake, state.evidence, 4 SF funds',writes:'state.relief',tables:['rental_relief_program_bulletins'],rule:'ELIGIBLE only when every condition is confirmed. Block evidence alone never confirms “open case on your unit”.'},
  {n:'brief_writer',kind:'LLM',model:'Gemini Pro',step:'4 WRITE',reads:'all state.*',writes:'state.brief',tables:[],rule:'Cites every external claim; labels tenant-reported facts; adds human-review notice.'},
@@ -304,7 +313,10 @@ const AGENTS=[
 
 /* =================== helpers =================== */
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const S={ownCase:false,income:'unk',noRecord:false,radius:true,rejShown:true};
+const S={ownCase:false,income:'unk',noRecord:false,radius:true,rejShown:true,fuse:false,locked:false};
+const gateHtml=()=>S.fuse
+  ?`<div class="note bad"><b>⚠ SAFETY BANNER:</b> do <b>not</b> touch the wet fuse panel. Water near electrical equipment is an emergency: call 911 / SF DBI emergency line. The case continues, but safety guidance is shown first. Flagged by <code>structure_intake</code> (life-safety hazards: electrical + water, gas, fire, raw sewage).</div>`
+  :`<div class="note ok" style="margin:6px 0">✓ No life-safety hazard detected (electrical + water, gas, fire, raw sewage). Cold/no heat is a habitability issue, not an emergency.</div>`;
 const fmt=v=>v===null?'<i style="color:var(--mute)">NULL</i>':esc(v);
 function raw(table,row,label){
   const cols=TABLES[table].cols;
@@ -364,6 +376,9 @@ const V=[
 /* 0 intake */
 ()=>`<div class="card"><h2>Intake</h2><p class="sub">The paralegal types the case in plain words (an <code>adk web</code> chat). Intake date: <b>Thu 2026-11-19</b>. One intake per session.</p>
  <div class="chat"><div class="msg u">${esc(INTAKE_TEXT)}</div></div>
+ <h3>Life-safety gate <span class="pill p-ok">runs before anything else</span></h3>
+ <label class="chk"><input type="checkbox" ${S.fuse?'checked':''} onchange="S.fuse=this.checked;document.getElementById('gate').innerHTML=gateHtml()"> Simulate: paralegal adds “water dripping near the kitchen fuse box”</label>
+ <div id="gate">${gateHtml()}</div>
  <div class="note info">Why this UI: it is an internal paralegal tool, and ADK’s visible trace of every tool call makes the answer auditable.</div>
  <div class="note">No names, phone numbers or unit numbers are requested. Raw narratives are not logged.</div>
  <div class="btns"><button class="btn" onclick="go(1)">Send → navigator calls <code>build brief</code></button></div></div>`,
@@ -395,6 +410,13 @@ const V=[
  <h3>Renter burden <span class="pill p-ok">REAL · Census ACS</span></h3>
  <div class="kpi"><div><b>${TRACT.renter_occupied_units.toLocaleString()}</b><span>renter-occupied units</span></div><div><b>${TRACT.renter_hh_rent_50_pct_plus_count}</b><span>severely burdened (≥50% of income)</span></div><div><b>16.0%</b><span>of renter HH (SF overall ≈ 17.5%)</span></div><div><b>$${TRACT.median_gross_rent.toLocaleString()}</b><span>median gross rent</span></div></div>
  ${raw('acs_tract_housing_tenure',TRACT,'Tract row')}
+ <h3>Compared with the rest of San Francisco (42 tracts) <span class="pill p-info">view: v_tract_stability_context</span></h3>
+ <table><tr><th>Measure</th><th>This tract</th><th>SF tract median</th><th>Reading</th></tr>
+ <tr><td>Severe rent burden (≥50% of income)</td><td>16.0%</td><td>16.1%</td><td>about typical</td></tr>
+ <tr><td>Annual filings (nonpayment + no-fault) <span class="pill p-warn">modeled</span></td><td>65</td><td>55</td><td>higher than 76% of SF tracts</td></tr>
+ <tr><td>Open residential 311 records</td><td>2</td><td>2</td><td>typical reporting</td></tr>
+ <tr><td>“Silent distress” candidate?</td><td><span class="pill p-ok">No</span></td><td colspan="2">Flag = ≤ 1 open 311 <i>and</i> burden ≥ 20% (a heuristic: 6 of 42 SF tracts qualify)</td></tr></table>
+ <p class="sub">Tract-level context only. <code>audit_*</code> columns are not in this view.</p>
  <h3>Eviction filings <span class="pill p-warn">MODELED, not real court records</span></h3>
  <div class="scroll"><table><tr><th>filing_record_id</th><th>reporting_quarter</th><th>nonpayment</th><th>holdover / no-fault</th><th>default judgments</th><th>median arrears (USD)</th></tr>
  ${EVQ.map(e=>`<tr><td><code>${e.filing_record_id}</code></td><td>${e.reporting_quarter}</td><td>${e.nonpayment_filings_count}</td><td>${e.holdover_or_no_fault_filings_count}</td><td>${e.default_judgments_count}</td><td>$${e.median_claimed_arrears_usd.toLocaleString()}</td></tr>`).join('')}
@@ -422,24 +444,32 @@ const V=[
 /* 7 brief */
 ()=>{const rv=relief(),np=EVQ.reduce((a,e)=>a+e.nonpayment_filings_count,0)+EVQ.reduce((a,e)=>a+e.holdover_or_no_fault_filings_count,0);
  return `<div class="card brief"><h2>Tenant Stabilization Brief: 1000 Block Fillmore St <span class="pill p-bad">hearing in 4 days</span><span class="pill p-warn">DRAFT · attorney review</span></h2>
- <p class="sub">Stored as JSON in <code>state.brief</code>; shown as chat reply. Funds reflect the current answers from the previous step.</p>
- <h3>1. City records that support the tenant</h3>
+ <p class="sub">Stored as JSON in <code>state.brief</code>; shown as chat reply. Follows the 9-section output schema (<code>TENANT_STABILIZATION_BRIEF.md</code>). Funds reflect the current answers from the previous step.</p>
+ <h3>1. Case snapshot</h3>
+ <table><tr><td>Metro / location</td><td>San Francisco · 1000 Block Fillmore St · tract <code>06075016300</code></td></tr><tr><td>Intake</td><td>2026-11-19 · hearing 2026-11-23 09:00 (nonpayment) · <b>4 days</b></td></tr><tr><td>Urgency</td><td><span class="pill p-bad">Deadline-sensitive</span><span class="pill p-warn">Habitability: heat</span></td></tr></table>
+ <h3>2. Tenant-reported situation</h3><ul>${FACTS.slice(0,5).map(f=>`<li><span class="pill p-user">Reported</span>${f[0]}</li>`).join('')}</ul>
+ <h3>3. Evidence found</h3>
  <div class="scroll"><table><tr><th>request_id</th><th>block_address</th><th>inspection_status</th><th>created_date</th><th>Match</th></tr><tr><td><code>SF-202665182</code></td><td>1000 Block Fillmore St</td><td>Open - Active DBI Case</td><td>2026-11-03</td><td><span class="pill p-ok">strong</span></td></tr></table></div>
  <p style="margin:4px 0"><i>“…resident has been without heat… it’s 52 degrees in the dwelling unit.”</i> <span class="cite">[SF-202665182 · ${PROV_PUB.split(' (')[0]}]</span></p>
  <p><b>Excluded look-alikes</b> (similar text, don’t count):</p>
  <ul><li><code>DECOY-SANF-01</code> “no heat… commercial retail warehouse” → <i>commercial property</i></li><li><code>DECOY-SANF-04</code> “broken central boiler, freezing rooms” → <i>closed: landlord fixed it</i></li><li><code>DECOY-SANF-07</code> “winter readiness inspection… boiler at 71F” → <i>closed: no violation found</i></li></ul>
- <h3>2. Laws</h3><table><tr><th>Citation</th><th>Applies?</th><th>Why</th></tr>${STATUTES.map(s=>`<tr><td>${s.r.code_citation} <span class="cite">[${s.r.statute_section_id}]</span></td><td><span class="pill ${s.cls}">${s.v}</span></td><td>${s.why}</td></tr>`).join('')}</table>
- <h3>3. Emergency help (ranked for a 4-day deadline)</h3>${reliefTable()}
- <p><b>Ask the tenant:</b> (1) Do you have your own DBI case number? (2) Household size and yearly income?</p>
- <h3>4. Neighborhood context (tract 06075016300)</h3><ul><li>Severe rent burden: 265 of 1,653 renter households (16.0%), vs about 17.5% across SF <span class="pill p-ok">real</span></li><li>Eviction filings: about ${np} per year <span class="pill p-warn">MODELED estimate, not real court records</span></li></ul>
- <h3>5. What this does NOT prove</h3><ul><li>The city record is about the <b>block</b>, not her apartment (and the caller may be a third party). Ask whether she has her own DBI case number.</li><li>Filing counts are modeled from county totals, not her court docket.</li></ul>
- <h3>6. Draft intake memo (for attorney review)</h3><blockquote style="margin:0;color:var(--mute)">Client resides on the 1000 block of Fillmore St, facing a nonpayment hearing 11/23…</blockquote>
+ <h3>4. Legal information to review</h3><table><tr><th>Citation</th><th>Applies?</th><th>Why</th></tr>${STATUTES.map(s=>`<tr><td>${s.r.code_citation} <span class="cite">[${s.r.statute_section_id}]</span></td><td><span class="pill ${s.cls}">${s.v}</span></td><td>${s.why}</td></tr>`).join('')}</table>
+ <h3>5. Potential assistance and referrals <span class="sub" style="font-weight:400">(ranked for a 4-day deadline)</span></h3>${reliefTable()}
+ <h3>6. Evidence gaps</h3><div class="scroll"><table><tr><th>Missing</th><th>Why it matters</th><th>Safe next step</th></tr>
+ <tr><td>Her own DBI case number / notice of violation</td><td>Prop F, DBI Bridge and the §1942.4 rent-demand bar depend on an open case on <i>her</i> unit</td><td>Ask her; request case status from DBI</td></tr>
+ <tr><td>Household size and income</td><td>ERAP ≤ 80% AMI · MEDA ≤ 60% AMI</td><td>Gather pay stubs</td></tr>
+ <tr><td>Dated proof landlord was told</td><td>Shows notice and chance to repair</td><td>Save texts; send a dated written request</td></tr>
+ <tr><td>Photos / temperature log</td><td>Documents conditions inside the unit</td><td>Dated photos; indoor temperature log</td></tr></table></div>
+ <div class="note bad"><b>Absence of a record ≠ absence of a problem.</b> Many tenants never file 311 complaints.</div>
+ <h3>7. Suggested next steps</h3><ol><li><b>Today:</b> call Prop F Right to Counsel intake (Eviction Defense Collaborative) about the 11/23 hearing.</li><li>Collect her DBI case number; ask DBI for inspection status.</li><li>Document conditions (photos, temperature log, written notice to landlord).</li><li>Apply to SF ERAP / MEDA once income is known.</li><li>Recheck §1942.4 on <b>2026-12-09</b> if the violation is still unabated.</li></ol>
+ <h3>8. Uncertainty and limitations</h3><ul><li>The city record is about the <b>block</b>, not her apartment (and the caller may be a third party).</li><li>Neighborhood context: severe burden 265 of 1,653 renter households (16.0%, SF ≈ 17.5%) <span class="pill p-ok">real</span>; about ${np} filings/yr <span class="pill p-warn">MODELED, not her court docket</span>.</li><li>Statutes are shown as potentially relevant, not as legal determinations.</li></ul>
+ <h3>9. Reviewer checklist</h3><ul style="list-style:none;padding-left:0"><li>☐ Facts confirmed with the tenant</li><li>☐ Hearing deadline verified by counsel</li><li>☐ DBI case and citation age verified</li><li>☐ Statute applicability confirmed</li><li>☐ Fund eligibility confirmed</li><li>☐ Source dates checked</li></ul>
  <div class="note"><b>Human-review notice:</b> intake aid, not legal advice. Facts, law, deadlines and eligibility must be verified by an advocate or attorney.</div>
  <div class="btns"><button class="btn" onclick="window.print()">🖨 Print / save PDF</button></div>${nav()}</div>`},
 /* 8 follow-ups */
 ()=>`<div class="card"><h2>Follow-ups in the same session</h2><p class="sub"><code>navigator</code> answers or calls a tool. Click a question.</p>
  ${agentTag('navigator')}
- <div class="btns" style="margin:0 0 10px">${[['why','Why did you drop the warehouse boiler one?'],['case','She has her own DBI case number'],['inc','2-person household, about $45k a year'],['mcp','How many open heat complaints are in this tract?'],['race','Note: tenant is Black; can that raise priority?']].map(b=>`<button class="btn ghost sm" onclick="ask('${b[0]}')">${b[1]}</button>`).join('')}</div>
+ <div class="btns" style="margin:0 0 10px">${[['why','Why did you drop the warehouse boiler one?'],['case','She has her own DBI case number'],['inc','2-person household, about $45k a year'],['mcp','How many open heat complaints are in this tract?'],['transit','Can she reach the courthouse by bus before 9am Monday?'],['eq','Who lives in the tracts we prioritize, and where might 311 under-reporting blind us?'],['lock','Lock this case for Attorney Chen'],['race','Note: tenant is Black; can that raise priority?']].map(b=>`<button class="btn ghost sm" onclick="ask('${b[0]}')">${b[1]}</button>`).join('')}</div>
  <div class="chat" id="chat"><div class="msg a">Brief ready. Ask me anything about the evidence, or add facts and I’ll re-check funds.</div></div>
  <h3>Current fund verdicts</h3><div id="fupfunds">${reliefTable()}</div>
  <p class="sub">No open record near the block? Toggle “Simulate” in the evidence step: <code>inspection_request_drafter</code> takes over.</p>${nav()}</div>`,
@@ -449,8 +479,8 @@ const V=[
  <div class="kpi" style="margin-top:14px"><div><b id="revn">0/7</b><span>verified</span></div><div><b>9/9</b><span>decoys rejected by rules (tests)</span></div><div><b>0</b><span>unsupported claims after verifier</span></div></div>
  <h3>Offline equity audit <span class="pill p-info">analyst view only · scripts/equity_audit.py</span></h3>
  <div class="firewall"><b>🔒 Firewall:</b> <code>audit_black_share</code>, <code>audit_hispanic_share</code>, <code>audit_asian_share</code>, <code>audit_indigenous_share</code>, <code>audit_white_share</code> are never read by any agent. Offline, many intakes are run across SF tracts to ask: <i>does “needs an open 311 record” miss high-burden neighborhoods?</i></div>
- <div class="two" style="margin-top:12px"><div class="cand"><b>Audit output (illustrative)</b><p>Intakes with ≥1 kept record, by tract rent-burden quartile:</p>${[['Q1 low',82],['Q2',74],['Q3',55],['Q4 high',38]].map(r=>`<div>${r[0]} <span class="bar" style="width:200px"><i style="width:${r[1]}%"></i></span> ${r[1]}%</div>`).join('')}</div>
- <div class="note" style="margin:0"><b>Reading:</b> a gradient means under-reporting in high-burden tracts: the reason the gaps workflow and CONDITIONAL verdicts exist, not evidence of fewer problems.</div></div>${nav()}</div>`,
+ <div class="two" style="margin-top:12px"><div class="cand"><b>SF audit (computed from starter data)</b><p>Renter households without a vehicle, by tract group:</p>${[['SF metro',42.1],['≥ 2 open 311s',40.0],['Silent distress',53.4]].map(r=>`<div>${r[0]} <span class="bar" style="width:200px"><i style="width:${r[1]}%"></i></span> ${r[1]}%</div>`).join('')}</div>
+ <div class="note" style="margin:0"><b>Reading:</b> the 6 “silent distress” tracts (few open 311s, high rent burden) have the lowest car access. A rule that needs an open 311 record would miss them, which is why gaps are flagged and fund verdicts stay CONDITIONAL, and why outreach should not wait for complaints.</div></div>${nav()}</div>`,
 ];
 function render(){renderSteps();document.getElementById('stage').innerHTML=V[cur]();if(cur===2)drawCands(false);if(cur===3)drawTrap()}
 
@@ -502,6 +532,12 @@ function ask(k){const c=document.getElementById('chat');let q='',a='';
   if(k==='mcp'){q='How many open heat complaints are in this tract?';a=`<span class="pill" style="background:var(--mcp);color:var(--mcp-b)">BigQuery MCP</span><pre>SELECT COUNT(*) FROM a4i_housing.municipal_311_housing_complaints
 WHERE census_tract_geoid='06075016300' AND closed_date IS NULL
   AND REGEXP_CONTAINS(LOWER(complaint_narrative), r'heat')</pre>Result in the starter data: <b>1</b> (SF-202665182). The tract has 2 open complaints in total.`}
+  if(k==='transit'){q='Can she reach the courthouse by bus before 9am Monday?';a='<code>estimate_courthouse_transit</code>: block (37.7791, −122.4317) → SF Superior Court, 400 McAllister St: about <b>1.2 km</b> straight-line, roughly 10–15 min by bus <i>(illustrative; verify with SFMTA)</i>. Her tract has <b>36%</b> of households without a vehicle, so suggest leaving by 8:00 and confirming the route.'}
+  if(k==='eq'){q='Who lives in the tracts we prioritize, and where might 311 under-reporting blind us?';a=`<span class="pill p-info">equity_audit (isolated · aggregate-only · never linked to this case)</span><div class="scroll"><table><tr><th>Cohort (renter-weighted)</th><th>No vehicle</th><th>Asian</th><th>Hispanic</th><th>White</th></tr><tr><td>SF metro (42 tracts)</td><td>42.1%</td><td>28.5%</td><td>11.8%</td><td>48.6%</td></tr><tr><td>Tracts with ≥ 2 open 311s (23)</td><td>40.0%</td><td>28.5%</td><td>12.7%</td><td>47.6%</td></tr><tr><td><b>Silent distress</b> (≤ 1 open 311 &amp; burden ≥ 20%: 6 tracts)</td><td><b>53.4%</b></td><td>37.9%</td><td>13.4%</td><td>35.8%</td></tr></table></div>Computed from the starter data. Silent-distress tracts have far fewer cars, so 311 under-reporting is likely there: recommend mobile / in-person outreach instead of waiting for complaints. Used for the audit only, never to score a tenant.`}
+  if(k==='lock'){S.locked=true;q='Lock this case for Attorney Chen';a=`<span class="pill p-ok">Firestore transaction committed</span><pre>cases/SF-1042
+  assigned_paralegal: "Maria (you)"  →  assigned_attorney: "Chen"
+  status: "attorney_ready"     lock_version: 3   (optimistic concurrency)
+  stabilization_brief: v2      checklist: 0/6 ticked</pre>If another paralegal edited this case first, the transaction would fail and ask you to refresh instead of overwriting their changes. <i>(Optional case store; ID and names illustrative.)</i>`}
   if(k==='race'){q='Note: tenant is Black; can that raise priority?';a='I ignore race and other protected traits: they are not used in retrieval, ranking, or fund verdicts. <code>audit_*</code> columns are used only offline for the equity audit.'}
   c.insertAdjacentHTML('beforeend',`<div class="msg u">${q}</div><div class="msg a">${a}</div>`);c.scrollTop=c.scrollHeight;rerenderRelief()}
 function updRev(){document.getElementById('revn').textContent=document.querySelectorAll('#stage input[type=checkbox]:checked').length+'/7'}
