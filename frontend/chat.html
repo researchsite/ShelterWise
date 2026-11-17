@@ -300,6 +300,21 @@ async function send(text){
   col.append(el);scroll();
   const ol=el.querySelector('ol');const t0=performance.now();
 
+  const stages = [
+    [0, "Querying Google ADK Agents… (initializing triage session)"],
+    [6, "intake_structurer_ag: analyzing facts & detecting life-safety hazards…"],
+    [18, "corroboration_fanout_ag: querying BigQuery Vector Search on 311 records…"],
+    [42, "statute_and_bulletin_ag: retrieving SF Rent Ordinance Ch 37 & Cal Civ Code…"],
+    [68, "displacement_baseline_ag: evaluating census tract displacement risk…"],
+    [95, "eligibility_and_brief_ag: synthesizing Tenant Stabilization Brief with Gemini…"]
+  ];
+  const timer = setInterval(() => {
+    const elapsed = Math.floor((performance.now() - t0) / 1000);
+    const stage = [...stages].reverse().find(([sec]) => elapsed >= sec);
+    const tlEl = el.querySelector('.tl');
+    if (tlEl) tlEl.innerHTML = `${stage[1]} <span style="opacity:0.7;font-family:monospace;font-size:11px">(${elapsed}s)</span>`;
+  }, 1000);
+
   let res = null;
   try {
     const apiRes = await fetch('/api/chat', {
@@ -325,6 +340,8 @@ async function send(text){
       blocks: [],
       suggestions: ['Hello, can you help with an eviction notice?']
     };
+  } finally {
+    clearInterval(timer);
   }
 
   const steps=res.agent_trace || [];let i=0;
