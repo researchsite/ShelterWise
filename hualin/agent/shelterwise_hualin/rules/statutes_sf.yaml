@@ -1,0 +1,16 @@
+# Applicability tests for the 3 SF / CA statutes in municipal_housing_ordinance_statutes,
+# transcribed from raw_statute_text. Evaluated in tools/legal.py.
+
+statutes:
+  STAT-CA-01:   # Cal. Civ. Code § 1941.1 & § 1942.4
+    short_name: rent-demand bar
+    rule: citation_clock
+    clock_days: 35            # citation must remain unabated PAST 35 days
+    hazards: [heat, hot_water, weatherproofing, plumbing, electrical, water_leak]
+  STAT-CA-03:   # Cal. Civ. Code § 1942.5
+    short_name: anti-retaliation
+    rule: tenant_complained
+    window_days: 180
+  STAT-CA-02:   # SF Admin. Code Ch. 37 & Prop F
+    short_name: just cause + right to counsel
+    rule: facing_eviction
