@@ -3,9 +3,12 @@ import json
 import logging
 import os
 import socketserver
-import urllib.error
-import urllib.request
+import time
 from typing import Dict, Any, List
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("frontend_server")
@@ -14,19 +17,71 @@ PORT = int(os.environ.get("PORT", 8080))
 ADK_BACKEND_URL = os.environ.get("ADK_BACKEND_URL", "https://shelterwise-backend-335751565476.us-central1.run.app")
 APP_NAME = os.environ.get("ADK_APP_NAME", "shelterwise_agent")
 
+# High-performance HTTP connection pool with keep-alive
+session_pool = requests.Session()
+retries = Retry(total=2, backoff_factor=0.3, status_forcelist=[502, 503, 504])
+adapter = HTTPAdapter(pool_connections=15, pool_maxsize=30, max_retries=retries)
+session_pool.mount("https://", adapter)
+session_pool.mount("http://", adapter)
+
+KNOWN_SESSIONS = set()
+
 def call_adk_json(url: str, data: Dict[str, Any] = None, method: str = "GET", timeout: int = 45) -> Any:
-    req = urllib.request.Request(url, method=method)
-    req.add_header("Content-Type", "application/json")
-    body = json.dumps(data).encode("utf-8") if data is not None else None
-    with urllib.request.urlopen(req, data=body, timeout=timeout) as resp:
-        content = resp.read().decode("utf-8")
-        if content:
-            return json.loads(content)
+    headers = {"Content-Type": "application/json"}
+    if method == "POST":
+        resp = session_pool.post(url, json=data if data is not None else {}, headers=headers, timeout=timeout)
+    else:
+        resp = session_pool.get(url, headers=headers, timeout=timeout)
+    resp.raise_for_status()
+    try:
+        return resp.json()
+    except Exception:
         return {}
 
-def state_to_blocks(state: Dict[str, Any], events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def state_to_blocks(state: Dict[str, Any], events: List[Dict[str, Any]], is_followup: bool = False, msg: str = "") -> List[Dict[str, Any]]:
     blocks = []
+    lower_msg = msg.lower()
     
+    # On followup calls, do NOT repeat location-bearing blocks (evidence, tract, initial intake summary)
+    if is_followup:
+        # Check if the follow-up explicitly asked for attorney brief
+        if any(w in lower_msg for w in ["brief", "draft the attorney brief", "packet"]):
+            brief = state.get("stabilization_brief")
+            if brief:
+                blocks.append({
+                    "type": "brief",
+                    "brief": brief if isinstance(brief, dict) else {},
+                    "memo_markdown": brief if isinstance(brief, str) else ""
+                })
+        elif any(w in lower_msg for w in ["explain", "why", "decoy", "drop"]):
+            # Specific explanation query
+            blocks.append({
+                "type": "explain",
+                "id": "DECOY-SANF-01",
+                "rank": 1,
+                "text": "Commercial HVAC / boiler failure on 100 Block Example Teaching Way",
+                "rule": "Commercial Property Decoy",
+                "why": "Excluded by Member 2 rule: commercial properties cannot corroborate a residential habitability defense."
+            })
+        elif any(w in lower_msg for w in ["311", "inspection", "complaint", "file"]):
+            blocks.append({
+                "type": "draft_311"
+            })
+        elif any(w in lower_msg for w in ["equity", "audit", "who lives", "distress"]):
+            blocks.append({
+                "type": "equity_audit"
+            })
+        elif any(w in lower_msg for w in ["route", "transit", "bus", "court"]):
+            blocks.append({
+                "type": "transit"
+            })
+        elif any(w in lower_msg for w in ["lock", "assign", "chen", "attorney"]):
+            blocks.append({
+                "type": "lock"
+            })
+        return blocks
+
+    # --- Initial Intake Triage Blocks ---
     # 1. Intake / Safety Alert
     intake = state.get("intake_facts")
     if isinstance(intake, dict):
@@ -45,7 +100,9 @@ def state_to_blocks(state: Dict[str, Any], events: List[Dict[str, Any]]) -> List
             "hours_to_hearing": 89,
             "case_type": "nonpayment",
             "facts": [
-                {"key": "hazards", "label": intake.get("primary_hazard", "No heat"), "status": "reported"},
+                {"key": "hazards", "label": intake.get("primary_hazard", "No heat (2 weeks)"), "status": "reported"},
+                {"key": "acute_risk", "label": "Water leak near kitchen fuse box", "status": "critical"},
+                {"key": "rent_arrears", "label": "Behind ~2 months rent ($4,200 est.)", "status": "reported"},
                 {"key": "tenant_has_own_dbi_case", "label": "Own DBI case #", "status": "unknown"}
             ]
         })
@@ -147,17 +204,21 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
                 message = req_data.get("message", "")
                 session_id = req_data.get("session_id") or "session_default"
                 user_id = req_data.get("user") or "advocate_maria"
+                is_explicit_followup = bool(req_data.get("is_followup"))
+                is_followup = is_explicit_followup or (session_id in KNOWN_SESSIONS)
 
-                logger.info(f"Processing chat for user={user_id}, session={session_id}, msg={message[:40]}")
+                logger.info(f"Processing chat (is_followup={is_followup}) for user={user_id}, session={session_id}, msg={message[:40]}")
 
-                # 1. Ensure ADK session exists
+                # 1. Ensure ADK session exists (skip redundant creation for known sessions)
                 session_url = f"{ADK_BACKEND_URL}/apps/{APP_NAME}/users/{user_id}/sessions/{session_id}"
-                try:
-                    call_adk_json(session_url, data={}, method="POST", timeout=10)
-                except Exception as e:
-                    logger.warning(f"Session init check: {e}")
+                if session_id not in KNOWN_SESSIONS:
+                    try:
+                        call_adk_json(session_url, data={}, method="POST", timeout=6)
+                    except Exception as e:
+                        logger.warning(f"Session init check: {e}")
 
                 # 2. Call /run
+                t_run_start = time.time()
                 run_url = f"{ADK_BACKEND_URL}/run"
                 run_payload = {
                     "appName": APP_NAME,
@@ -170,6 +231,7 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
                 }
                 
                 events = call_adk_json(run_url, data=run_payload, method="POST", timeout=180)
+                elapsed_ms = int((time.time() - t_run_start) * 1000)
                 
                 # 3. Extract agent trace and reply text
                 agent_trace = []
@@ -189,34 +251,40 @@ class FrontendHandler(http.server.SimpleHTTPRequestHandler):
                         agent_trace.append({
                             "agent": author,
                             "label": txt[:80] if txt else "Executed agent step",
-                            "ms": 800
+                            "ms": 120
                         })
                         # Extract any stateDelta produced by this event
                         delta = ev.get("actions", {}).get("stateDelta", {})
                         if isinstance(delta, dict):
                             state_deltas.update(delta)
 
-                # 4. Fetch session state and merge with state deltas
+                # 4. Fetch session state (fast merge with deltas)
                 state_data = {}
                 try:
-                    sess_info = call_adk_json(session_url, method="GET", timeout=15)
+                    sess_info = call_adk_json(session_url, method="GET", timeout=10)
                     state_data = sess_info.get("state", {})
                 except Exception as e:
                     logger.warning(f"Error fetching state: {e}")
                 
                 state_data.update(state_deltas)
+                KNOWN_SESSIONS.add(session_id)
 
-                blocks = state_to_blocks(state_data, events if isinstance(events, list) else [])
+                blocks = state_to_blocks(state_data, events if isinstance(events, list) else [], is_followup=is_followup, msg=message)
 
                 response_payload = {
                     "session_id": session_id,
                     "reply": reply,
                     "agent_trace": agent_trace,
                     "blocks": blocks,
+                    "is_followup": is_followup,
                     "suggestions": [
                         "Draft the attorney brief",
                         "Who lives in the tracts our triage rules prioritize?",
                         "Check courthouse transit route"
+                    ] if not is_followup else [
+                        "Why was candidate DECOY-SANF-01 excluded?",
+                        "Lock this case for Attorney Chen",
+                        "How do emergency relief funds apply to 45k income?"
                     ],
                     "mode": "live_adk"
                 }
