@@ -4,8 +4,10 @@ Connects to Google-managed BigQuery MCP server (https://bigquery.googleapis.com/
 or provides tools for ad-hoc SQL queries and schema inspection.
 """
 
+import asyncio
 import inspect
-from typing import Optional
+import logging
+from typing import Any, Optional
 
 import google.auth
 from google.auth.transport.requests import Request
@@ -13,8 +15,36 @@ from google.adk.tools import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
 from shelterwise_agent.config import get_settings
 
+logger = logging.getLogger(__name__)
+
 BIGQUERY_MCP_URL = "https://bigquery.googleapis.com/mcp"
-_BQ_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
+_BQ_SCOPES = [
+    "https://www.googleapis.com/auth/bigquery",
+    "https://www.googleapis.com/auth/cloud-platform",
+]
+
+
+class ResilientBigQueryMcpToolset(McpToolset):
+    """Google-managed BigQuery McpToolset that degrades gracefully if MCP IAM/API is restricted."""
+
+    async def get_tools(self, readonly_context: Any = None) -> list[Any]:
+        try:
+            return await asyncio.wait_for(
+                super().get_tools(readonly_context=readonly_context),
+                timeout=6.0,
+            )
+        except Exception as exc:
+            logger.warning(
+                "BigQuery remote MCP unavailable (%s); continuing with custom BigQuery tools.",
+                exc,
+            )
+            return []
+
+    async def close(self) -> None:
+        try:
+            await super().close()
+        except Exception:
+            pass
 
 
 def get_bigquery_mcp_toolset(project_id: Optional[str] = None) -> McpToolset:
@@ -28,9 +58,9 @@ def get_bigquery_mcp_toolset(project_id: Optional[str] = None) -> McpToolset:
     resolved_project = (
         project_id or settings.project_id or adc_project or "qwiklabs-gcp-04-99fa355171e1"
     )
-    cached_auth = {"creds": None, "request": None}
+    cached_auth: dict[str, Any] = {"creds": None, "request": None}
 
-    def _header_provider(_context=None) -> dict[str, str]:
+    def _header_provider(_context: Any = None) -> dict[str, str]:
         headers = {"x-goog-user-project": resolved_project}
         try:
             if cached_auth["creds"] is None:
@@ -42,8 +72,8 @@ def get_bigquery_mcp_toolset(project_id: Optional[str] = None) -> McpToolset:
                 creds.refresh(cached_auth["request"])
             if creds.token:
                 headers["Authorization"] = f"Bearer {creds.token}"
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Could not refresh ADC token for BigQuery MCP: %s", exc)
         return headers
 
     params = StreamableHTTPConnectionParams(
@@ -51,5 +81,7 @@ def get_bigquery_mcp_toolset(project_id: Optional[str] = None) -> McpToolset:
         headers={"x-goog-user-project": resolved_project},
     )
     if "header_provider" in inspect.signature(McpToolset.__init__).parameters:
-        return McpToolset(connection_params=params, header_provider=_header_provider)
-    return McpToolset(connection_params=params)
+        return ResilientBigQueryMcpToolset(
+            connection_params=params, header_provider=_header_provider
+        )
+    return ResilientBigQueryMcpToolset(connection_params=params)
