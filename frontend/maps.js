@@ -43,7 +43,7 @@ const SWMap = (() => {
     const keyEl = document.getElementById('mapkey');
     if (keyEl) keyEl.hidden = !!k || dismissed;
     window.__swInitMap = init;
-    window.gm_authFailure = () => { const b = document.getElementById('mapkey'); b.hidden = false; b.querySelector('.msg').innerHTML = '⚠ Google rejected this API key. Check that <b>Maps JavaScript API</b> is enabled and the key allows this origin.'; };
+    window.gm_authFailure = () => { const b = document.getElementById('mapkey'); if (b) { b.hidden = false; const m = b.querySelector('.msg'); if (m) m.innerHTML = '⚠ Google rejected this API key. Check that <b>Maps JavaScript API</b> is enabled and the key allows this origin.'; } };
     const s = document.createElement('script');
     s.src = `https://maps.googleapis.com/maps/api/js?${k ? 'key=' + encodeURIComponent(k) + '&' : ''}callback=__swInitMap&loading=async&v=weekly`;
     s.async = true; s.onerror = () => { document.getElementById('map').innerHTML = '<div class="mapfail">Could not load Google Maps (offline?). The chat still works.</div>'; };
