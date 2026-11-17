@@ -1,0 +1,416 @@
+{
+  "benchmark_case": {
+    "tenant": "Elena Vance (Mother of 2)",
+    "address": "400 Block Ellis St, Apt 3B, San Francisco, CA 94102",
+    "intake_timestamp": "Thursday 3:40 PM",
+    "hearing_date": "Monday 9:00 AM",
+    "tract_geoid": "06075030201",
+    "raw_narrative": "Mother of 2, 400 block Ellis St, San Francisco, cold radiators for 2 weeks in winter, water dripping from ceiling directly near kitchen electrical fuse box, nonpayment eviction hearing scheduled for Monday 9:00 AM. Census tract 06075030201."
+  },
+  "step_1_intake": {
+    "normalized_issue_categories": [
+      "Habitability",
+      "Eviction Defense",
+      "Emergency Stabilization"
+    ],
+    "reported_facts": [
+      "Tenant reports defective heating / cold radiators for over 14 days during winter.",
+      "Tenant reports active water intrusion from ceiling directly adjacent to kitchen electrical fuse box.",
+      "Tenant served nonpayment court summons with trial/hearing set for Monday 9:00 AM."
+    ],
+    "immediate_life_safety_hazard": true,
+    "census_tract_geoid_11": "06075030201",
+    "hearing_within_72h": true,
+    "primary_hazard": "Defective heating / cold radiators",
+    "secondary_hazard": "Water intrusion near electrical fuse box",
+    "block_address": "400 block Ellis St",
+    "unknowns": [
+      "Current household monthly gross income",
+      "Formal Notice to Quit served date"
+    ]
+  },
+  "step_2_evidence": {
+    "corroborating_records": [
+      {
+        "request_id": "SF-202665150",
+        "block_address": "100 Block Shipley St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "No hot water in dwelling unit",
+        "match_reason": "Vector distance: 0.885",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665077",
+        "block_address": "400 Block Lake St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Illegal boiler opeation, degraded boiler isulation, collapsing central flue stack, absence of life-safty alarms, hazardous laundry venting, garbage chute barrier breach and failing waste main & open sewage. rusted leaking water vents, unpermitted construction dwelling unit, plumbing pipe running out of above bathroom window into side bldg pathways,",
+        "match_reason": "Vector distance: 0.897",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665110",
+        "block_address": "100 Block Clarence Pl, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Bedroom has no window and no egress, possible illegal bedroom, electrical panel box in bedroom, possible no central heating in dwelling unit, in kitchen - there is no ventilation for air to be taken out of dwelling unit. in bathroom, no window and dwelling unit sets off fire alarm in the hallway, painted rust on light fixtures in bathroom, there are cracks in kitchen counter, washer and dryer is not working properly",
+        "match_reason": "Vector distance: 0.904",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665113",
+        "block_address": "200 Block Richland Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Tenant found damaged furnace ducting 10/15/26. the landlord was notified on 10/16 and pge was brought in to determine whether there was a safety concern. pge came on 10/22 did not see any issue, however, the landlord decided disassemble the ducting anyway and make the furnace inoperable. the heat has not been working ever since.dbi inspector avery vos is already in communication with tenant concerning a separate dbi complaint 202650892. tenant is requesting avery vos for this complaint if possible.",
+        "match_reason": "Vector distance: 0.905",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665186",
+        "block_address": "500 Block 28Th Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "No heat in dwelling unit",
+        "match_reason": "Vector distance: 0.908",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665137",
+        "block_address": "1400 Block 26Th Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Ceiling leak from previous report split open job remains unfinished. i was urged by landlord not to report. unconfortable with that",
+        "match_reason": "Vector distance: 0.908",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665182",
+        "block_address": "1000 Block Fillmore St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Customer is calling on behalf of the tenant who is her client. caller stated this resident has been without heat for the past 2 decades. the resident got pneumonia and cant be in the dwelling unit of the respiratory issues. its 52 degrees in the dwelling unit.",
+        "match_reason": "Vector distance: 0.914",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665124",
+        "block_address": "2800 Block 16Th St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Kitchen is leaking. there is water coming from their kitchen sink. they placed a work order with management at around 3 pm yesterday. the maintenance worker supplied caller with a vacuum for the leak but the worker left for the weekend. another worker came on the weekend but was unable to help out.caller phone does not ring but receives texts and emails.",
+        "match_reason": "Vector distance: 0.916",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665187",
+        "block_address": "1200 Block 25Th Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "No heat since friday 10/30/26 due to rodent droppings in the heater. landlord was contacted 4 times and says soonest they can address the issue is mid-week of 11/2/26.",
+        "match_reason": "Vector distance: 0.918",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665061",
+        "block_address": "1000 Block 16Th St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Date last observed: 30-oct-26; time last observed: 9am; floor: 5; dwelling unit [REDACTED UNIT]; exact location: main bldg; building type: residence/dwelling no hot water; ; additional information: water is lukewarm but not hot. issue ongoing since at least oct 27. landlord notified of issue and has acknowledged a boiler issue.;",
+        "match_reason": "Vector distance: 0.921",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      }
+    ],
+    "excluded_candidates": [
+      {
+        "request_id": "DECOY-SANF-01",
+        "block_address": "100 Block Example Teaching Way [Planted Case], San Francisco, CA",
+        "inspection_status": "Open - Notice Issued",
+        "complaint_narrative": "Emergency boiler shutdown, no heat, and ceiling water leak inside commercial retail warehouse storefront; zero residential tenants.",
+        "match_reason": "Vector distance: 0.830",
+        "is_decoy_trap": true,
+        "exclusion_reason": "Commercial property decoy"
+      },
+      {
+        "request_id": "DECOY-SANF-07",
+        "block_address": "700 Block Example Teaching Way [Planted Case], San Francisco, CA",
+        "inspection_status": "Closed - No Violation",
+        "complaint_narrative": "Proactive winter readiness inspection: heating boiler operating at 71F, hot water at 122F, no mold, no leaks, and zero habitability defects found.",
+        "match_reason": "Vector distance: 0.890",
+        "is_decoy_trap": true,
+        "exclusion_reason": "Zero violation decoy"
+      },
+      {
+        "request_id": "DECOY-SANF-03",
+        "block_address": "300 Block Example Teaching Way [Planted Case], San Francisco, CA",
+        "inspection_status": "Open - Notice Issued",
+        "complaint_narrative": "Collapsed ceiling tiles, standing water, and electrical panel hazard in vacant commercial office dwelling unit.",
+        "match_reason": "Vector distance: 0.895",
+        "is_decoy_trap": true,
+        "exclusion_reason": "Commercial property decoy"
+      },
+      {
+        "request_id": "SF-202665125",
+        "block_address": "100 Block Northridge Rd, San Francisco, CA",
+        "inspection_status": "Closed - Abated",
+        "complaint_narrative": "Water problem with tub. the water keeps running and it is running hot. management is not in at the moment and they don't see the emergency shut off valve.",
+        "match_reason": "Vector distance: 0.896",
+        "is_decoy_trap": true,
+        "exclusion_reason": "Closed/Abated case decoy"
+      },
+      {
+        "request_id": "DECOY-SANF-04",
+        "block_address": "400 Block Example Teaching Way [Planted Case], San Francisco, CA",
+        "inspection_status": "Closed - Abated",
+        "complaint_narrative": "Tenant reported broken central boiler, freezing rooms, and zero hot water; landlord replaced boiler and inspector verified full abatement.",
+        "match_reason": "Vector distance: 0.912",
+        "is_decoy_trap": true,
+        "exclusion_reason": "Closed/Abated case decoy"
+      }
+    ],
+    "has_open_residential_311": true
+  },
+  "step_3_policy": {
+    "applicable_statutes": [
+      {
+        "title": "San Francisco Rent Ordinance Just Cause & Universal Right to Counsel",
+        "citation": "SF Admin. Code Ch. 37 & Prop F",
+        "summary": "Requires enumerated just cause for residential eviction, caps annual rent adjustments on covered units, and guarantees city-funded legal representation within 30 days of unlawful detainer service.",
+        "requires_open_habitability_case": null
+      },
+      {
+        "title": "California Implied Warranty of Habitability & Rent Demand Bar",
+        "citation": "Cal. Civ. Code \u00a7 1941.1 & \u00a7 1942.4",
+        "summary": "Bars landlords from demanding rent, increasing rent, or serving a 3-day pay-or-quit notice when an official building/housing citation for untenantable residential conditions (missing heat, hot water, weatherproofing, plumbing, or safe wiring) remains unabated past 35 days.",
+        "requires_open_habitability_case": null
+      },
+      {
+        "title": "California Statutory Anti-Retaliation Protection",
+        "citation": "Cal. Civ. Code \u00a7 1942.5",
+        "summary": "Establishes a 180-day statutory bar against retaliatory eviction, rent hikes, or service reductions after a residential tenant complains to a municipal building inspection agency.",
+        "requires_open_habitability_case": null
+      }
+    ],
+    "applicable_relief_funds": [
+      {
+        "title": "RadCo / Mission Economic Development Family Stabilization Grant",
+        "citation": "https://medasf.org",
+        "summary": "Awards up to $7,500 in back-rent and PG&E utility shutoff prevention for low-income residential families <=60% AMI experiencing acute medical leave or wage loss.",
+        "requires_open_habitability_case": false
+      },
+      {
+        "title": "San Francisco Emergency Rental Assistance Program (SF ERAP)",
+        "citation": "https://sf.gov/renthelp",
+        "summary": "Covers up to $12,000 across six months of residential rental arrears or move-in deposits for San Francisco renter households at or below 80% of Area Median Income (AMI), prioritizing families <=30% AMI.",
+        "requires_open_habitability_case": false
+      },
+      {
+        "title": "Code Enforcement Relocation & Mold Remediation Bridge",
+        "citation": "https://sf.gov/dbi",
+        "summary": "Provides temporary hotel/relocation stipends up to $8,500 exclusively for residential apartment tenants whose unit has an open un-abated DBI notice for no heat, raw sewage, or toxic mold.",
+        "requires_open_habitability_case": true
+      },
+      {
+        "title": "Proposition F Tenant Right to Counsel & Habitability Defense",
+        "citation": "https://evictiondefense.org",
+        "summary": "Pairs full unlawful detainer legal representation with habitability rent-abatement motions and up to $6,000 in stipulation bridges for residential tenants with an active open Department of Building Inspection habitability complaint.",
+        "requires_open_habitability_case": true
+      }
+    ],
+    "pre_hearing_defenses_noted": true
+  },
+  "step_4_tract": {
+    "census_tract_geoid": "06075030201",
+    "severe_rent_burden_pct": 26.3,
+    "annual_filings_total": 60,
+    "open_residential_311_count": 5,
+    "is_silent_distress_candidate": false
+  },
+  "step_5_brief": {
+    "tenant_reported_facts": [
+      "Tenant reports defective heating / cold radiators for over 14 days during winter.",
+      "Tenant reports active water intrusion from ceiling directly adjacent to kitchen electrical fuse box.",
+      "Tenant served nonpayment court summons with trial/hearing set for Monday 9:00 AM."
+    ],
+    "verified_evidence": [
+      {
+        "request_id": "SF-202665150",
+        "block_address": "100 Block Shipley St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "No hot water in dwelling unit",
+        "match_reason": "Vector distance: 0.885",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665077",
+        "block_address": "400 Block Lake St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Illegal boiler opeation, degraded boiler isulation, collapsing central flue stack, absence of life-safty alarms, hazardous laundry venting, garbage chute barrier breach and failing waste main & open sewage. rusted leaking water vents, unpermitted construction dwelling unit, plumbing pipe running out of above bathroom window into side bldg pathways,",
+        "match_reason": "Vector distance: 0.897",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665110",
+        "block_address": "100 Block Clarence Pl, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Bedroom has no window and no egress, possible illegal bedroom, electrical panel box in bedroom, possible no central heating in dwelling unit, in kitchen - there is no ventilation for air to be taken out of dwelling unit. in bathroom, no window and dwelling unit sets off fire alarm in the hallway, painted rust on light fixtures in bathroom, there are cracks in kitchen counter, washer and dryer is not working properly",
+        "match_reason": "Vector distance: 0.904",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665113",
+        "block_address": "200 Block Richland Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Tenant found damaged furnace ducting 10/15/26. the landlord was notified on 10/16 and pge was brought in to determine whether there was a safety concern. pge came on 10/22 did not see any issue, however, the landlord decided disassemble the ducting anyway and make the furnace inoperable. the heat has not been working ever since.dbi inspector avery vos is already in communication with tenant concerning a separate dbi complaint 202650892. tenant is requesting avery vos for this complaint if possible.",
+        "match_reason": "Vector distance: 0.905",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665186",
+        "block_address": "500 Block 28Th Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "No heat in dwelling unit",
+        "match_reason": "Vector distance: 0.908",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665137",
+        "block_address": "1400 Block 26Th Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Ceiling leak from previous report split open job remains unfinished. i was urged by landlord not to report. unconfortable with that",
+        "match_reason": "Vector distance: 0.908",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665182",
+        "block_address": "1000 Block Fillmore St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Customer is calling on behalf of the tenant who is her client. caller stated this resident has been without heat for the past 2 decades. the resident got pneumonia and cant be in the dwelling unit of the respiratory issues. its 52 degrees in the dwelling unit.",
+        "match_reason": "Vector distance: 0.914",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665124",
+        "block_address": "2800 Block 16Th St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Kitchen is leaking. there is water coming from their kitchen sink. they placed a work order with management at around 3 pm yesterday. the maintenance worker supplied caller with a vacuum for the leak but the worker left for the weekend. another worker came on the weekend but was unable to help out.caller phone does not ring but receives texts and emails.",
+        "match_reason": "Vector distance: 0.916",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665187",
+        "block_address": "1200 Block 25Th Av, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "No heat since friday 10/30/26 due to rodent droppings in the heater. landlord was contacted 4 times and says soonest they can address the issue is mid-week of 11/2/26.",
+        "match_reason": "Vector distance: 0.918",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      },
+      {
+        "request_id": "SF-202665061",
+        "block_address": "1000 Block 16Th St, San Francisco, CA",
+        "inspection_status": "Open - Active DBI Case",
+        "complaint_narrative": "Date last observed: 30-oct-26; time last observed: 9am; floor: 5; dwelling unit [REDACTED UNIT]; exact location: main bldg; building type: residence/dwelling no hot water; ; additional information: water is lukewarm but not hot. issue ongoing since at least oct 27. landlord notified of issue and has acknowledged a boiler issue.;",
+        "match_reason": "Vector distance: 0.921",
+        "is_decoy_trap": false,
+        "exclusion_reason": null
+      }
+    ],
+    "evidence_gaps": [],
+    "applicable_statutes": [
+      {
+        "title": "San Francisco Rent Ordinance Just Cause & Universal Right to Counsel",
+        "citation": "SF Admin. Code Ch. 37 & Prop F",
+        "summary": "Requires enumerated just cause for residential eviction, caps annual rent adjustments on covered units, and guarantees city-funded legal representation within 30 days of unlawful detainer service.",
+        "requires_open_habitability_case": null
+      },
+      {
+        "title": "California Implied Warranty of Habitability & Rent Demand Bar",
+        "citation": "Cal. Civ. Code \u00a7 1941.1 & \u00a7 1942.4",
+        "summary": "Bars landlords from demanding rent, increasing rent, or serving a 3-day pay-or-quit notice when an official building/housing citation for untenantable residential conditions (missing heat, hot water, weatherproofing, plumbing, or safe wiring) remains unabated past 35 days.",
+        "requires_open_habitability_case": null
+      },
+      {
+        "title": "California Statutory Anti-Retaliation Protection",
+        "citation": "Cal. Civ. Code \u00a7 1942.5",
+        "summary": "Establishes a 180-day statutory bar against retaliatory eviction, rent hikes, or service reductions after a residential tenant complains to a municipal building inspection agency.",
+        "requires_open_habitability_case": null
+      }
+    ],
+    "recommended_relief_funds": [
+      {
+        "title": "RadCo / Mission Economic Development Family Stabilization Grant",
+        "citation": "https://medasf.org",
+        "summary": "Awards up to $7,500 in back-rent and PG&E utility shutoff prevention for low-income residential families <=60% AMI experiencing acute medical leave or wage loss.",
+        "requires_open_habitability_case": false
+      },
+      {
+        "title": "San Francisco Emergency Rental Assistance Program (SF ERAP)",
+        "citation": "https://sf.gov/renthelp",
+        "summary": "Covers up to $12,000 across six months of residential rental arrears or move-in deposits for San Francisco renter households at or below 80% of Area Median Income (AMI), prioritizing families <=30% AMI.",
+        "requires_open_habitability_case": false
+      },
+      {
+        "title": "Code Enforcement Relocation & Mold Remediation Bridge",
+        "citation": "https://sf.gov/dbi",
+        "summary": "Provides temporary hotel/relocation stipends up to $8,500 exclusively for residential apartment tenants whose unit has an open un-abated DBI notice for no heat, raw sewage, or toxic mold.",
+        "requires_open_habitability_case": true
+      },
+      {
+        "title": "Proposition F Tenant Right to Counsel & Habitability Defense",
+        "citation": "https://evictiondefense.org",
+        "summary": "Pairs full unlawful detainer legal representation with habitability rent-abatement motions and up to $6,000 in stipulation bridges for residential tenants with an active open Department of Building Inspection habitability complaint.",
+        "requires_open_habitability_case": true
+      }
+    ],
+    "tract_context_summary": "Eviction Activity: 60 annual filings in tract.",
+    "human_review_flags": [
+      "Intake indicates hearing within 72h. Emergency lawyer review required."
+    ]
+  },
+  "specialist_agents": {
+    "evidence_explainer": {
+      "candidate_id": "DECOY-SANF-01",
+      "explanation": "Record DECOY-SANF-01 was excluded because: Commercial property decoy. Municipal business rules require active residential habitability hazards. Commercial properties, closed/abated repairs, and zero-violation inspections cannot corroborate a residential habitability defense."
+    },
+    "equity_audit": {
+      "audit_summary": [
+        {
+          "is_silent_distress_candidate": false,
+          "tract_count": 36,
+          "avg_rent_burden_pct": 16.3,
+          "avg_black_share": 0.042,
+          "avg_hispanic_share": 0.114,
+          "avg_asian_share": 0.266,
+          "avg_white_share": 0.513
+        },
+        {
+          "is_silent_distress_candidate": true,
+          "tract_count": 6,
+          "avg_rent_burden_pct": 25.6,
+          "avg_black_share": 0.04,
+          "avg_hispanic_share": 0.137,
+          "avg_asian_share": 0.38,
+          "avg_white_share": 0.356
+        }
+      ]
+    },
+    "hazard_311_drafter": {
+      "agency": "San Francisco Department of Building Inspection (DBI)",
+      "complaint_type": "Habitability / Urgent Inspection Request",
+      "block_address": "400 block Ellis St",
+      "hazard_summary": "Defective heating / cold radiators and Water intrusion near electrical fuse box",
+      "priority_level": "High - Immediate Life Safety",
+      "filing_instructions": "File online via SF311 or call 311. Request immediate DBI inspector site visit. Keep the 311 service request number to unlock habitability-contingent relief funds."
+    }
+  }
+}

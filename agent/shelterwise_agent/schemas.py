@@ -7,6 +7,9 @@ class IntakeFacts(BaseModel):
     immediate_life_safety_hazard: bool = Field(description="True if a hazard like water near electrical or gas leak is present")
     census_tract_geoid_11: Optional[str] = Field(None, description="11-character GEOID if location provided")
     hearing_within_72h: bool = Field(description="True if eviction hearing is within 72 hours")
+    primary_hazard: Optional[str] = Field("Loss of heat / defective radiators", description="Primary physical habitability defect")
+    secondary_hazard: Optional[str] = Field("Water leak near electrical panel/fuse box", description="Secondary physical defect or life-safety risk")
+    block_address: Optional[str] = Field(None, description="Reported block or street address")
     unknowns: List[str] = Field(description="Missing information that requires clarification")
 
 class EvidenceRecord(BaseModel):

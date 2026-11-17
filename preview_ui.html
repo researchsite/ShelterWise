@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShelterWise – Live Agent Workspace UI</title>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#fff; --ink:#1b2430; --mute:#5d6b7c; --line:#dde2e8;
+  --brand:#1f5fbf; --brand-soft:#e7effb; --ok:#1d7a4a; --ok-soft:#e3f4ea;
+  --warn:#9a6200; --warn-soft:#fff3d6; --bad:#b3261e; --bad-soft:#fdeceb;
+  --user:#6a3fb5; --user-soft:#f0eafa; --code:#f0f2f5;
+  --llm:#dbeafe; --llm-b:#2563eb; --cod:#dcfce7; --cod-b:#16a34a; --mcp:#ede9fe; --mcp-b:#7c3aed;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#12161c; --panel:#1a2029; --ink:#e6eaf0; --mute:#97a3b3; --line:#2c3541;
+    --brand:#6ea3f5; --brand-soft:#1c2b44; --ok:#5fd194; --ok-soft:#173326;
+    --warn:#f0b84a; --warn-soft:#3a2f12; --bad:#f2827b; --bad-soft:#3a1c1a;
+    --user:#b79af0; --user-soft:#2b2340; --code:#232b36;
+    --llm:#1c2b44; --cod:#173326; --mcp:#2b2340;
+  }
+}
+* { box-sizing:border-box }
+body { margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink) }
+header { background:var(--panel); border-bottom:1px solid var(--line); padding:14px 24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+header h1 { font-size:20px; margin:0; display:flex; align-items:center; gap:8px; }
+header .tag { font-size:12.5px; color:var(--mute); }
+.badge-live { margin-left:auto; font-size:12px; font-weight:700; background:var(--ok-soft); color:var(--ok); padding:5px 12px; border-radius:99px; border:1px solid var(--ok); display:flex; align-items:center; gap:6px; }
+.badge-live::before { content:""; width:8px; height:8px; background:var(--ok); border-radius:50%; display:inline-block; animation:pulse 1.8s infinite; }
+@keyframes pulse { 0%{transform:scale(0.9);opacity:0.8} 50%{transform:scale(1.2);opacity:1} 100%{transform:scale(0.9);opacity:0.8} }
+
+.alert-banner { background:var(--bad-soft); border-bottom:2px solid var(--bad); padding:12px 24px; display:flex; align-items:center; gap:12px; color:var(--bad); font-weight:600; font-size:14px; }
+.alert-banner .icon { font-size:20px; }
+
+.tabs { display:flex; gap:4px; padding:0 24px; background:var(--panel); border-bottom:1px solid var(--line); overflow-x:auto }
+.tabs button { background:none; border:0; padding:12px 16px; font:inherit; color:var(--mute); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; font-weight:500; font-size:14px; transition:0.2s; }
+.tabs button.on { color:var(--brand); border-color:var(--brand); font-weight:700 }
+
+main { max-width:1200px; margin:0 auto; padding:24px }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px 24px; margin-bottom:20px; box-shadow:0 1px 2px rgba(0,0,0,0.03); }
+.card h2 { margin:0 0 6px; font-size:18px }
+.sub { color:var(--mute); margin:0 0 16px; font-size:13.5px }
+
+.pill { display:inline-block; font-size:11.5px; padding:2.5px 8.5px; border-radius:99px; font-weight:600; margin:0 4px 2px 0 }
+.p-ok { background:var(--ok-soft); color:var(--ok) }
+.p-warn { background:var(--warn-soft); color:var(--warn) }
+.p-bad { background:var(--bad-soft); color:var(--bad) }
+.p-info { background:var(--brand-soft); color:var(--brand) }
+.p-user { background:var(--user-soft); color:var(--user) }
+.p-mute { background:var(--code); color:var(--mute) }
+
+.kpi-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px }
+.kpi-card { flex:1 1 200px; border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:var(--bg) }
+.kpi-card b { font-size:24px; display:block; color:var(--ink) }
+.kpi-card span { font-size:12px; color:var(--mute) }
+
+.cand { border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; background:var(--panel) }
+.cand.acc { border-left:5px solid var(--ok) }
+.cand.rej { border-left:5px solid var(--bad); background:var(--bad-soft) }
+.cand .h { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+.code, code, .mono { font-family:ui-monospace,Consolas,monospace; font-size:12.5px; background:var(--code); padding:2px 6px; border-radius:4px }
+pre { background:var(--code); padding:14px; border-radius:8px; overflow-x:auto; font-size:13px; font-family:ui-monospace,Consolas,monospace; }
+
+.agent-box { display:flex; gap:12px; align-items:flex-start; padding:14px 18px; border-radius:10px; border:1.5px solid; margin-bottom:16px; }
+.agent-box.LLM { background:var(--llm); border-color:var(--llm-b) }
+.agent-box.code { background:var(--cod); border-color:var(--cod-b) }
+.agent-box.mcp { background:var(--mcp); border-color:var(--mcp-b) }
+
+table { border-collapse:collapse; width:100%; font-size:13.5px }
+th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); }
+th { color:var(--mute); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; background:var(--bg) }
+
+.view { display:none }
+.view.on { display:block }
+
+.tree-flow { display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:var(--bg); padding:16px; border-radius:10px; border:1px solid var(--line); margin-bottom:20px; }
+.tree-node { background:var(--panel); border:1.5px solid var(--brand); border-radius:8px; padding:10px 14px; font-size:13px; font-weight:600; text-align:center; }
+.tree-arrow { font-size:18px; color:var(--mute); }
+.tree-sub { font-size:11px; color:var(--mute); font-weight:normal; margin-top:2px; }
+
+.brief-sec { margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px }
+.brief-sec h3 { margin:0 0 8px; font-size:15px; color:var(--brand); display:flex; align-items:center; gap:6px; }
+</style>
+<script>
+function showTab(id) {
+  document.querySelectorAll('.view').forEach(e => e.classList.remove('on'));
+  document.querySelectorAll('.tabs button').forEach(e => e.classList.remove('on'));
+  const targetView = document.getElementById('v-' + id);
+  const targetTab = document.getElementById('tab-' + id);
+  if (targetView) targetView.classList.add('on');
+  if (targetTab) targetTab.classList.add('on');
+}
+window.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash) showTab(hash);
+});
+function filterEvidence(type) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('p-info'));
+  if (type === 'all') {
+    document.querySelectorAll('.cand').forEach(c => c.style.display = 'block');
+  } else if (type === 'valid') {
+    document.querySelectorAll('.cand.acc').forEach(c => c.style.display = 'block');
+    document.querySelectorAll('.cand.rej').forEach(c => c.style.display = 'none');
+  } else if (type === 'decoy') {
+    document.querySelectorAll('.cand.acc').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.cand.rej').forEach(c => c.style.display = 'block');
+  }
+}
+</script>
+</head>
+<body>
+
+<header>
+  <h1>🏠 ShelterWise <span style="font-size:14px;font-weight:normal;color:var(--mute);">| ADK Multi-Agent Workspace</span></h1>
+  <span class="tag">San Francisco (FIPS 06075) · Real BigQuery Vector Search &amp; Decoy Trap Filtering</span>
+  <span class="badge-live">LIVE AGENT EXECUTION</span>
+</header>
+
+<div class="alert-banner">
+  <span class="icon">🚨</span>
+  <div>
+    <strong>CRITICAL LIFE-SAFETY HAZARD DETECTED:</strong> Active water intrusion adjacent to kitchen electrical fuse box + cold radiators for 14 days.<br>
+    <span style="font-size:12.5px;opacity:0.9;">Emergency eviction hearing scheduled for Monday 9:00 AM (&lt; 72 hours). Emergency attorney review required.</span>
+  </div>
+</div>
+
+<nav class="tabs">
+  <button id="tab-overview" class="on" onclick="showTab('overview')">① Pipeline &amp; Case Overview</button>
+  <button id="tab-evidence" onclick="showTab('evidence')">② Evidence Room (10 Valid / 5 Decoys)</button>
+  <button id="tab-policy" onclick="showTab('policy')">③ Statutes &amp; Relief Funds (4)</button>
+  <button id="tab-tract" onclick="showTab('tract')">④ Census Tract Baseline (06075030201)</button>
+  <button id="tab-brief" onclick="showTab('brief')">⑤ Tenant Stabilization Brief</button>
+  <button id="tab-specialists" onclick="showTab('specialists')">⑥ Specialist Sub-Agents (3)</button>
+</nav>
+
+<main>
+
+<!-- VIEW 1: OVERVIEW -->
+<section class="view on" id="v-overview">
+  <div class="card">
+    <h2>Multi-Agent Pipeline Architecture</h2>
+    <p class="sub">Sequential intake structuring → Parallel 3-agent fanout → Synthesis &amp; Brief generation</p>
+    <div class="tree-flow">
+      <div class="tree-node" style="border-color:var(--llm-b);background:var(--llm);">
+        1. Intake Structurer Agent
+        <div class="tree-sub">LlmAgent · Facts &amp; Hazard Gate</div>
+      </div>
+      <div class="tree-arrow">➔</div>
+      <div style="border:1.5px dashed var(--brand);padding:8px;border-radius:10px;background:var(--panel);">
+        <div style="font-size:11px;font-weight:700;color:var(--brand);margin-bottom:6px;text-align:center;">PARALLEL AGENT FANOUT</div>
+        <div style="display:flex;gap:8px;">
+          <div class="tree-node" style="font-size:12px;border-color:var(--cod-b);background:var(--cod);">
+            Habitability Vector
+            <div class="tree-sub">BigQuery Vector Search</div>
+          </div>
+          <div class="tree-node" style="font-size:12px;border-color:var(--cod-b);background:var(--cod);">
+            Statute &amp; Bulletin
+            <div class="tree-sub">SF Ordinances &amp; Relief</div>
+          </div>
+          <div class="tree-node" style="font-size:12px;border-color:var(--cod-b);background:var(--cod);">
+            Tract Displacement
+            <div class="tree-sub">v_tract_stability_context</div>
+          </div>
+        </div>
+      </div>
+      <div class="tree-arrow">➔</div>
+      <div class="tree-node" style="border-color:var(--llm-b);background:var(--llm);">
+        3. Eligibility &amp; Brief Agent
+        <div class="tree-sub">LlmAgent · 9-Section Memo</div>
+      </div>
+      <div class="tree-arrow">➔</div>
+      <div class="tree-node" style="border-color:var(--mcp-b);background:var(--mcp);">
+        Root Navigator
+        <div class="tree-sub">shelterwise_navigator</div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <b>Elena Vance (Mother of 2)</b>
+        <span>Client Profile</span>
+      </div>
+      <div class="kpi-card">
+        <b>400 Block Ellis St, Apt 3B, San Francisco, CA 94102</b>
+        <span>Subject Property</span>
+      </div>
+      <div class="kpi-card">
+        <b style="color:var(--bad);">Monday 9:00 AM</b>
+        <span>Court Hearing (&lt; 72 hrs)</span>
+      </div>
+      <div class="kpi-card">
+        <b style="color:var(--ok);">06075030201</b>
+        <span>San Francisco GEOID (11-digit)</span>
+      </div>
+    </div>
+
+    <div class="cand acc" style="border-left-color:var(--brand);">
+      <div class="h">
+        <b>Client Reported Facts (Normalized)</b>
+      </div>
+      <ul style="margin:8px 0 0;padding-left:20px;font-size:13.5px;">
+        <li>Tenant reports defective heating / cold radiators for over 14 days during winter.</li><li>Tenant reports active water intrusion from ceiling directly adjacent to kitchen electrical fuse box.</li><li>Tenant served nonpayment court summons with trial/hearing set for Monday 9:00 AM.</li>
+      </ul>
+      <div style="margin-top:10px;">
+        <span class="pill p-bad">Primary Hazard: Defective heating / cold radiators</span>
+        <span class="pill p-bad">Secondary Hazard: Water intrusion near electrical fuse box</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIEW 2: EVIDENCE ROOM -->
+<section class="view" id="v-evidence">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+      <div>
+        <h2 style="margin:0;">BigQuery Vector Search &amp; Decoy Trap Filter</h2>
+        <p class="sub" style="margin:0;">Municipal 311 Records evaluated against strict habitability business rules</p>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="pill p-info filter-btn" onclick="filterEvidence('all')" style="cursor:pointer;border:0;">Show All (15)</button>
+        <button class="pill p-ok filter-btn" onclick="filterEvidence('valid')" style="cursor:pointer;border:0;">Valid 311s (10)</button>
+        <button class="pill p-bad filter-btn" onclick="filterEvidence('decoy')" style="cursor:pointer;border:0;">Excluded Decoys (5)</button>
+      </div>
+    </div>
+
+    <h3 style="margin:16px 0 8px;font-size:15px;color:var(--bad);">Excluded Decoys (Caught by Custom Business Rules)</h3>
+    <p style="font-size:12.5px;color:var(--mute);margin:0 0 10px;">Planted decoys must never contaminate eviction defense filings or habitability rent-withholding motions.</p>
+    
+    <div class="cand rej">
+      <div class="h">
+        <span class="pill p-bad">EXCLUDED DECOY</span>
+        <code>DECOY-SANF-01</code>
+        <span class="mono">100 Block Example Teaching Way [Planted Case], San Francisco, CA</span>
+        <span class="pill p-warn">Reason: Commercial property decoy</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.830</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;opacity:0.85;">
+        "Emergency boiler shutdown, no heat, and ceiling water leak inside commercial retail warehouse storefront; zero residential tenants."
+      </div>
+    </div>
+    
+    <div class="cand rej">
+      <div class="h">
+        <span class="pill p-bad">EXCLUDED DECOY</span>
+        <code>DECOY-SANF-07</code>
+        <span class="mono">700 Block Example Teaching Way [Planted Case], San Francisco, CA</span>
+        <span class="pill p-warn">Reason: Zero violation decoy</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.890</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;opacity:0.85;">
+        "Proactive winter readiness inspection: heating boiler operating at 71F, hot water at 122F, no mold, no leaks, and zero habitability defects found."
+      </div>
+    </div>
+    
+    <div class="cand rej">
+      <div class="h">
+        <span class="pill p-bad">EXCLUDED DECOY</span>
+        <code>DECOY-SANF-03</code>
+        <span class="mono">300 Block Example Teaching Way [Planted Case], San Francisco, CA</span>
+        <span class="pill p-warn">Reason: Commercial property decoy</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.895</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;opacity:0.85;">
+        "Collapsed ceiling tiles, standing water, and electrical panel hazard in vacant commercial office dwelling unit."
+      </div>
+    </div>
+    
+    <div class="cand rej">
+      <div class="h">
+        <span class="pill p-bad">EXCLUDED DECOY</span>
+        <code>SF-202665125</code>
+        <span class="mono">100 Block Northridge Rd, San Francisco, CA</span>
+        <span class="pill p-warn">Reason: Closed/Abated case decoy</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.896</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;opacity:0.85;">
+        "Water problem with tub. the water keeps running and it is running hot. management is not in at the moment and they don&#x27;t see the emergency shut off valve."
+      </div>
+    </div>
+    
+    <div class="cand rej">
+      <div class="h">
+        <span class="pill p-bad">EXCLUDED DECOY</span>
+        <code>DECOY-SANF-04</code>
+        <span class="mono">400 Block Example Teaching Way [Planted Case], San Francisco, CA</span>
+        <span class="pill p-warn">Reason: Closed/Abated case decoy</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.912</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;opacity:0.85;">
+        "Tenant reported broken central boiler, freezing rooms, and zero hot water; landlord replaced boiler and inspector verified full abatement."
+      </div>
+    </div>
+    
+
+    <h3 style="margin:22px 0 8px;font-size:15px;color:var(--ok);">Corroborating Open Residential 311 Cases</h3>
+    <p style="font-size:12.5px;color:var(--mute);margin:0 0 10px;">Active Department of Building Inspection (DBI) cases corroborating physical heating/electrical hazards.</p>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665150</code>
+        <span class="mono">100 Block Shipley St, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.885</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "No hot water in dwelling unit"
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665077</code>
+        <span class="mono">400 Block Lake St, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.897</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Illegal boiler opeation, degraded boiler isulation, collapsing central flue stack, absence of life-safty alarms, hazardous laundry venting, garbage chute barrier breach and failing waste main &amp; open sewage. rusted leaking water vents, unpermitted construction dwelling unit, plumbing pipe running out of above bathroom window into side bldg pathways,"
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665110</code>
+        <span class="mono">100 Block Clarence Pl, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.904</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Bedroom has no window and no egress, possible illegal bedroom, electrical panel box in bedroom, possible no central heating in dwelling unit, in kitchen - there is no ventilation for air to be taken out of dwelling unit. in bathroom, no window and dwelling unit sets off fire alarm in the hallway, painted rust on light fixtures in bathroom, there are cracks in kitchen counter, washer and dryer is not working properly"
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665113</code>
+        <span class="mono">200 Block Richland Av, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.905</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Tenant found damaged furnace ducting 10/15/26. the landlord was notified on 10/16 and pge was brought in to determine whether there was a safety concern. pge came on 10/22 did not see any issue, however, the landlord decided disassemble the ducting anyway and make the furnace inoperable. the heat has not been working ever since.dbi inspector avery vos is already in communication with tenant concerning a separate dbi complaint 202650892. tenant is requesting avery vos for this complaint if possible."
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665186</code>
+        <span class="mono">500 Block 28Th Av, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.908</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "No heat in dwelling unit"
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665137</code>
+        <span class="mono">1400 Block 26Th Av, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.908</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Ceiling leak from previous report split open job remains unfinished. i was urged by landlord not to report. unconfortable with that"
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665182</code>
+        <span class="mono">1000 Block Fillmore St, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.914</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Customer is calling on behalf of the tenant who is her client. caller stated this resident has been without heat for the past 2 decades. the resident got pneumonia and cant be in the dwelling unit of the respiratory issues. its 52 degrees in the dwelling unit."
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665124</code>
+        <span class="mono">2800 Block 16Th St, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.916</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Kitchen is leaking. there is water coming from their kitchen sink. they placed a work order with management at around 3 pm yesterday. the maintenance worker supplied caller with a vacuum for the leak but the worker left for the weekend. another worker came on the weekend but was unable to help out.caller phone does not ring but receives texts and emails."
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665187</code>
+        <span class="mono">1200 Block 25Th Av, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.918</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "No heat since friday 10/30/26 due to rodent droppings in the heater. landlord was contacted 4 times and says soonest they can address the issue is mid-week of 11/2/26."
+      </div>
+    </div>
+    
+    <div class="cand acc">
+      <div class="h">
+        <span class="pill p-ok">VALID RESIDENTIAL 311</span>
+        <code>SF-202665061</code>
+        <span class="mono">1000 Block 16Th St, San Francisco, CA</span>
+        <span class="pill p-info">Open - Active DBI Case</span>
+        <span class="pill p-mute" style="margin-left:auto;">Vector distance: 0.921</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--ink);margin-top:6px;">
+        "Date last observed: 30-oct-26; time last observed: 9am; floor: 5; dwelling unit [REDACTED UNIT]; exact location: main bldg; building type: residence/dwelling no hot water; ; additional information: water is lukewarm but not hot. issue ongoing since at least oct 27. landlord notified of issue and has acknowledged a boiler issue.;"
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+<!-- VIEW 3: POLICY & RELIEF -->
+<section class="view" id="v-policy">
+  <div class="card">
+    <h2>Governing San Francisco &amp; California Statutes</h2>
+    <p class="sub">Retrieved statutes providing affirmative defenses against unlawful detainer</p>
+    
+    <div class="cand" style="border-left:4px solid var(--user);">
+      <div class="h">
+        <b>San Francisco Rent Ordinance Just Cause &amp; Universal Right to Counsel</b>
+        <span class="pill p-user">SF Admin. Code Ch. 37 &amp; Prop F</span>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Requires enumerated just cause for residential eviction, caps annual rent adjustments on covered units, and guarantees city-funded legal representation within 30 days of unlawful detainer service.</p>
+    </div>
+    
+    <div class="cand" style="border-left:4px solid var(--user);">
+      <div class="h">
+        <b>California Implied Warranty of Habitability &amp; Rent Demand Bar</b>
+        <span class="pill p-user">Cal. Civ. Code § 1941.1 &amp; § 1942.4</span>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Bars landlords from demanding rent, increasing rent, or serving a 3-day pay-or-quit notice when an official building/housing citation for untenantable residential conditions (missing heat, hot water, weatherproofing, plumbing, or safe wiring) remains unabated past 35 days.</p>
+    </div>
+    
+    <div class="cand" style="border-left:4px solid var(--user);">
+      <div class="h">
+        <b>California Statutory Anti-Retaliation Protection</b>
+        <span class="pill p-user">Cal. Civ. Code § 1942.5</span>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Establishes a 180-day statutory bar against retaliatory eviction, rent hikes, or service reductions after a residential tenant complains to a municipal building inspection agency.</p>
+    </div>
+    
+
+    <h2 style="margin-top:24px;">Emergency Rental Relief Programs</h2>
+    <p class="sub">Matching funding programs and prerequisites</p>
+    
+    <div class="cand acc" style="border-left-color:var(--brand);">
+      <div class="h">
+        <b>RadCo / Mission Economic Development Family Stabilization Grant</b>
+        <span class="pill p-ok">✓ Unconditional / Direct</span>
+        <a href="https://medasf.org" target="_blank" class="cite" style="margin-left:auto;">https://medasf.org</a>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Awards up to $7,500 in back-rent and PG&amp;E utility shutoff prevention for low-income residential families &lt;=60% AMI experiencing acute medical leave or wage loss.</p>
+    </div>
+    
+    <div class="cand acc" style="border-left-color:var(--brand);">
+      <div class="h">
+        <b>San Francisco Emergency Rental Assistance Program (SF ERAP)</b>
+        <span class="pill p-ok">✓ Unconditional / Direct</span>
+        <a href="https://sf.gov/renthelp" target="_blank" class="cite" style="margin-left:auto;">https://sf.gov/renthelp</a>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Covers up to $12,000 across six months of residential rental arrears or move-in deposits for San Francisco renter households at or below 80% of Area Median Income (AMI), prioritizing families &lt;=30% AMI.</p>
+    </div>
+    
+    <div class="cand acc" style="border-left-color:var(--brand);">
+      <div class="h">
+        <b>Code Enforcement Relocation &amp; Mold Remediation Bridge</b>
+        <span class="pill p-bad">🔒 Requires Open 311 Case</span>
+        <a href="https://sf.gov/dbi" target="_blank" class="cite" style="margin-left:auto;">https://sf.gov/dbi</a>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Provides temporary hotel/relocation stipends up to $8,500 exclusively for residential apartment tenants whose unit has an open un-abated DBI notice for no heat, raw sewage, or toxic mold.</p>
+    </div>
+    
+    <div class="cand acc" style="border-left-color:var(--brand);">
+      <div class="h">
+        <b>Proposition F Tenant Right to Counsel &amp; Habitability Defense</b>
+        <span class="pill p-bad">🔒 Requires Open 311 Case</span>
+        <a href="https://evictiondefense.org" target="_blank" class="cite" style="margin-left:auto;">https://evictiondefense.org</a>
+      </div>
+      <p style="margin:6px 0 0;font-size:13px;color:var(--mute);">Pairs full unlawful detainer legal representation with habitability rent-abatement motions and up to $6,000 in stipulation bridges for residential tenants with an active open Department of Building Inspection habitability complaint.</p>
+    </div>
+    
+  </div>
+</section>
+
+<!-- VIEW 4: CENSUS TRACT BASELINE -->
+<section class="view" id="v-tract">
+  <div class="card">
+    <h2>Census Tract Stability Baseline (Tract 06075030201)</h2>
+    <p class="sub">Aggregated from <code>v_tract_stability_context</code> with demographic firewall protection</p>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <b>60</b>
+        <span>Annual Court Eviction Filings <span class="pill p-mute">[Modeled]</span></span>
+      </div>
+      <div class="kpi-card">
+        <b>26.3%</b>
+        <span>Severe Rent Burden Rate (&gt;50% Income)</span>
+      </div>
+      <div class="kpi-card">
+        <b>5</b>
+        <span>Open Residential 311 Cases <span class="pill p-ok">[Official DBI]</span></span>
+      </div>
+      <div class="kpi-card">
+        <b style="color:var(--ok);">Protected</b>
+        <span>Demographic Firewall (0 audit_* in Case Output)</span>
+      </div>
+    </div>
+
+    <div class="cand acc" style="border-left-color:var(--brand);">
+      <div class="h">
+        <b>Tract Provenance &amp; Fanout Safety</b>
+      </div>
+      <p style="font-size:13px;color:var(--mute);margin:6px 0 0;">
+        Court filings were pre-aggregated across 4 rolling quarters in BigQuery view <code>v_tract_stability_context</code>.
+        This guarantees zero 4x Cartesian inflation in eviction counts. Demographic fields (race, language, vehicle access) are firewalled into <code>v_metro_equity_audit</code> and strictly forbidden from scoring individual tenants.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- VIEW 5: BRIEF -->
+<section class="view" id="v-brief">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--line);padding-bottom:12px;margin-bottom:16px;">
+      <div>
+        <h2 style="margin:0;">Tenant Stabilization Brief (v1.0)</h2>
+        <span class="mono" style="font-size:12px;color:var(--mute);">Matter of: Elena Vance · Case Ref: SF-TUD-2026-04</span>
+      </div>
+      <span class="pill p-bad" style="font-size:13px;padding:4px 10px;">ACTION REQUIRED BEFORE MON 9:00 AM</span>
+    </div>
+
+    <div class="brief-sec">
+      <h3>1. Emergency Life-Safety Notice</h3>
+      <div class="cand rej" style="border-left-color:var(--bad);">
+        <b>URGENT:</b> Active water intrusion adjacent to electrical fuse box creates immediate fire/shock hazard.
+        Department of Building Inspection emergency inspection requested under SF Housing Code § 501.
+      </div>
+    </div>
+
+    <div class="brief-sec">
+      <h3>2. Tenant Reported Habitability Conditions</h3>
+      <p style="font-size:13.5px;margin:4px 0;">Tenant has resided at 400 Block Ellis St with two minor children. Over the past 14 days, radiators have remained unheated during winter weather. Ceiling water leakage has pooled directly near kitchen electrical breaker panel.</p>
+    </div>
+
+    <div class="brief-sec">
+      <h3>3. Public Corroboration &amp; 311 Evidence Verification</h3>
+      <p style="font-size:13.5px;margin:4px 0;">Vector similarity search in BigQuery retrieved <strong>10 active DBI building inspection cases</strong> corroborating localized heating failures and electrical leaks on neighboring parcels. <strong>5 planted decoy cases</strong> (commercial retail, closed/abated repairs, zero-violation inspections) were audited and disqualified.</p>
+    </div>
+
+    <div class="brief-sec">
+      <h3>4. Affirmative Defenses Under California Law</h3>
+      <ul style="font-size:13.5px;margin:4px 0;padding-left:20px;">
+        <li><strong>Breach of Implied Warranty of Habitability (Cal. Civ. Code § 1941.1 &amp; § 1942.4):</strong> Landlord is barred from demanding or recovering rent during periods where heat and safe electrical wiring are defective.</li>
+        <li><strong>Anti-Retaliation Bar (Cal. Civ. Code § 1942.5):</strong> 180-day bar against eviction following municipal habitability complaint.</li>
+      </ul>
+    </div>
+
+    <div class="brief-sec">
+      <h3>5. Emergency Financial Stabilization Relief</h3>
+      <p style="font-size:13.5px;margin:4px 0;">Recommended immediate funding bridge: <strong>SF ERAP</strong> (up to $12,000 back rent) and <strong>RADCO / MEDA Family Stabilization Grant</strong> ($7,500). Active 311 habitability filing will unlock Code Enforcement Relocation Bridge ($8,500).</p>
+    </div>
+
+    <div class="brief-sec">
+      <h3>6. Attorney Action Checklist (Prior to Monday 9:00 AM)</h3>
+      <ul style="font-size:13.5px;margin:4px 0;padding-left:20px;">
+        <li>[ ] File emergency Answer asserting affirmative defense of habitability breach.</li>
+        <li>[ ] Submit SF311 DBI inspection request confirmation number to court.</li>
+        <li>[ ] Request court stay of nonpayment detainer pending SF ERAP rental disbursement.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- VIEW 6: SPECIALISTS -->
+<section class="view" id="v-specialists">
+  <div class="card">
+    <h2>Specialist Sub-Agents Execution Results</h2>
+    <p class="sub">Autonomous specialist sub-agents deployed in the ADK agent tree</p>
+
+    <!-- Sub-agent 1 -->
+    <div class="agent-box LLM">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--brand);margin-bottom:4px;">
+          🕵️ Sub-Agent: Evidence Explainer Agent
+        </div>
+        <p style="font-size:13px;color:var(--mute);margin:0 0 8px;">
+          Query: "Explain why candidate <code>DECOY-SANF-01</code> was excluded from the brief."
+        </p>
+        <div class="cand" style="background:var(--panel);margin:0;">
+          <b>Agent Response:</b>
+          <div style="font-size:13.5px;margin-top:4px;">
+            "Record DECOY-SANF-01 was excluded because: Commercial property decoy. Municipal business rules require active residential habitability hazards. Commercial properties, closed/abated repairs, and zero-violation inspections cannot corroborate a residential habitability defense."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-agent 2 -->
+    <div class="agent-box code">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--ok);margin-bottom:4px;">
+          ⚖️ Sub-Agent: Responsible AI Equity Audit Agent
+        </div>
+        <p style="font-size:13px;color:var(--mute);margin:0 0 8px;">
+          Runs isolated cohort aggregation over <code>v_metro_equity_audit</code> to ensure equitable legal coverage across tracts without scoring individuals.
+        </p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Cohort Category</th>
+                <th>Tract Count</th>
+                <th>Avg Rent Burden</th>
+                <th>Black %</th>
+                <th>Hispanic %</th>
+                <th>Asian %</th>
+                <th>White %</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+    <tr>
+      <td><span class="pill p-ok">Standard Tract Cohort</span></td>
+      <td><b>36 tracts</b></td>
+      <td><b>16.3%</b></td>
+      <td>4.2%</td>
+      <td>11.4%</td>
+      <td>26.6%</td>
+      <td>51.3%</td>
+    </tr>
+    
+    <tr>
+      <td><span class="pill p-bad">Silent Distress Candidate</span></td>
+      <td><b>6 tracts</b></td>
+      <td><b>25.6%</b></td>
+      <td>4.0%</td>
+      <td>13.7%</td>
+      <td>38.0%</td>
+      <td>35.6%</td>
+    </tr>
+    
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:12px;color:var(--mute);margin-top:8px;">
+          💡 <strong>Audit Insight:</strong> 6 Silent Distress tracts exhibit severe rent burden (25.6%) and higher minority representation where court filings outpace 311 calls. The system prioritizes legal bridge resources to these tracts.
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-agent 3 -->
+    <div class="agent-box mcp">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--user);margin-bottom:4px;">
+          🚨 Sub-Agent: Hazard 311 Drafter Agent
+        </div>
+        <p style="font-size:13px;color:var(--mute);margin:0 0 8px;">
+          Drafts official municipal complaint to San Francisco Department of Building Inspection (DBI).
+        </p>
+        <pre>{
+  "agency": "San Francisco Department of Building Inspection (DBI)",
+  "complaint_type": "Habitability / Urgent Inspection Request",
+  "block_address": "400 block Ellis St",
+  "hazard_summary": "Defective heating / cold radiators and Water intrusion near electrical fuse box",
+  "priority_level": "High - Immediate Life Safety",
+  "filing_instructions": "File online via SF311 or call 311. Request immediate DBI inspector site visit. Keep the 311 service request number to unlock habitability-contingent relief funds."
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  ShelterWise Multi-Agent System · Google ADK + BigQuery Managed MCP · Branch: <code>rohith-visual-ui</code>
+</footer>
+
+</body>
+</html>
