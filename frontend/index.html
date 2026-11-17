@@ -15,7 +15,8 @@
   --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
   --font-mono:'JetBrains Mono',monospace;
   --bg:#f8fafc; --panel:#ffffff; --panel-elevated:#ffffff; --ink:#0f172a; --ink-light:#334155; --mute:#64748b; --line:#e2e8f0;
-  --brand:#2563eb; --brand-light:#3b82f6; --brand-soft:#eff6ff; --brand-border:#bfdbfe;
+  --brand:#2563eb; --brand-light:#3b82f6; --brand-dark:#1d4ed8; --brand-soft:#eff6ff; --brand-border:#bfdbfe;
+  --shadow-card:0 10px 25px -5px rgba(0,0,0,0.05),0 8px 10px -6px rgba(0,0,0,0.02);
   --ok:#059669; --ok-soft:#ecfdf5; --ok-border:#a7f3d0;
   --warn:#d97706; --warn-soft:#fffbeb; --warn-border:#fde68a;
   --bad:#dc2626; --bad-soft:#fef2f2; --bad-border:#fecaca;
@@ -87,7 +88,7 @@ main{max-width:1280px;margin:0 auto;padding:24px}
 .stepper li button small{display:block;color:var(--mute);font-size:11px;font-weight:500;margin-top:2px}
 
 /* Cards & Surfaces */
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow-sm)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:28px;margin-bottom:24px;box-shadow:var(--shadow-card)}
 .card h2{margin:0 0 6px;font-size:20px;font-weight:800;letter-spacing:-0.01em}
 .card h3{margin:20px 0 8px;font-size:15.5px;font-weight:700}
 .sub{color:var(--mute);margin:0 0 16px;font-size:13.5px}
@@ -101,7 +102,7 @@ main{max-width:1280px;margin:0 auto;padding:24px}
 .scenario-card span{display:block;font-size:11.5px;color:var(--mute);line-height:1.4}
 
 /* Buttons & Inputs */
-.btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 20px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s ease;box-shadow:var(--shadow-sm)}
+.btn{background:linear-gradient(135deg,var(--brand),#1d4ed8);color:#fff;border:0;border-radius:12px;padding:11px 22px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s ease;box-shadow:0 4px 12px rgba(37,99,235,0.2)}
 .btn:hover{background:var(--brand-light);box-shadow:var(--shadow)}
 .btn:active{transform:scale(0.98)}
 .btn.ghost{background:var(--panel);color:var(--brand);border:1px solid var(--brand-border)}
@@ -187,8 +188,8 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
   <div class="brand-lockup">
     <div class="brand-icon">🏠</div>
     <div>
-      <h1>ShelterWise</h1>
-      <div class="tagline">Grounded Housing Stability &amp; Habitability Defense Platform · San Francisco</div>
+      <h1>ShelterWise <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand-border);vertical-align:middle;margin-left:6px">SAN FRANCISCO</span></h1>
+      <div class="tagline">Tenant Protection, City Evidence Search &amp; Eviction Defense Navigator</div>
     </div>
   </div>
   <div class="header-actions">
@@ -210,10 +211,10 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
 </header>
 
 <nav class="nav-tabs" id="tabs">
-  <button data-v="demo" class="on">① Case Workspace (Paralegal Flow)</button>
-  <button data-v="arch">② Multi-Agent Architecture (ADK *_ag)</button>
-  <button data-v="data">③ Datasets &amp; Provenance (BigQuery)</button>
-  <button data-v="rules">④ Responsible AI &amp; Defense Rules</button>
+  <button data-v="demo" class="on">🏠 Protect My Home</button>
+  <button data-v="arch">⚙️ Behind The Scenes (Google ADK *_ag)</button>
+  <button data-v="data">📊 City Inspection Data (BigQuery)</button>
+  <button data-v="rules">⚖️ Tenant Rights &amp; Defense Rules</button>
 </nav>
 
 <main>
@@ -221,8 +222,8 @@ footer{color:var(--mute);font-size:12.5px;text-align:center;padding:36px 20px;bo
 <!-- HERO EXPLAINER SECTION -->
 <div class="hero-card">
   <div class="hero-text">
-    <h2>Stabilizing San Francisco Tenants with Grounded Multi-Agent AI</h2>
-    <p>Low-income tenants frequently lose eviction cases simply because chronic habitability issues—like broken winter heat or ceiling leaks—lack corroboration. ShelterWise deploys a coordinated Google ADK multi-agent pipeline to automatically pair tenant statements with official municipal 311 inspection citations, statutory affirmative defenses, and emergency relief grants in seconds.</p>
+    <h2>Facing an eviction hearing or unsafe living conditions in San Francisco?</h2>
+    <p>In San Francisco, renters frequently face eviction when chronic issues—like freezing rooms or water leaks—lack official proof. <b>ShelterWise automatically pairs your story with official City Hall building inspection records</b>, verifies your affirmative legal defenses, and connects you with up to <b>$12,000 in emergency back-rent relief</b>.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px"><span style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm)">🛡️ City-Verified 311 Records</span><span style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm)">⚖️ Prop F Universal Right to Counsel</span><span style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm)">💵 Up to $12,000 Back-Rent Grants</span><span style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm)">🔒 100% Free &amp; Confidential</span></div>
     <div class="hero-metrics">
       <div class="metric-chip"><b>42</b><span>SF Census Tracts</span></div>
       <div class="metric-chip"><b>165</b><span>Public 311 Records</span></div>
@@ -620,16 +621,16 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
 
 /* =================== 10 GUIDED STEPS =================== */
 const STEPS=[
-  ['Intake','Paralegal Intake Sandbox'],
-  ['Understand','intake_structurer_ag'],
-  ['Gather · Evidence','habitability_vector_ag'],
-  ['Gather · Context','tract_displacement_ag'],
-  ['Decide · Law','statute_and_bulletin_ag'],
-  ['Decide · Funds','eligibility_and_brief_ag'],
-  ['Write & Verify','Automated Verification'],
-  ['Defense Brief','Tenant Stabilization Brief'],
-  ['Follow-ups','shelterwise_navigator_ag'],
-  ['Human Review','Attorney Review Checklist']
+  ['1 · Tell Your Story','Your situation & 4 SF scenarios'],
+  ['2 · Facts Verified','intake_structurer_ag'],
+  ['3 · City 311 Evidence','habitability_vector_ag'],
+  ['4 · Neighborhood Context','tract_displacement_ag'],
+  ['5 · Your Legal Protections','statute_and_bulletin_ag'],
+  ['6 · Emergency Rent Grants','eligibility_and_brief_ag'],
+  ['7 · Evidence Cross-Check','Automated verification'],
+  ['8 · Court Defense Packet','Tenant Stabilization Brief'],
+  ['9 · Ask Housing Assistant','shelterwise_navigator_ag'],
+  ['10 · Legal Review & Audit','Attorney checklist & equity audit']
 ];
 
 let cur=0,maxDone=-1;
