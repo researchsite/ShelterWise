@@ -16,9 +16,22 @@
 | Resource | URL | Status |
 | :--- | :--- | :--- |
 | **Interactive Case Workspace UI** | [https://shelterwise-335751565476.us-central1.run.app](https://shelterwise-335751565476.us-central1.run.app) | 🟢 Live & Serving |
+| **App UI Workspace Snapshot** | [https://shelterwise-335751565476.us-central1.run.app/app_ui_snapshot.png](https://shelterwise-335751565476.us-central1.run.app/app_ui_snapshot.png) | 🟢 Live Asset |
 | **Civic Tech Infographic Asset** | [https://shelterwise-335751565476.us-central1.run.app/hero.png](https://shelterwise-335751565476.us-central1.run.app/hero.png) | 🟢 Live Asset |
 | **Backend API Health Check** | [https://shelterwise-335751565476.us-central1.run.app/api/health](https://shelterwise-335751565476.us-central1.run.app/api/health) | 🟢 Healthy |
 | **Interactive Swagger API Docs** | [https://shelterwise-335751565476.us-central1.run.app/docs](https://shelterwise-335751565476.us-central1.run.app/docs) | 🟢 Live |
+
+---
+
+## 📱 Application Workspace Snapshot & Architecture Visual
+
+| 🖥️ Consumer App Workspace Snapshot | 📊 Multi-Agent Architecture & Problem Explainer |
+| :---: | :---: |
+| [![ShelterWise Consumer UI Snapshot](https://shelterwise-335751565476.us-central1.run.app/app_ui_snapshot.png)](https://shelterwise-335751565476.us-central1.run.app) | [![ShelterWise Infographic](https://shelterwise-335751565476.us-central1.run.app/hero.png)](https://shelterwise-335751565476.us-central1.run.app) |
+| *Modern, warm, consumer-friendly housing defense flow with 10-step progress, interactive map, and emergency back-rent calculator.* | *End-to-end multi-agent orchestration bridging tenant stories, BigQuery 311 records, and statutory defenses.* |
+
+> 📖 **Comprehensive System Reference**:  
+> For the complete registry of all 11 Google ADK agents, exact source code paths, Google Cloud services, and CLI commands, see **[`docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md`](docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md)**.
 
 ---
 
@@ -112,19 +125,21 @@ graph TD
 
 ### Complete Agent Registry
 
-| Agent Name | Type | Model / Runner | Role & Responsibilities |
-| :--- | :--- | :--- | :--- |
-| `shelterwise_navigator_ag` | LLM Agent | `gemini-2.5-flash` | Root orchestrator. Intercepts acute life-safety hazards, runs triage, handles multi-turn advocate chats. |
-| `case_triage_pipeline_ag` | Sequential Agent | ADK Pipeline | Sequentially chains intake structuring, parallel data gathering, and brief synthesis. |
-| `intake_structurer_ag` | LLM Agent | `gemini-2.5-flash` | Extracts reported facts verbatim; normalizes 11-digit census tract GEOID (`06075...`); drafts inspector-vocabulary query. |
-| `corroboration_fanout_ag` | Parallel Agent | ADK Fanout | Dispatches concurrent parallel retrieval across BigQuery vector search, policy tables, and tract context. |
-| `habitability_vector_ag` | LLM Agent | `gemini-2.5-flash` | Executes BigQuery `VECTOR_SEARCH` with `AI.EMBED`; filters out decoy traps (commercial, abated, zero-violation). |
-| `statute_and_bulletin_ag` | LLM Agent | `gemini-2.5-flash` | Queries municipal housing codes, affirmative defense statutes, and 35-day repair clocks. |
-| `tract_displacement_ag` | LLM Agent | `gemini-2.5-flash` | Pulls pre-aggregated 4-quarter modeled eviction baselines and ACS rent burden. Firewalled against demographics. |
-| `eligibility_and_brief_ag` | LLM Agent | `gemini-2.5-flash` | Synthesizes 9-section Tenant Stabilization Brief; assesses fund eligibility based on open DBI case status. |
-| `evidence_explainer_ag` | LLM Agent | `gemini-2.5-flash` | Explains why decoy near-miss records were excluded to ensure advocate transparency. |
-| `equity_audit_ag` | LLM Agent | `gemini-2.5-flash` | Evaluates silent distress tracts (under-reporting) across the metro area. STRICTLY isolated from case triage. |
-| `hazard_311_drafter_ag` | LLM Agent | `gemini-2.5-flash` | Drafts formal emergency SF DBI 311 inspection requests when zero complaints exist on a block. |
+*(Full details, tool schemas, and lifecycle hooks documented in **[`docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md`](docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md)**)*
+
+| Agent Name | Type | Source File Path | Model / Engine | Role & Responsibilities |
+| :--- | :--- | :--- | :--- | :--- |
+| `shelterwise_navigator_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Root orchestrator. Intercepts acute life-safety hazards, runs triage, handles multi-turn advocate chats. |
+| `case_triage_pipeline_ag` | Sequential Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | ADK Pipeline | Sequentially chains intake structuring, parallel data gathering, and brief synthesis. |
+| `intake_structurer_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Extracts reported facts verbatim; normalizes 11-digit census tract GEOID (`06075...`); drafts inspector-vocabulary query. |
+| `corroboration_fanout_ag` | Parallel Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | ADK Fanout | Dispatches concurrent parallel retrieval across BigQuery vector search, policy tables, and tract context. |
+| `habitability_vector_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Executes BigQuery `VECTOR_SEARCH` with `AI.EMBED`; filters out decoy traps (commercial, abated, zero-violation). |
+| `statute_and_bulletin_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Queries municipal housing codes, affirmative defense statutes, and 35-day repair clocks. |
+| `tract_displacement_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Pulls pre-aggregated 4-quarter modeled eviction baselines and ACS rent burden. Firewalled against demographics. |
+| `eligibility_and_brief_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Synthesizes 9-section Tenant Stabilization Brief; assesses fund eligibility based on open DBI case status. |
+| `evidence_explainer_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Explains why decoy near-miss records were excluded to ensure advocate transparency. |
+| `equity_audit_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Evaluates silent distress tracts (under-reporting) across the metro area. STRICTLY isolated from case triage. |
+| `hazard_311_drafter_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Drafts formal emergency SF DBI 311 inspection requests when zero complaints exist on a block. |
 
 ---
 
@@ -281,8 +296,21 @@ Tests acute life safety hazard detection and 11-digit GEOID normalization. ... o
 test_statute_clocks_and_relief (test_shelterwise.TestShelterWise.test_statute_clocks_and_relief)
 Verifies that statutes and relief programs evaluate habitability prerequisites. ... ok
 
+test_bigquery_mcp_toolset (test_triage_pipeline.TestTriagePipeline.test_bigquery_mcp_toolset)
+Verify BigQuery McpToolset initializes with Google-managed endpoint. ... ok
+test_evidence_explainer_logic (test_triage_pipeline.TestTriagePipeline.test_evidence_explainer_logic)
+Verify explain_excluded_evidence returns structured legal explanation. ... ok
+test_hazard_311_drafter_logic (test_triage_pipeline.TestTriagePipeline.test_hazard_311_drafter_logic)
+Verify draft_311_complaint prepares valid DBI filing format. ... ok
+test_pipeline_hierarchy (test_triage_pipeline.TestTriagePipeline.test_pipeline_hierarchy)
+Verify SequentialAgent pipeline and 3-way ParallelAgent fanout. ... ok
+test_root_coordinator_and_specialists (test_triage_pipeline.TestTriagePipeline.test_root_coordinator_and_specialists)
+Verify root coordinator exports and specialist sub-agents. ... ok
+test_runner_with_in_memory_session (test_triage_pipeline.TestTriagePipeline.test_runner_with_in_memory_session)
+Verify create_runner instantiates Runner backed by InMemorySessionService. ... ok
+
 ----------------------------------------------------------------------
-Ran 9 tests in 9.350s
+Ran 15 tests in 10.109s
 
 OK
 ```

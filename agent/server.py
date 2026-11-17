@@ -224,6 +224,20 @@ def serve_hero():
             return FileResponse(p, media_type="image/png")
     return JSONResponse({"error": "Hero image not found"}, status_code=404)
 
+@app.get("/app_ui_snapshot.png")
+def serve_ui_snapshot():
+    snapshot_paths = [
+        os.path.join(BASE_DIR, "frontend", "app_ui_snapshot.png"),
+        os.path.join(PROJECT_ROOT, "frontend", "app_ui_snapshot.png"),
+        os.path.join(PROJECT_ROOT, "agent", "frontend", "app_ui_snapshot.png"),
+        os.path.join(PROJECT_ROOT, "docs", "app_ui_snapshot.png"),
+    ]
+    for p in snapshot_paths:
+        if os.path.exists(p):
+            return FileResponse(p, media_type="image/png")
+    return JSONResponse({"error": "Snapshot image not found"}, status_code=404)
+
+
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
     for p in candidate_paths:
