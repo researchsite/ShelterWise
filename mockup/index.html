@@ -10,12 +10,14 @@
   --brand:#1f5fbf; --brand-soft:#e7effb; --ok:#1d7a4a; --ok-soft:#e3f4ea;
   --warn:#9a6200; --warn-soft:#fff3d6; --bad:#b3261e; --bad-soft:#fdeceb;
   --user:#6a3fb5; --user-soft:#f0eafa; --code:#f0f2f5;
+  --llm:#dbeafe; --llm-b:#2563eb; --cod:#dcfce7; --cod-b:#16a34a; --mcp:#ede9fe; --mcp-b:#7c3aed;
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#12161c; --panel:#1a2029; --ink:#e6eaf0; --mute:#97a3b3; --line:#2c3541;
   --brand:#6ea3f5; --brand-soft:#1c2b44; --ok:#5fd194; --ok-soft:#173326;
   --warn:#f0b84a; --warn-soft:#3a2f12; --bad:#f2827b; --bad-soft:#3a1c1a;
   --user:#b79af0; --user-soft:#2b2340; --code:#232b36;
+  --llm:#1c2b44; --cod:#173326; --mcp:#2b2340;
 }}
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
@@ -28,12 +30,13 @@ header .tag{font-size:12px;color:var(--mute)}
 .tabs button.on{color:var(--brand);border-color:var(--brand);font-weight:600}
 main{max-width:1180px;margin:0 auto;padding:20px}
 .view{display:none}.view.on{display:block}
-.layout{display:grid;grid-template-columns:230px 1fr;gap:20px}
+.layout{display:grid;grid-template-columns:250px 1fr;gap:20px}
 @media(max-width:820px){.layout{grid-template-columns:1fr}}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 @media(max-width:820px){.steps{flex-direction:row;overflow-x:auto}}
-.steps li button{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center;white-space:nowrap}
+.steps li button{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center;white-space:nowrap}
 .steps li button .n{width:22px;height:22px;border-radius:50%;background:var(--code);display:grid;place-items:center;font-size:12px;flex:none}
+.steps li button small{display:block;color:var(--mute);font-size:11px;line-height:1.1}
 .steps li button.on{border-color:var(--brand);background:var(--brand-soft)}
 .steps li button.on .n{background:var(--brand);color:#fff}
 .steps li button.done .n{background:var(--ok);color:#fff}
@@ -46,8 +49,9 @@ textarea{min-height:120px;resize:vertical}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:600px){.row{grid-template-columns:1fr}}
 .btn{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer;font-weight:600}
 .btn.ghost{background:none;color:var(--brand);border:1px solid var(--brand)}
+.btn.sm{padding:5px 11px;font-size:13px}
 .btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-.pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;font-weight:600;margin-right:4px}
+.pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;font-weight:600;margin:0 4px 2px 0}
 .p-user{background:var(--user-soft);color:var(--user)}
 .p-ok{background:var(--ok-soft);color:var(--ok)}
 .p-warn{background:var(--warn-soft);color:var(--warn)}
@@ -57,20 +61,17 @@ textarea{min-height:120px;resize:vertical}
 .note{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:6px;font-size:14px;margin:12px 0}
 .note.info{border-color:var(--brand);background:var(--brand-soft)}
 .note.bad{border-color:var(--bad);background:var(--bad-soft)}
+.note.ok{border-color:var(--ok);background:var(--ok-soft)}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
 .scroll{overflow-x:auto}
 code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--code);padding:1px 5px;border-radius:4px}
 pre{background:var(--code);padding:12px;border-radius:8px;overflow-x:auto;font-size:12.5px;margin:8px 0}
-.pipe{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin:10px 0}
-.pipe .st{flex:1 1 150px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);opacity:.35;transition:.3s}
-.pipe .st.on{opacity:1;border-color:var(--brand)}
-.pipe .st b{display:block;font-size:13px}
-.pipe .st span{font-size:12px;color:var(--mute)}
 .cand{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--panel)}
 .cand.rej{background:var(--bad-soft);border-color:transparent}
 .cand.acc{border-left:4px solid var(--ok)}
+.cand.cond{border-left:4px solid var(--warn)}
 .cand .h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
 .bar{height:6px;background:var(--code);border-radius:4px;overflow:hidden;width:120px;display:inline-block;vertical-align:middle}
 .bar i{display:block;height:100%;background:var(--brand)}
@@ -79,37 +80,61 @@ pre{background:var(--code);padding:12px;border-radius:8px;overflow-x:auto;font-s
 .tbl:hover,.tbl.on{border-color:var(--brand)}
 .tbl h4{margin:0 0 4px;font-size:14px;font-family:ui-monospace,Consolas,monospace}
 .tbl small{color:var(--mute)}
-.flow{display:grid;gap:10px}
-.flow .node{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel)}
-.flow .node b{display:block}
-.flow .arrow{text-align:center;color:var(--mute);font-size:18px;line-height:1}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:820px){.two{grid-template-columns:1fr}}
 .kpi{display:flex;gap:12px;flex-wrap:wrap}
 .kpi div{flex:1 1 130px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
 .kpi b{font-size:22px;display:block}.kpi span{font-size:12px;color:var(--mute)}
-.chk{display:flex;gap:8px;align-items:flex-start;margin:6px 0}.chk input{width:auto;margin-top:4px}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-weight:400}.chk input{width:auto;margin-top:4px}
 .brief h3{border-bottom:1px solid var(--line);padding-bottom:4px}
 .cite{font-size:12px;color:var(--brand);font-family:ui-monospace,Consolas,monospace}
 .hidden{display:none}
 .firewall{border:2px dashed var(--bad);border-radius:10px;padding:12px;background:var(--bad-soft)}
 footer{color:var(--mute);font-size:12px;text-align:center;padding:24px}
+/* agents */
+.agent{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 12px;border-radius:10px;border:1.5px solid;margin-bottom:12px;font-size:13px}
+.agent.LLM{background:var(--llm);border-color:var(--llm-b)}
+.agent.code{background:var(--cod);border-color:var(--cod-b)}
+.agent.mcp{background:var(--mcp);border-color:var(--mcp-b)}
+.agent b{font-size:14px}
+.agent .rw{color:var(--mute);width:100%;font-size:12px}
+.rule{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;margin:0 4px 2px 0;font-weight:600}
+.rule.y{background:var(--ok-soft);color:var(--ok)}.rule.n{background:var(--bad-soft);color:var(--bad)}.rule.x{background:var(--code);color:var(--mute);text-decoration:line-through}
+.pipe{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.pipe .st{flex:1 1 150px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);opacity:.35;transition:.3s}
+.pipe .st.on{opacity:1;border-color:var(--brand)}
+.pipe .st b{display:block;font-size:13px}.pipe .st span{font-size:12px;color:var(--mute)}
+details{margin-top:8px}
+details summary{cursor:pointer;color:var(--brand);font-size:13px;font-weight:600}
+details table{margin-top:6px}
+.chat{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);max-height:480px;overflow-y:auto}
+.msg{padding:8px 12px;border-radius:10px;margin:8px 0;max-width:92%;font-size:14px}
+.msg.u{background:var(--brand);color:#fff;margin-left:auto}
+.msg.a{background:var(--panel);border:1px solid var(--line)}
+.flowcol{display:grid;gap:8px}
+.flowcol .arrow{text-align:center;color:var(--mute);line-height:1}
+.par{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.chip{cursor:pointer;border:1.5px solid;border-radius:10px;padding:8px 10px;font-size:13px}
+.chip.LLM{background:var(--llm);border-color:var(--llm-b)}.chip.code{background:var(--cod);border-color:var(--cod-b)}.chip.mcp{background:var(--mcp);border-color:var(--mcp-b)}
+.chip.on{outline:3px solid var(--brand)}
+.chip small{display:block;color:var(--mute)}
+.stephd{font-size:12px;font-weight:700;color:var(--mute);letter-spacing:.04em;margin-top:4px}
+img.svg{max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff}
 </style>
 </head>
 <body>
 <header>
   <h1>🏠 ShelterWise</h1>
-  <span class="tag">AI-assisted housing stability navigator · Agents for Impact 2026</span>
-  <span class="mock">STATIC MOCKUP · illustrative data</span>
+  <span class="tag">AI-assisted housing stability navigator · Agents for Impact 2026 · SF · design per <code>docs/hualin/ARCHITECTURE.md</code></span>
+  <span class="mock">STATIC MOCKUP · tenant story illustrative, records &amp; programs from the starter data</span>
 </header>
 <nav class="tabs" id="tabs">
-  <button data-v="demo" class="on">① Guided demo (tenant flow)</button>
-  <button data-v="arch">② Architecture &amp; data flow</button>
+  <button data-v="demo" class="on">① Guided demo (paralegal flow)</button>
+  <button data-v="arch">② Multi-agent architecture</button>
   <button data-v="data">③ Datasets &amp; schema</button>
-  <button data-v="rules">④ Guardrails &amp; data rules</button>
+  <button data-v="rules">④ Rules &amp; guardrails</button>
 </nav>
 <main>
 
-<!-- ============ DEMO ============ -->
 <section class="view on" id="v-demo">
 <div class="layout">
   <ol class="steps" id="steps"></ol>
@@ -117,348 +142,400 @@ footer{color:var(--mute);font-size:12px;text-align:center;padding:24px}
 </div>
 </section>
 
-<!-- ============ ARCH ============ -->
 <section class="view" id="v-arch">
   <div class="card">
-    <h2>End-to-end architecture</h2>
-    <p class="sub">One ADK orchestrator + Gemini calling five typed, deterministic tools. Click a tool to see which BigQuery tables it reads.</p>
+    <h2>Multi-agent architecture</h2>
+    <p class="sub">A chat agent (<code>navigator</code>) calls a fixed 5-step brief pipeline. <b>LLMs read and write language; code makes every yes/no decision.</b> Click any agent to see what it reads, writes and which tables it touches.</p>
     <div class="two">
-      <div class="flow" id="archflow"></div>
-      <div id="archdetail" class="card" style="margin:0"></div>
+      <div class="flowcol" id="archflow"></div>
+      <div id="archdetail" class="card" style="margin:0;position:sticky;top:70px;align-self:start"></div>
     </div>
+    <div style="margin-top:10px;font-size:12px"><span class="pill p-info">blue = LLM</span><span class="pill p-ok">green = code</span><span class="pill" style="background:var(--mcp);color:var(--mcp-b)">purple = Google-managed MCP</span></div>
   </div>
   <div class="card">
-    <h2>Retrieval pattern (the key technical idea)</h2>
-    <ol>
-      <li>Normalize the query (metro, tract, issue categories, time window).</li>
-      <li><b>Embed</b> the tenant narrative → <code>VECTOR_SEARCH</code> over <code>complaints_embedded.embedding</code> gives <i>candidates</i>.</li>
-      <li><b>Hard filters win over similarity</b>: <code>property_type='Residential'</code>, <code>inspection_status LIKE 'Open%'</code>, same metro, recent date.</li>
-      <li>Join back to <code>municipal_311_housing_complaints</code> on <code>request_id</code> for dates, agency, coordinates, provenance.</li>
-      <li>Return source metadata + match rationale + exclusion reasons (decoys are shown as rejected, with why).</li>
-      <li>Never infer unit-level conditions from block/tract-level records.</li>
-    </ol>
-    <pre>WITH cand AS (
-  SELECT base.request_id, distance
-  FROM VECTOR_SEARCH(TABLE a4i_housing.complaints_embedded, 'embedding',
-       (SELECT @query_embedding AS embedding), top_k =&gt; 25)
-)
-SELECT m.request_id, m.block_address, m.raw_complaint_type, m.inspection_status,
-       m.created_date, m.data_provenance, cand.distance
-FROM cand JOIN a4i_housing.municipal_311_housing_complaints m USING (request_id)
-WHERE m.metro_area = 'San Francisco'
-  AND m.property_type = 'Residential'
-  AND m.inspection_status LIKE 'Open%'
-ORDER BY cand.distance LIMIT 5;</pre>
+    <h2>Retrieval pattern: search wide by meaning → filter strictly by rules → only claim what the record proves</h2>
+    <pre>-- evidence_agent · search_corroborating_complaints()   (filters run in Python, NOT in SQL WHERE)
+SELECT base.request_id, distance
+FROM VECTOR_SEARCH(TABLE a4i_housing.complaints_embedded, 'embedding',
+       (SELECT AI.EMBED(@search_query) AS embedding), top_k =&gt; 50);
+
+-- then join back for the columns complaints_embedded does NOT have (lat/lng, created_date, agency, provenance)
+JOIN a4i_housing.municipal_311_housing_complaints m USING (request_id)
+-- Python rules: property_type='Residential' AND closed_date IS NULL AND distance_m &lt;= 400</pre>
+    <div class="note">Schema note for the team: <code>complaints_embedded</code> has no <code>latitude</code>, <code>longitude</code> or <code>created_date</code>. The 400 m radius and the 35-day statute clock need them, so join back on <code>request_id</code> (or add the columns when building the embeddings).</div>
+  </div>
+  <div class="card"><h2>Original diagram (Hualin)</h2>
+    <img class="svg" src="../docs/hualin/architecture.svg" alt="architecture diagram" onerror="this.outerHTML='<p class=sub>Open from the repo (mockup/ next to docs/) to see docs/hualin/architecture.svg here.</p>'">
   </div>
 </section>
 
-<!-- ============ DATA ============ -->
 <section class="view" id="v-data">
   <div class="card">
-    <h2>Dataset <span class="mono">a4i_housing</span> — 6 tables</h2>
-    <p class="sub">Click a table to see its columns, provenance and how ShelterWise uses it. Starter data covers 6 metros (SF, Chicago, NYC, Austin, Baton Rouge, Cincinnati); this mockup uses San Francisco.</p>
+    <h2>Dataset <span class="mono">a4i_housing</span> · 6 tables · 84 columns</h2>
+    <p class="sub">Click a table to see every column, type, nullability, provenance, and which agent uses it. Starter data covers 6 metros; this mockup uses San Francisco.</p>
     <div class="grid3" id="tblgrid"></div>
   </div>
   <div class="card" id="tbldetail"></div>
   <div class="card">
     <h2>How tables relate</h2>
     <pre>census_tract_geoid (STRING, keep leading zeros)
-  ├─ acs_tract_housing_tenure            1 row / tract        (context + equity audit)
-  ├─ court_eviction_filings              4 rows / tract       (4 quarters → AGGREGATE FIRST)
-  ├─ municipal_311_housing_complaints    N rows / tract       (request_id PK)
-  └─ complaints_embedded                 same rows + embedding (join via request_id)
+  ├─ acs_tract_housing_tenure            1 row / tract        → context_agent (+ offline equity audit)
+  ├─ court_eviction_filings              4 rows / tract       → context_agent (SUM 4 quarters FIRST)
+  ├─ municipal_311_housing_complaints    N rows / tract       → evidence_agent (request_id = PK)
+  └─ complaints_embedded                 same rows + embedding → evidence_agent VECTOR_SEARCH (join via request_id)
 
 metro_area / state_code
-  ├─ municipal_housing_ordinance_statutes  3 rows / metro     (legal lookup)
-  └─ rental_relief_program_bulletins       4 rows / metro     (resource matching via boolean flags)</pre>
+  ├─ municipal_housing_ordinance_statutes  3 rows / metro     → legal_agent
+  └─ rental_relief_program_bulletins       4 rows / metro     → relief_agent (+ funds_sf.yaml conditions)</pre>
   </div>
 </section>
 
-<!-- ============ RULES ============ -->
 <section class="view" id="v-rules">
   <div class="two">
     <div class="card">
-      <h2>Product guardrails</h2>
-      <ul>
-        <li><b>Evidence before answer</b> — every claim cites a source or is labeled <span class="pill p-user">Tenant-reported</span>.</li>
-        <li><b>Absence ≠ proof</b> — “no 311 record found” never means “no problem existed”.</li>
-        <li><b>Retrieval ≠ legal determination</b> — statutes are shown as “potentially relevant”, with conditions to confirm.</li>
-        <li><b>Human review</b> — advocate/attorney verifies facts, law, deadlines, referrals.</li>
-        <li><b>Block ≠ unit</b> — 100-block records are never presented as the tenant’s exact unit.</li>
-        <li><b>Non-goals</b> — no auto-filing, no eviction prediction, no contacting landlords/courts.</li>
-      </ul>
+      <h2>The 8 rules (all in code, all tested)</h2>
+      <ol>
+        <li><b>Search wide, then filter.</b> Top 50 by meaning, then rules in Python. No SQL <code>WHERE</code> before ranking.</li>
+        <li><b>Keep</b> a record only if Residential <b>and</b> <code>closed_date IS NULL</code> <b>and</b> within 400 m.</li>
+        <li><b>Never</b> filter on the words <code>DECOY</code> / <code>[Planted Case]</code>. The real rules must catch all 9.</li>
+        <li><b>Funds:</b> ELIGIBLE only when every condition is confirmed; otherwise CONDITIONAL + what is missing; INELIGIBLE when a known fact rules it out.</li>
+        <li><b>Statutes with clocks:</b> compare complaint open date with the deadline (35 days for §1942.4).</li>
+        <li><b>Filings:</b> sum the 4 quarters per tract <i>before</i> joining; always label “modeled”.</li>
+        <li><b>GEOIDs are text</b> (<code>06075…</code> keeps its 0).</li>
+        <li><b><code>audit_*</code> columns</b> never enter the agent; offline equity audit only.</li>
+      </ol>
     </div>
     <div class="card">
-      <h2>Data rules (traps in the dataset)</h2>
-      <table>
-        <tr><th>Trap</th><th>Rule</th></tr>
-        <tr><td><b>Grain trap</b></td><td><code>court_eviction_filings</code> has 4 quarters/tract. Aggregate by tract <i>before</i> joining or counts inflate 4×.</td></tr>
-        <tr><td><b>Decoys</b> <code>DECOY-*</code></td><td>9 planted rows/metro: 3 commercial, 3 closed-abated, 3 no-violation. Must be filtered after <code>VECTOR_SEARCH</code>.</td></tr>
-        <tr><td><b>Audit columns</b></td><td><code>audit_*_share</code> never enter scoring, retrieval or LLM prompts. Post-output Equity Audit only.</td></tr>
-        <tr><td><b>Modeled data</b></td><td>Eviction filings are <i>modeled</i>; label them so, never “observed filings”.</td></tr>
-        <tr><td><b>GEOIDs</b></td><td>Strings, leading zeros preserved (<code>06075047701</code>).</td></tr>
-        <tr><td><b>Provenance</b></td><td>Read <code>data_provenance</code> on every row; surface it in the UI.</td></tr>
-        <tr><td><b>Privacy</b></td><td>Don’t log raw tenant narratives; public records are 100-block redacted.</td></tr>
-      </table>
+      <h2>Product guardrails</h2>
+      <ul>
+        <li><b>Evidence before answer</b>: every claim cites a source or is labeled <span class="pill p-user">tenant-reported</span>.</li>
+        <li><b>Absence ≠ proof</b>: no 311 record never means no problem.</li>
+        <li><b>Block ≠ unit</b>: a complaint on the same block is not proof about her apartment.</li>
+        <li><b>Retrieval ≠ legal determination</b>: statutes are “applies / applies if / not yet”.</li>
+        <li><b>Verifier</b> blocks over-claims; brief is rewritten up to 2×.</li>
+        <li><b>Human review</b> by advocate/attorney before any action.</li>
+        <li><b>Non-goals</b>: no auto-filing, no eviction prediction, no contacting landlords or courts.</li>
+        <li><b>One intake per session</b>; raw narratives are not logged.</li>
+      </ul>
     </div>
   </div>
 </section>
 </main>
-<footer>ShelterWise mockup · all tenant details and displayed metrics are illustrative · schema and rules reflect the A4I2026 starter dataset · not legal advice</footer>
+<footer>ShelterWise mockup · tenant details illustrative · records, statutes, programs and tract figures come from the A4I2026 starter parquet files · similarity scores illustrative · not legal advice</footer>
 
 <script>
-/* ---------- Sample data (illustrative, SF) ---------- */
-const TENANT = {
-  metro:'San Francisco', block:'1300 Block 46th Ave', tract:'06075047701',
-  narrative:"Since early October there has been no heat in my unit and black mold is growing around the bedroom window. I reported it to my landlord twice and filed a complaint with the city. On Nov 10 I got a 3-day pay-or-quit notice. I lost hours at work in October and I'm behind on rent. I live in a shared apartment building.",
-};
-const FACTS = [
-  ['Issue: no heat','Tenant-reported','Since early Oct 2026'],
-  ['Issue: mold (bedroom window)','Tenant-reported','Not yet documented'],
-  ['Landlord notified twice','Tenant-reported','No dates / proof yet'],
-  ['3-day pay-or-quit notice received','Tenant-reported','Nov 10, 2026'],
-  ['Rent arrears','Tenant-reported','Amount unknown'],
-  ['Wage loss in October','Tenant-reported','Possible assistance trigger'],
-  ['Residential, multi-unit building','Tenant-reported','Property type = Residential'],
-];
-const CANDS = [
-  {id:'SF-202665070',blk:'1300 Block 46Th Av',type:'HOUSING INSPECTION SERVICES',status:'Open - Active DBI Case',prop:'Residential',created:'2026-11-02',closed:null,sim:.91,
-   txt:'Habitability complaint in shared kitchen/bath of multi-tenant building; open DBI case.',prov:'Public: SF DBI Complaints (data.sfgov.org gm2e-bten, 100-block redacted)',verdict:'accept',
-   why:'Residential · open DBI case · same tract (06075047701) · recent · semantically similar'},
-  {id:'SF-202665166',blk:'1300 Block 46Th Av',type:'HOUSING INSPECTION SERVICES',status:'Open - Active DBI Case',prop:'Residential',created:'2026-11-03',closed:null,sim:.86,
-   txt:'Tenant complaint: heating outage and mold on exterior wall; inspection pending.',prov:'Public: SF DBI Complaints (data.sfgov.org gm2e-bten, 100-block redacted)',verdict:'accept',
-   why:'Residential · open · same block · issue category matches (heat/mold). Illustrative text.'},
-  {id:'SF-202665186',blk:'1300 Block 46Th Av',type:'BUILDING INSPECTION DIVISION',status:'Open - Active DBI Case',prop:'Residential',created:'2026-11-03',closed:null,sim:.78,
-   txt:'Possible work without permit in building; owner performing repairs.',prov:'Public: SF DBI Complaints (data.sfgov.org gm2e-bten, 100-block redacted)',verdict:'accept',
-   why:'Residential · open · same block · contextual only (permit issue, not a habitability finding)'},
-  {id:'DECOY-SANF-02',blk:'200 Block Example Teaching Way [Planted Case]',type:'COMMERCIAL MOLD / PLUMBING',status:'Open - Notice Issued',prop:'Commercial',created:'2026-05-15',closed:null,sim:.94,
-   txt:'Severe black mold, backed-up grease trap sewage, exposed electrical conduit in ground-floor restaurant kitchen.',prov:'Synthetic Planted Teaching Case',verdict:'reject',
-   why:'Rejected: property_type = Commercial (not residential). High similarity is a semantic near-miss.'},
-  {id:'DECOY-SANF-08',blk:'800 Block Example Teaching Way [Planted Case]',type:'TENANT FOLLOW-UP CLEARANCE',status:'Closed - No Violation',prop:'Residential',created:'2026-05-15',closed:'2026-09-04',sim:.92,
-   txt:'Inspector tested radiators, smoke detectors, plumbing traps: no heating outage, no dampness, no code violations.',prov:'Synthetic Planted Teaching Case',verdict:'reject',
-   why:'Rejected: inspection_status = Closed – No Violation.'},
-  {id:'DECOY-SANF-05',blk:'500 Block Example Teaching Way [Planted Case]',type:'HEAT / HOT WATER',status:'Closed - Abated',prop:'Residential',created:'2026-03-02',closed:'2026-04-20',sim:.90,
-   txt:'Boiler failure resolved; heat restored and verified by inspector.',prov:'Synthetic Planted Teaching Case',verdict:'reject',
-   why:'Rejected: inspection_status = Closed – Abated (already resolved).'},
-  {id:'SF-202665107',blk:'700 Block La Playa',type:'PLUMBING INSPECTION DIVISION',status:'Open - Active DBI Case',prop:'Residential',created:'2026-11-02',closed:null,sim:.41,
-   txt:'Needs to renew boiler permit.',prov:'Public: SF DBI Complaints (data.sfgov.org gm2e-bten, 100-block redacted)',verdict:'reject',
-   why:'Rejected: administrative permit renewal, low similarity, different tract (06075042700).'},
-];
-const STATUTES = [
-  {id:'STAT-CA-01',cite:'Cal. Civ. Code §1941.1 & §1942.4',title:'California Implied Warranty of Habitability & Rent Demand Bar',juris:'State of California',
-   txt:'Bars landlords from demanding rent, increasing rent, or serving a 3-day pay-or-quit notice when an official citation for untenantable conditions (missing heat, hot water, weatherproofing, plumbing, safe wiring) remains unabated past 35 days.',
-   cond:'Needs an official citation (not just a complaint) unabated >35 days — confirm with DBI records.'},
-  {id:'STAT-CA-03',cite:'Cal. Civ. Code §1942.5',title:'California Statutory Anti-Retaliation Protection',juris:'State of California',
-   txt:'Establishes a 180-day statutory bar against retaliatory eviction, rent hikes, or service reductions after a residential tenant complains to a municipal building inspection agency.',
-   cond:'Confirm complaint filing date and whether the notice followed it.'},
-  {id:'STAT-CA-02',cite:'SF Admin. Code Ch. 37 & Prop F',title:'SF Rent Ordinance Just Cause & Universal Right to Counsel',juris:'City and County of San Francisco',
-   txt:'Requires enumerated just cause for residential eviction, caps annual rent adjustments on covered units, and guarantees city-funded legal representation within 30 days of unlawful detainer service.',
-   cond:'Right to counsel triggers on unlawful detainer service; confirm unit is rent-ordinance covered.'},
-];
-const PROGRAMS = [
-  {id:'BUL-CA-02',name:'Proposition F Tenant Right to Counsel & Habitability Defense',agency:'Eviction Defense Collaborative',stream:'—',open:true,res:true,
-   txt:'Full unlawful detainer representation + habitability rent-abatement motions + up to $6,000 stipulation bridges for tenants with an active open DBI habitability complaint.',url:'https://evictiondefense.org',eff:'2026-01-15'},
-  {id:'BUL-CA-04',name:'Code Enforcement Relocation & Mold Remediation Bridge',agency:'SF DBI Tenant Relocation Fund',stream:'—',open:true,res:true,
-   txt:'Hotel/relocation stipends up to $8,500 for tenants whose unit has an open un-abated DBI notice for no heat, raw sewage, or toxic mold.',url:'https://sf.gov/dbi',eff:'2026-02-15'},
-  {id:'BUL-CA-01',name:'San Francisco Emergency Rental Assistance Program (SF ERAP)',agency:"Mayor's Office of Housing and Community Development",stream:'Municipal General Fund',open:false,res:true,
-   txt:'Up to $12,000 across six months of residential rental arrears or move-in deposits for households at or below 80% AMI, prioritizing ≤30% AMI.',url:'https://sf.gov/renthelp',eff:'2026-01-10'},
-  {id:'BUL-CA-03',name:'RadCo / MEDA Family Stabilization Grant',agency:'MEDA San Francisco',stream:'Philanthropic & Municipal Prevention Pool',open:false,res:true,
-   txt:'Up to $7,500 in back-rent and PG&E shutoff prevention for low-income families ≤60% AMI experiencing acute medical leave or wage loss.',url:'https://medasf.org',eff:'2026-02-01'},
-];
-const EVQ = [ // illustrative modeled quarters for the tract
-  {q:'2025-Q4',np:6,ho:1,dj:2,arr:4800},{q:'2026-Q1',np:9,ho:1,dj:3,arr:5200},
-  {q:'2026-Q2',np:7,ho:0,dj:2,arr:4600},{q:'2026-Q3',np:8,ho:1,dj:2,arr:5100}];
-const ACS = {renter:1540,hh:1980,rent:1912,inc:98400,b30:310,b50:231,pov:.118,nov:.31,assist:.052};
+/* =================== DATA (real starter rows unless marked illustrative) =================== */
+const PROV_PUB='Public: SF Department of Building Inspection Complaints (data.sfgov.org gm2e-bten, 100-block redacted)';
+const PROV_DECOY='Synthetic Planted Teaching Case: Semantic Near-Miss Decoy for Post-Search Constraint Filtering';
+const PROV_POL='Public Statutory & Program Policy Text: Summarized Municipal/State Ordinances & Relief Guidelines (2025-2026)';
+const DEC=(id,blk,type,ptype,status,txt,tract,lat,lng,closed)=>({request_id:id,state_code:'CA',metro_area:'San Francisco',jurisdiction:'City and County of San Francisco',block_address:blk+' Example Teaching Way [Planted Case], San Francisco, CA',census_tract_geoid:tract,agency_code:'SFDBI',property_type:ptype,raw_complaint_type:type,complaint_narrative:txt,inspection_status:status,latitude:lat,longitude:lng,data_provenance:PROV_DECOY,created_date:'2026-05-15',closed_date:closed});
 
-const TABLES = {
- acs_tract_housing_tenure:{rows:'378 (6 metros)',prov:'Real public data — US Census ACS 5-Year (B25070, B19013) + TIGER/Line tract polygons',use:'Neighborhood context (renter share, rent burden, median rent). The five audit_* columns are firewalled for the post-output Equity Audit.',
+const INTAKE_TEXT="Tenant at the 1000 block of Fillmore St. No heat for weeks, she says it's about 50 degrees inside and her kid keeps getting sick. Nonpayment hearing Monday Nov 23 at 9am. Single mom, behind about two months on rent. What do we have?";
+const STATE_INTAKE={address_text:'1000 Block Fillmore St',lat:37.77907,lng:-122.43185,hazards:['heat'],search_query:'no heat in residential dwelling unit, indoor temperature below code minimum',hearing_date:'2026-11-23',days_to_hearing:4,tenant_has_own_dbi_case:null,household_income_pct_ami:null};
+const FACTS=[
+ ['No heat for weeks (~50°F inside)','Tenant-reported','hazards = ["heat"]'],
+ ['Child repeatedly sick','Tenant-reported','Context only; not used to decide'],
+ ['Nonpayment hearing Mon 2026-11-23, 9am','Tenant-reported','days_to_hearing = 4 (intake date 2026-11-19)'],
+ ['Behind ~2 months on rent','Tenant-reported','Amount unknown'],
+ ['Single parent household','Tenant-reported','Household size / income not yet given'],
+ ['Own DBI case number','Unknown','tenant_has_own_dbi_case = null'],
+];
+const SEARCH_Q=STATE_INTAKE.search_query;
+
+const R182={request_id:'SF-202665182',state_code:'CA',metro_area:'San Francisco',jurisdiction:'City and County of San Francisco',block_address:'1000 Block Fillmore St, San Francisco, CA',census_tract_geoid:'06075016300',agency_code:'SFDBI',property_type:'Residential',raw_complaint_type:'HOUSING INSPECTION SERVICES',complaint_narrative:'Customer is calling on behalf of the tenant who is her client. caller stated this resident has been without heat for the past 2 decades. the resident got pneumonia and cant be in the dwelling unit of the respiratory issues. its 52 degrees in the dwelling unit.',inspection_status:'Open - Active DBI Case',latitude:37.779089,longitude:-122.431718,data_provenance:PROV_PUB,created_date:'2026-11-03',closed_date:null};
+const R01=DEC('DECOY-SANF-01','100 Block','COMMERCIAL HVAC / BOILER','Commercial','Open - Notice Issued','Emergency boiler shutdown, no heat, and ceiling water leak inside commercial retail warehouse storefront; zero residential tenants.','06075012502',37.784933,-122.413595,null);
+const R04=DEC('DECOY-SANF-04','400 Block','HEAT / HOT WATER','Residential','Closed - Abated','Tenant reported broken central boiler, freezing rooms, and zero hot water; landlord replaced boiler and inspector verified full abatement.','06075011200',37.791022,-122.416097,'2026-06-18');
+const R07=DEC('DECOY-SANF-07','700 Block','PROACTIVE HABITABILITY CHECK','Residential','Closed - No Violation','Proactive winter readiness inspection: heating boiler operating at 71F, hot water at 122F, no mold, no leaks, and zero habitability defects found.','06075012902',37.800779,-122.43175,'2026-08-22');
+const CANDS=[
+ {r:R182,sim:.89,dist:12,sel:true,note:'Strong match: tenant-wording differs (“52 degrees … without heat”) but meaning matches.'},
+ {r:R01,sim:.93,dist:1730,sel:false,note:'Commercial warehouse; highest raw similarity: the classic near-miss.'},
+ {r:R04,sim:.91,dist:1920,sel:false,note:'Same hazard, but already fixed by landlord.'},
+ {r:R07,sim:.84,dist:2410,sel:false,note:'Inspection found nothing wrong.'},
+];
+const STATUTES=[
+ {r:{statute_section_id:'STAT-CA-02',state_code:'CA',metro_area:'San Francisco',jurisdiction:'City and County of San Francisco',code_citation:'SF Admin. Code Ch. 37 & Prop F',ordinance_title:'San Francisco Rent Ordinance Just Cause & Universal Right to Counsel',raw_statute_text:'Requires enumerated just cause for residential eviction, caps annual rent adjustments on covered units, and guarantees city-funded legal representation within 30 days of unlawful detainer service.',data_provenance:PROV_POL},
+  v:'Yes',cls:'p-ok',why:'Just-cause protection + city-funded lawyer for eviction cases.'},
+ {r:{statute_section_id:'STAT-CA-03',state_code:'CA',metro_area:'San Francisco',jurisdiction:'State of California',code_citation:'Cal. Civ. Code § 1942.5',ordinance_title:'California Statutory Anti-Retaliation Protection',raw_statute_text:'Establishes a 180-day statutory bar against retaliatory eviction, rent hikes, or service reductions after a residential tenant complains to a municipal building inspection agency.',data_provenance:PROV_POL},
+  v:'Yes, if',cls:'p-warn',why:'…the tenant herself complained to the city. The record may be a third-party caller: confirm.'},
+ {r:{statute_section_id:'STAT-CA-01',state_code:'CA',metro_area:'San Francisco',jurisdiction:'State of California',code_citation:'Cal. Civ. Code § 1941.1 & § 1942.4',ordinance_title:'California Implied Warranty of Habitability & Rent Demand Bar',raw_statute_text:'Bars landlords from demanding rent, increasing rent, or serving a 3-day pay-or-quit notice when an official building/housing citation for untenantable residential conditions (missing heat, hot water, weatherproofing, plumbing, or safe wiring) remains unabated past 35 days.',data_provenance:PROV_POL},
+  v:'Not yet',cls:'p-bad',why:'Violation must stay unfixed >35 days. Case opened 2026-11-03 → 16 days. Recheck 2026-12-09.'},
+];
+const BUL=(id,reg,name,ag,fs,open,txt,url,eff)=>({bulletin_id:id,state_code:'CA',metro_area:'San Francisco',service_region:reg,program_name:name,administering_agency:ag,funding_stream:fs,requires_open_habitability_case:open,residential_tenants_only:true,raw_bulletin_text:txt,intake_url:url,data_provenance:PROV_POL,effective_date:eff});
+const PROGRAMS=[
+ {k:'prop',short:'Prop F Right to Counsel',r:BUL('BUL-CA-02','City and County of San Francisco','Proposition F Tenant Right to Counsel & Habitability Defense','Eviction Defense Collaborative','Municipal Tenant Right to Counsel Fund',true,'Pairs full unlawful detainer legal representation with habitability rent-abatement motions and up to $6,000 in stipulation bridges for residential tenants with an active open Department of Building Inspection habitability complaint.','https://evictiondefense.org','2026-01-15'),urgent:true},
+ {k:'erap',short:'SF ERAP',r:BUL('BUL-CA-01','City and County of San Francisco','San Francisco Emergency Rental Assistance Program (SF ERAP)',"San Francisco Mayor's Office of Housing and Community Development",'Municipal General Fund',false,'Covers up to $12,000 across six months of residential rental arrears or move-in deposits for San Francisco renter households at or below 80% of Area Median Income (AMI), prioritizing families <=30% AMI.','https://sf.gov/renthelp','2026-01-10')},
+ {k:'meda',short:'MEDA Stabilization Grant',r:BUL('BUL-CA-03','Bay Area Regional','RadCo / Mission Economic Development Family Stabilization Grant','MEDA San Francisco','Philanthropic & Municipal Prevention Pool',false,'Awards up to $7,500 in back-rent and PG&E utility shutoff prevention for low-income residential families <=60% AMI experiencing acute medical leave or wage loss.','https://medasf.org','2026-02-01')},
+ {k:'dbi',short:'DBI Relocation Bridge',r:BUL('BUL-CA-04','City and County of San Francisco','Code Enforcement Relocation & Mold Remediation Bridge','SF Department of Building Inspection Tenant Relocation Fund','Municipal Code Enforcement Revolving Fund',true,'Provides temporary hotel/relocation stipends up to $8,500 exclusively for residential apartment tenants whose unit has an open un-abated DBI notice for no heat, raw sewage, or toxic mold.','https://sf.gov/dbi','2026-02-15')},
+];
+const TRACT={census_tract_geoid:'06075016300',state_code:'CA',county_fips:'06075',county_name:'San Francisco County',metro_area:'San Francisco',total_population:4528,total_households:1994,renter_occupied_units:1653,median_household_income:135658.0,median_gross_rent:2175.0,renter_hh_rent_30_to_49_pct_count:51,renter_hh_rent_50_pct_plus_count:265,poverty_rate:0.0801,no_vehicle_rate:0.3649,assistance_rate:0.0362,latitude:37.776046,longitude:-122.429551,data_provenance:'Public: US Census Bureau American Community Survey (ACS) 5-Year (B25070 Rent Burden / B19013 Income / Equity Audit Shares) & TIGER/Line Tract Polygons'};
+const PROV_EV='Modeled from Public Baselines: Quarterly Tract Court Filings Simulated from County Civil Court Totals & ACS Severe Rent Burden (Eviction Lab Lacks California & Tract-Level NYC Coverage)';
+const EVQ=[['2025-Q3',14,3,5,7593.12],['2025-Q4',14,2,6,6929.77],['2026-Q1',14,2,4,6888.51],['2026-Q2',14,2,5,6840.47]]
+ .map(e=>({filing_record_id:'EVF-06075016300-'+e[0].replace('-',''),census_tract_geoid:'06075016300',state_code:'CA',metro_area:'San Francisco',county_name:'San Francisco County',reporting_quarter:e[0],nonpayment_filings_count:e[1],holdover_or_no_fault_filings_count:e[2],default_judgments_count:e[3],median_claimed_arrears_usd:e[4],data_provenance:PROV_EV}));
+
+const TABLES={
+ acs_tract_housing_tenure:{rows:'378 (6 metros)',who:'context_agent · offline equity audit',prov:'Real public data: US Census ACS 5-Year (B25070, B19013) + TIGER/Line tract polygons',use:'Tract rent-burden context. The five audit_* columns are firewalled for the offline equity audit.',
   cols:[['census_tract_geoid','STRING'],['state_code','STRING'],['county_fips','STRING'],['county_name','STRING'],['metro_area','STRING'],['total_population','INT64'],['total_households','INT64'],['renter_occupied_units','INT64'],['median_household_income','FLOAT64'],['median_gross_rent','FLOAT64'],['renter_hh_rent_30_to_49_pct_count','INT64'],['renter_hh_rent_50_pct_plus_count','INT64'],['poverty_rate','FLOAT64'],['no_vehicle_rate','FLOAT64'],['assistance_rate','FLOAT64'],['audit_black_share','FLOAT64','audit'],['audit_hispanic_share','FLOAT64','audit'],['audit_asian_share','FLOAT64','audit'],['audit_indigenous_share','FLOAT64','audit'],['audit_white_share','FLOAT64','audit'],['latitude','FLOAT64'],['longitude','FLOAT64'],['data_provenance','STRING'],['tract_geom','GEOGRAPHY']]},
- complaints_embedded:{rows:'≈ same rows as 311 table',prov:'Derived from 311 complaints; embedding of complaint_narrative',use:'Semantic candidate generation with BigQuery VECTOR_SEARCH. Never trusted alone — hard filters applied afterwards.',
-  cols:[['request_id','STRING'],['state_code','STRING'],['metro_area','STRING'],['census_tract_geoid','STRING'],['block_address','STRING'],['property_type','STRING'],['raw_complaint_type','STRING'],['inspection_status','STRING'],['closed_date','DATE'],['complaint_narrative','STRING'],['embedding','ARRAY<FLOAT64>']]},
- court_eviction_filings:{rows:'1,512 (4 quarters × tract)',prov:'MODELED from public baselines (Eviction Lab has no CA coverage). Apache 2.0, authored for A4I 2026.',use:'Aggregate context for “how common are filings around here”. Label as modeled. Never an individual prediction.',
+ complaints_embedded:{rows:'≈ same rows as 311 table',who:'evidence_agent',prov:'Derived from 311 complaints; embedding of complaint_narrative',use:'Semantic candidate generation (VECTOR_SEARCH, top 50). No lat/lng or created_date here: join back to the 311 table.',
+  cols:[['request_id','STRING'],['state_code','STRING'],['metro_area','STRING'],['census_tract_geoid','STRING'],['block_address','STRING'],['property_type','STRING'],['raw_complaint_type','STRING'],['inspection_status','STRING'],['closed_date','DATE'],['complaint_narrative','STRING'],['embedding','ARRAY<FLOAT64>','notnull']]},
+ court_eviction_filings:{rows:'1,512 (4 quarters × tract)',who:'context_agent',prov:'MODELED from public baselines (Eviction Lab has no CA coverage). Apache 2.0, authored for A4I 2026.',use:'Aggregate “how common are filings here”. Sum 4 quarters first; label modeled.',
   cols:[['filing_record_id','STRING'],['census_tract_geoid','STRING'],['state_code','STRING'],['metro_area','STRING'],['county_name','STRING'],['reporting_quarter','STRING'],['nonpayment_filings_count','INT64'],['holdover_or_no_fault_filings_count','INT64'],['default_judgments_count','INT64'],['median_claimed_arrears_usd','FLOAT64'],['data_provenance','STRING']]},
- municipal_311_housing_complaints:{rows:'1,044 (990 real + 54 decoys)',prov:'Real municipal open-data portals, 100-block redacted, PII-scrubbed + 54 [Planted Case] DECOY-* rows',use:'Source of truth for public-record evidence: dates, agency, status, coordinates, provenance — cited in the brief.',
+ municipal_311_housing_complaints:{rows:'1,044 (990 real + 54 decoys)',who:'evidence_agent (join-back) · brief citations',prov:'Real municipal open-data portals, 100-block redacted, PII-scrubbed + 54 [Planted Case] DECOY-* rows (9 per metro)',use:'Source of truth for evidence: created/closed dates, agency, lat/lng, provenance: cited in the brief.',
   cols:[['request_id','STRING'],['state_code','STRING'],['metro_area','STRING'],['jurisdiction','STRING'],['block_address','STRING'],['census_tract_geoid','STRING'],['agency_code','STRING'],['property_type','STRING'],['raw_complaint_type','STRING'],['complaint_narrative','STRING'],['inspection_status','STRING'],['latitude','FLOAT64'],['longitude','FLOAT64'],['data_provenance','STRING'],['created_date','DATE'],['closed_date','DATE'],['property_geom','GEOGRAPHY']]},
- municipal_housing_ordinance_statutes:{rows:'18 (3 per metro)',prov:'Public statutory text (habitability, rent escrow/demand bar, anti-retaliation, just cause)',use:'Legal & resource lookup: citation + excerpt shown as “potentially relevant”, with conditions to confirm.',
+ municipal_housing_ordinance_statutes:{rows:'18 (3 per metro)',who:'legal_agent',prov:'Public statutory text',use:'Which laws apply: “yes / yes, if / not yet”, with clock checks.',
   cols:[['statute_section_id','STRING'],['state_code','STRING'],['metro_area','STRING'],['jurisdiction','STRING'],['code_citation','STRING'],['ordinance_title','STRING'],['raw_statute_text','STRING'],['data_provenance','STRING']]},
- rental_relief_program_bulletins:{rows:'24 (4 per metro)',prov:'Public policy text with structured boolean eligibility flags',use:'Program matching: requires_open_habitability_case is satisfied only if an accepted OPEN residential record exists; residential_tenants_only checked against property_type.',
+ rental_relief_program_bulletins:{rows:'24 (4 per metro)',who:'relief_agent',prov:'Public policy text + boolean eligibility flags',use:'Fund verdicts. Conditions also written in funds_sf.yaml.',
   cols:[['bulletin_id','STRING'],['state_code','STRING'],['metro_area','STRING'],['service_region','STRING'],['program_name','STRING'],['administering_agency','STRING'],['funding_stream','STRING'],['requires_open_habitability_case','BOOL'],['residential_tenants_only','BOOL'],['raw_bulletin_text','STRING'],['intake_url','STRING'],['data_provenance','STRING'],['effective_date','DATE']]},
 };
+const TYPE={};Object.entries(TABLES).forEach(([t,v])=>{TYPE[t]={};v.cols.forEach(c=>TYPE[t][c[0]]=c[1])});
 
-const TOOLS = [
- {n:'structure_intake',d:'Narrative → normalized issues, dates, urgency, unknowns, clarifying questions. Preserves original text; never turns an inference into a fact.',t:[],rule:'No tables. Gemini extraction only.'},
- {n:'search_public_evidence',d:'Candidate retrieval + hard validation + exclusion reasons.',t:['complaints_embedded','municipal_311_housing_complaints'],rule:'Hard filters first; semantic similarity ranks only eligible rows.'},
- {n:'lookup_legal_resources',d:'Statutes + relief programs for the jurisdiction/issue.',t:['municipal_housing_ordinance_statutes','rental_relief_program_bulletins'],rule:'Retrieval ≠ legal determination. Check boolean eligibility flags.'},
- {n:'get_area_context',d:'Aggregate tract context for gap analysis (not individual risk).',t:['acs_tract_housing_tenure','court_eviction_filings'],rule:'Aggregate evictions by tract BEFORE joining. Audit_* columns excluded.'},
- {n:'identify_evidence_gaps',d:'What is missing, why it matters, safe next steps.',t:[],rule:'“No record found” is never proof that the event did not occur.'},
- {n:'generate_stabilization_brief',d:'Structured, cited brief + human-review checklist.',t:['(all prior tool outputs)'],rule:'Cite every external claim; label tenant-reported facts.'},
+const AGENTS=[
+ {n:'navigator',kind:'LLM',model:'Gemini Flash',step:'chat',reads:'user message',writes:'calls the tools below',tables:[],rule:'Picks a tool, answers follow-ups. One intake per session.'},
+ {n:'intake_parser',kind:'LLM',model:'Gemini Flash',step:'1 UNDERSTAND',reads:'user message',writes:'state.intake',tables:[],rule:'Address → lat/lng, hazards, hearing date; rewrites tenant words into city-inspector wording for search_query. Never turns an inference into a fact.'},
+ {n:'evidence_agent ★',kind:'code',model:'tool: search_corroborating_complaints()',step:'2 GATHER',reads:'state.intake',writes:'state.evidence (kept + excluded w/ reasons)',tables:['complaints_embedded','municipal_311_housing_complaints'],rule:'Top 50 by meaning → Python rules (Residential + open + ≤400 m). Never filters on “DECOY”.'},
+ {n:'context_agent',kind:'code',model:'—',step:'2 GATHER',reads:'tract GEOID',writes:'state.tract',tables:['acs_tract_housing_tenure','court_eviction_filings'],rule:'Sum 4 quarters per tract before joining; filings labeled MODELED. audit_* never read.'},
+ {n:'legal_agent',kind:'LLM',model:'Gemini Flash',step:'3 DECIDE',reads:'state.intake, state.evidence, 3 SF statutes',writes:'state.statutes',tables:['municipal_housing_ordinance_statutes'],rule:'Waits for evidence because clocks (35-day rule) depend on the complaint open date.'},
+ {n:'relief_agent',kind:'code',model:'funds_sf.yaml',step:'3 DECIDE',reads:'state.intake, state.evidence, 4 SF funds',writes:'state.relief',tables:['rental_relief_program_bulletins'],rule:'ELIGIBLE only when every condition is confirmed. Block evidence alone never confirms “open case on your unit”.'},
+ {n:'brief_writer',kind:'LLM',model:'Gemini Pro',step:'4 WRITE',reads:'all state.*',writes:'state.brief',tables:[],rule:'Cites every external claim; labels tenant-reported facts; adds human-review notice.'},
+ {n:'verifier',kind:'code',model:'—',step:'5 VERIFY',reads:'state.brief',writes:'pass, or state.verifier_feedback',tables:[],rule:'Every ID real, no over-claim. Fails → rewrite (max 2×).'},
+ {n:'explain_exclusion',kind:'code',model:'tool',step:'navigator tool',reads:'request_id',writes:'reply',tables:['municipal_311_housing_complaints'],rule:'“Why did you drop that one?”'},
+ {n:'BigQuery MCP',kind:'mcp',model:'Google-managed MCP',step:'navigator tool',reads:'ad-hoc question',writes:'reply',tables:['all (read-only)'],rule:'Ad-hoc data questions, e.g. “open heat complaints in this tract?”'},
+ {n:'inspection_request_drafter',kind:'LLM',model:'Gemini Flash',step:'fallback',reads:'state.intake',writes:'draft 311 request + photo checklist',tables:[],rule:'Only when no open record near the block; points to ERAP/MEDA meanwhile.'},
 ];
 
-/* ---------- Tabs ---------- */
+/* =================== helpers =================== */
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const S={ownCase:false,income:'unk',noRecord:false,radius:true,rejShown:true};
+const fmt=v=>v===null?'<i style="color:var(--mute)">NULL</i>':esc(v);
+function raw(table,row,label){
+  const cols=TABLES[table].cols;
+  return `<details><summary>▸ ${label||'Raw row'} · <span class="mono">${table}</span> · ${cols.length} schema fields</summary><div class="scroll"><table><tr><th>column_name</th><th>type</th><th>value</th></tr>${cols.map(c=>{
+    const k=c[0];let v;
+    if(c[2]==='audit') v='<span class="pill p-bad">🔒 withheld from agent (equity audit only)</span>';
+    else if(k==='embedding') v='<span class="mono">[0.012, −0.044, 0.087, … 768 floats]</span>';
+    else if(k==='tract_geom'||k==='property_geom') v='<span class="mono">POLYGON/POINT (GEOGRAPHY) … not shown</span>';
+    else if(k in row) v=fmt(row[k]); else v='<i style="color:var(--mute)">—</i>';
+    return `<tr><td><code>${k}</code></td><td>${c[1]}</td><td>${v}</td></tr>`}).join('')}</table></div></details>`;
+}
+function agentTag(n){const a=AGENTS.find(x=>x.n===n);
+  return `<div class="agent ${a.kind}"><b>${a.n}</b><span class="pill p-mute">${a.kind==='LLM'?'LLM':a.kind==='mcp'?'MCP':'code'}</span><span>${a.model}</span><span class="pill p-mute">${a.step}</span><span class="rw">reads <code>${a.reads}</code> → writes <code>${a.writes}</code>${a.tables.length?' · tables: '+a.tables.map(t=>`<code>${t}</code>`).join(' '):''}</span></div>`}
+const relief=()=>{
+  const inc=S.income, own=S.ownCase;
+  const out={};
+  out.prop=own?{v:'ELIGIBLE',m:[]}:{v:'CONDITIONAL',m:['DBI case covers her unit (block evidence only)']};
+  out.dbi=own?{v:'ELIGIBLE',m:[]}:{v:'CONDITIONAL',m:['Open no-heat notice on her unit (block evidence only)']};
+  out.erap=inc==='unk'?{v:'CONDITIONAL',m:['Income ≤ 80% AMI (household size + income needed)']}:(inc==='gt80'?{v:'INELIGIBLE',m:['Income above 80% AMI']}:{v:'ELIGIBLE',m:[]});
+  out.meda=inc==='unk'?{v:'CONDITIONAL',m:['Income ≤ 60% AMI','Medical leave or wage loss']}:(inc==='le60'?{v:'CONDITIONAL',m:['Medical leave or wage loss (not yet confirmed)']}:{v:'INELIGIBLE',m:['Income above 60% AMI']});
+  return out;
+};
+const vcls={ELIGIBLE:'p-ok',CONDITIONAL:'p-warn',INELIGIBLE:'p-bad'};
+function controls(){return `<div class="note info" style="margin-top:0"><b>Tell the agent more</b> (re-runs <code>relief_agent</code>):
+ <label class="chk"><input type="checkbox" ${S.ownCase?'checked':''} onchange="S.ownCase=this.checked;rerenderRelief()"> She has her <b>own</b> DBI case number (<code>tenant_has_own_dbi_case = true</code>)</label>
+ <label style="display:inline-block;margin:6px 8px 0 0">Household income vs AMI:</label>
+ <select style="width:auto" onchange="S.income=this.value;rerenderRelief()">
+  <option value="unk" ${S.income==='unk'?'selected':''}>Unknown</option>
+  <option value="le60" ${S.income==='le60'?'selected':''}>≤ 60% AMI (e.g. 2-person ≈ $45k, illustrative)</option>
+  <option value="le80" ${S.income==='le80'?'selected':''}>61–80% AMI</option>
+  <option value="gt80" ${S.income==='gt80'?'selected':''}>> 80% AMI</option></select></div>`}
+function reliefCards(){const rv=relief();
+  return PROGRAMS.map(p=>{const x=rv[p.k];const cls=x.v==='ELIGIBLE'?'acc':x.v==='CONDITIONAL'?'cond':'rej';
+  return `<div class="cand ${cls}"><div class="h"><b>${p.r.program_name}</b><span class="pill ${vcls[x.v]}">${x.v}</span>${p.urgent&&x.v!=='INELIGIBLE'?'<span class="pill p-bad">call first · 4 days</span>':''}<span class="cite">${p.r.bulletin_id}</span></div>
+   <div>${p.r.administering_agency} · ${p.r.funding_stream} · effective ${p.r.effective_date}</div><p style="margin:4px 0">${p.r.raw_bulletin_text}</p>
+   <div><span class="pill ${p.r.requires_open_habitability_case?'p-warn':'p-mute'}">requires_open_habitability_case = ${p.r.requires_open_habitability_case}</span><span class="pill p-mute">residential_tenants_only = ${p.r.residential_tenants_only}</span></div>
+   ${x.m.length?`<div><b>Still to confirm:</b> ${x.m.join('; ')}</div>`:'<div><b>All conditions confirmed.</b></div>'}
+   <div class="cite">${p.r.intake_url}</div>${raw('rental_relief_program_bulletins',p.r)}</div>`}).join('')}
+function rerenderRelief(){const el=document.getElementById('reliefbox'); if(el) el.innerHTML=reliefCards(); const c=document.getElementById('ctl'); if(c) c.innerHTML=controls(); const ft=document.getElementById('fupfunds'); if(ft) ft.innerHTML=reliefTable();}
+function reliefTable(){const rv=relief();return `<table><tr><th>Program</th><th>Verdict</th><th>Still to confirm</th></tr>${PROGRAMS.map(p=>`<tr><td>${p.short}</td><td><span class="pill ${vcls[rv[p.k].v]}">${rv[p.k].v}</span></td><td>${rv[p.k].m.join('; ')||'—'}</td></tr>`).join('')}</table>`}
+
+/* =================== tabs =================== */
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
 });
 
-/* ---------- Demo stepper ---------- */
-const STEPS = ['Start a case','Describe situation','Review extracted facts','Evidence search','Rights & resources','Area context','Evidence gaps','Stabilization brief','Human review'];
-let cur=0, maxDone=-1;
-const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+/* =================== demo =================== */
+const STEPS=[['Intake','paralegal · adk web'],['Understand','intake_parser'],['Gather · evidence','evidence_agent ★'],['Gather · context','context_agent'],['Decide · law','legal_agent'],['Decide · funds','relief_agent'],['Write & verify','brief_writer · verifier'],['Brief','Tenant Stabilization Brief'],['Follow-ups','navigator + tools'],['Human review','checklist · equity audit']];
+let cur=0,maxDone=-1;
 const nav=()=>`<div class="btns">${cur>0?'<button class="btn ghost" onclick="go(cur-1)">← Back</button>':''}${cur<STEPS.length-1?'<button class="btn" onclick="go(cur+1)">Continue →</button>':''}</div>`;
-function go(i){ if(i>cur) maxDone=Math.max(maxDone,cur); cur=i; render(); window.scrollTo({top:0}); }
-function renderSteps(){
-  document.getElementById('steps').innerHTML = STEPS.map((s,i)=>`<li><button class="${i===cur?'on':''} ${i<=maxDone&&i!==cur?'done':''}" onclick="go(${i})"><span class="n">${i<=maxDone&&i!==cur?'✓':i+1}</span>${s}</button></li>`).join('');
-}
-const dataTag=(...t)=>`<div class="note info"><b>Data used here:</b> ${t.map(x=>`<code>${x}</code>`).join(' ')}</div>`;
-const V = [
-// 0
-()=>`<div class="card"><h2>Start a case</h2><p class="sub">Choose a metro and a location precise enough for a public-record search — no names or phone numbers needed.</p>
- <div class="row"><div><label>Metro</label><select><option>San Francisco</option><option disabled>Chicago</option><option disabled>New York</option><option disabled>Austin</option><option disabled>Baton Rouge</option><option disabled>Cincinnati</option></select></div>
- <div><label>Location (100-block level)</label><input value="${TENANT.block}, San Francisco, CA"></div></div>
- <div class="row"><div><label>Census tract (auto-resolved)</label><input value="${TENANT.tract}" readonly></div><div><label>I am a…</label><select><option>Tenant</option><option>Housing advocate / paralegal</option></select></div></div>
- <div class="note info">Why we ask for location: to find public 311/building records for the same block and tract. We do <b>not</b> ask for your name, unit number, or immigration status.</div>
- ${dataTag('acs_tract_housing_tenure.census_tract_geoid','municipal_311_housing_complaints.census_tract_geoid')}${nav()}</div>`,
-// 1
-()=>`<div class="card"><h2>Describe your situation</h2><p class="sub">Free text plus optional fields. Plain language is fine.</p>
- <label>What is happening?</label><textarea>${esc(TENANT.narrative)}</textarea>
- <div class="row"><div><label>Notice received</label><select><option>3-day pay-or-quit</option><option>30/60-day notice</option><option>Lawsuit served</option><option>None</option></select></div>
- <div><label>Notice date</label><input value="2026-11-10"></div></div>
- <div class="row"><div><label>Hearing date (if any)</label><input placeholder="—"></div><div><label>Immediate safety concern?</label><select><option>Cold / mold exposure (not an emergency)</option><option>Yes — emergency</option><option>No</option></select></div></div>
- <div class="note">If anyone is in immediate danger, call 911. ShelterWise separates emergencies from routine maintenance.</div>
- ${dataTag('— (none yet; stored as a restricted case narrative)')}${nav()}</div>`,
-// 2
-()=>`<div class="card"><h2>Review extracted facts</h2><p class="sub">Tool: <code>structure_intake</code>. Edit anything that’s wrong before we search. Original narrative is preserved.</p>
- <div class="scroll"><table><tr><th>Fact</th><th>Label</th><th>Detail</th><th></th></tr>
- ${FACTS.map(f=>`<tr><td>${f[0]}</td><td><span class="pill p-user">${f[1]}</span></td><td>${f[2]}</td><td><a href="#" onclick="return false">edit</a></td></tr>`).join('')}</table></div>
- <h3>Clarifying questions</h3><ul><li>What dates did you notify the landlord, and how (text, email, letter)?</li><li>Did the city inspector visit? Do you have a case/complaint number?</li><li>Roughly how much rent is owed?</li></ul>
- <h3>Urgency flags</h3><span class="pill p-bad">Notice deadline — time-sensitive</span><span class="pill p-warn">Habitability (no heat / mold)</span>
- <div class="note">Nothing here is treated as verified. Everything above is labeled <b>tenant-reported</b>.</div>${nav()}</div>`,
-// 3
-()=>`<div class="card"><h2>Evidence search</h2><p class="sub">Tool: <code>search_public_evidence</code> — vector search for candidates, then hard filters.</p>
- ${dataTag('complaints_embedded.embedding','municipal_311_housing_complaints.*')}
- <div class="pipe" id="pipe">
-  <div class="st"><b>1 · Embed query</b><span>Narrative → vector</span></div>
-  <div class="st"><b>2 · VECTOR_SEARCH</b><span>top_k = 25 near neighbours</span></div>
-  <div class="st"><b>3 · Hard filters</b><span>Residential · Open · Metro · Recent</span></div>
-  <div class="st"><b>4 · Join &amp; cite</b><span>Dates, agency, provenance</span></div>
- </div>
- <div class="btns" style="margin:0 0 12px"><button class="btn" onclick="runPipe()">▶ Run search</button><button class="btn ghost" onclick="toggleRej()" id="rejbtn">Hide rejected</button></div>
- <div id="cands" class="hidden"></div>
- <div class="note">Matching a <i>block or tract</i> is not the same as matching the tenant’s unit. Records are shown as <b>contextual public evidence</b>.</div>${nav()}</div>`,
-// 4
-()=>`<div class="card"><h2>Rights &amp; resources</h2><p class="sub">Tool: <code>lookup_legal_resources</code>. Everything is “potentially relevant” — conditions must be confirmed.</p>
- ${dataTag('municipal_housing_ordinance_statutes','rental_relief_program_bulletins')}
- <h3>Statutes &amp; ordinances</h3>
- ${STATUTES.map(s=>`<div class="cand"><div class="h"><b>${s.cite}</b><span class="pill p-info">${s.juris}</span><span class="cite">${s.id}</span></div><div><i>${s.title}</i></div><p>${s.txt}</p><div class="note" style="margin:0"><b>To confirm:</b> ${s.cond}</div></div>`).join('')}
- <h3>Assistance programs <span class="sub" style="font-weight:400">— eligibility checked from boolean flags</span></h3>
- <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="openCase" checked style="width:auto" onchange="drawProgs()"> An accepted <b>open residential</b> habitability record was found in the evidence step</label>
- <div id="progs"></div>${nav()}</div>`,
-// 5
-()=>{const tot=k=>EVQ.reduce((a,b)=>a+b[k],0);
- return `<div class="card"><h2>Area context</h2><p class="sub">Aggregate tract-level context only. Not an individual risk score. Tract <span class="mono">${TENANT.tract}</span>.</p>
- ${dataTag('acs_tract_housing_tenure','court_eviction_filings')}
- <h3>Renter context <span class="pill p-ok">Real: Census ACS 5-Year</span></h3>
- <div class="kpi"><div><b>${ACS.renter.toLocaleString()}</b><span>renter-occupied units</span></div><div><b>$${ACS.rent.toLocaleString()}</b><span>median gross rent</span></div><div><b>${ACS.b30+ACS.b50}</b><span>renter HH paying ≥30% of income</span></div><div><b>${ACS.b50}</b><span>paying ≥50% (severe burden)</span></div></div>
- <h3>Court eviction filings <span class="pill p-warn">MODELED, not observed</span></h3>
- <div class="scroll"><table><tr><th>Quarter</th><th>Nonpayment</th><th>No-fault / holdover</th><th>Default judgments</th><th>Median claimed arrears</th></tr>
- ${EVQ.map(e=>`<tr><td>${e.q}</td><td>${e.np}</td><td>${e.ho}</td><td>${e.dj}</td><td>$${e.arr.toLocaleString()}</td></tr>`).join('')}
- <tr><th>Σ tract (aggregated first)</th><th>${tot('np')}</th><th>${tot('ho')}</th><th>${tot('dj')}</th><th></th></tr></table></div>
- <h3>⚠ Grain trap demo</h3>
- <p>Joining quarterly rows straight to the 3 complaints multiplies counts. Toggle to see the difference:</p>
- <label style="display:flex;gap:8px;font-weight:400"><input type="checkbox" style="width:auto" id="trap" onchange="drawTrap()"> Join before aggregating (wrong)</label>
- <div id="trapout"></div>
- <div class="note">Used to explain <i>why the neighborhood may matter</i> and to spot reporting gaps — never to predict whether this tenant will be evicted.</div>${nav()}</div>`},
-// 6
-()=>`<div class="card"><h2>Evidence gaps</h2><p class="sub">Tool: <code>identify_evidence_gaps</code></p>
- <div class="scroll"><table><tr><th>Missing</th><th>Why it matters</th><th>Safe next step</th></tr>
- <tr><td>Official DBI <b>notice of violation</b> (vs. complaint only)</td><td>Rent-demand bar (§1941.1/1942.4) depends on an unabated citation &gt;35 days</td><td>Ask DBI for the case status / inspection report for the case number</td></tr>
- <tr><td>Dated proof landlord was notified</td><td>Shows notice and opportunity to repair</td><td>Save texts/emails; send a dated written request</td></tr>
- <tr><td>Photos / temperature log of heat &amp; mold</td><td>Documents conditions inside the unit</td><td>Take dated photos; log indoor temperatures</td></tr>
- <tr><td>Exact rent owed &amp; copy of the 3-day notice</td><td>Notice validity and deadline calculations</td><td>Bring notice and ledger to counsel</td></tr>
- <tr><td>Income documents</td><td>AMI-based eligibility for ERAP / MEDA</td><td>Gather pay stubs showing October hours reduction</td></tr></table></div>
- <div class="note bad"><b>Absence of a record ≠ absence of a problem.</b> Many tenants never file 311 complaints (fear, access, language). Missing data is flagged as a gap, not a finding.</div>${nav()}</div>`,
-// 7
-()=>`<div class="card brief"><h2>Tenant Stabilization Brief <span class="pill p-warn">DRAFT — for human review</span></h2>
- <p class="sub">Generated ${new Date().toISOString().slice(0,10)} · Tool: <code>generate_stabilization_brief</code> · every external claim is cited.</p>
- <h3>1. Tenant-reported facts</h3><ul>${FACTS.map(f=>`<li><span class="pill p-user">Reported</span>${f[0]} — ${f[2]}</li>`).join('')}</ul>
- <h3>2. Public-record evidence <span class="pill p-info">contextual, block-level</span></h3>
- <ul>${CANDS.filter(c=>c.verdict==='accept').map(c=>`<li>${c.type} complaint on ${c.blk}, <b>${c.status}</b>, created ${c.created}. <span class="cite">[${c.id}]</span></li>`).join('')}</ul>
- <p class="sub">Records are redacted to the 100-block and are <b>not confirmed</b> to be the tenant’s unit. 4 near-miss records were excluded (commercial, closed-abated, no-violation, unrelated).</p>
- <h3>3. Potentially relevant law</h3>
- <ul>${STATUTES.map(s=>`<li><b>${s.cite}</b> — ${s.title}. <span class="cite">[${s.id}]</span></li>`).join('')}</ul>
- <h3>4. Potentially relevant programs</h3>
- <ul>${PROGRAMS.map(p=>`<li><b>${p.name}</b> (${p.agency}) — <a href="${p.url}" onclick="return false">${p.url}</a> <span class="cite">[${p.id}]</span></li>`).join('')}</ul>
- <h3>5. Area context</h3><p>Tract ${TENANT.tract}: ${ACS.b30+ACS.b50} renter households are rent-burdened (ACS, real). Modeled filings: ${EVQ.reduce((a,b)=>a+b.np,0)} nonpayment filings over 4 quarters <span class="pill p-warn">modeled</span> <span class="cite">[EVF-06075047701-*]</span></p>
- <h3>6. Gaps &amp; uncertainty</h3><p>No official citation confirmed; unit-level conditions unverified; no landlord-notice proof; arrears amount unknown.</p>
- <h3>7. Suggested next steps</h3>
- <ol><li><b>Time-sensitive:</b> bring the 3-day notice to the Eviction Defense Collaborative / Right to Counsel intake immediately.</li><li>Request DBI inspection status for the open case.</li><li>Document conditions (photos, temperature log, dated written notice to landlord).</li><li>Apply to SF ERAP / MEDA with wage-loss documents.</li></ol>
- <div class="note"><b>Human-review notice:</b> This is an intake aid, not legal advice. Facts, law, deadlines, and eligibility must be verified by an advocate or attorney.</div>
- <div class="btns"><button class="btn" onclick="window.print()">🖨 Print / save PDF</button></div>${nav()}</div>`,
-// 8
-()=>`<div class="card"><h2>Human review checklist</h2><p class="sub">Advocate/attorney verifies before any action. Nothing is filed or sent automatically.</p>
- ${['Tenant facts confirmed with tenant (dates, notice, arrears)','Notice validity and response deadline calculated by counsel','DBI case number located; citation status and age (>35 days?) verified','Statute applicability confirmed (rent ordinance coverage, retaliation timeline)','Program eligibility confirmed (AMI, documentation)','Source dates checked — no stale records relied on','Referrals warm-handed to appropriate agencies'].map((t,i)=>`<label class="chk" style="font-weight:400"><input type="checkbox" onchange="updRev()"> ${t}</label>`).join('')}
- <div class="kpi" style="margin-top:14px"><div><b id="revn">0/7</b><span>verified</span></div><div><b>100%</b><span>claims with source or “reported” label</span></div><div><b>4</b><span>decoys rejected with reason</span></div></div>
- <h3>Post-output Equity Audit <span class="pill p-info">analyst view only</span></h3>
- <div class="firewall"><b>🔒 Firewall:</b> <code>audit_black_share</code>, <code>audit_hispanic_share</code>, <code>audit_asian_share</code>, <code>audit_indigenous_share</code>, <code>audit_white_share</code> were <b>never</b> used in retrieval, ranking, or prompts. After the output is produced, they are used only to check whether the system serves all neighborhoods equally (e.g., citation coverage and 311 filing rates by tract demographic mix).</div>
- <div class="two" style="margin-top:12px"><div class="cand"><b>Audit check (illustrative)</b><p>Evidence found per 1,000 renter HH, by tract demographic quartile:</p>
- ${[['Q1',9.1],['Q2',8.7],['Q3',6.2],['Q4',4.4]].map(r=>`<div>${r[0]} <span class="bar" style="width:200px"><i style="width:${r[1]*10}%"></i></span> ${r[1]}</div>`).join('')}</div>
- <div class="note" style="margin:0"><b>Reading:</b> a gradient suggests under-reporting in some tracts — a reason to emphasize the gaps workflow, not evidence of fewer problems.</div></div>${nav()}</div>`,
-];
-function render(){ renderSteps(); document.getElementById('stage').innerHTML=V[cur](); if(cur===4) drawProgs(); if(cur===5) drawTrap(); if(cur===3) {rejShown=true;} }
-/* step 3 */
-let rejShown=true;
-function runPipe(){
-  const st=[...document.querySelectorAll('#pipe .st')]; st.forEach(s=>s.classList.remove('on'));
-  st.forEach((s,i)=>setTimeout(()=>{s.classList.add('on'); if(i===3){drawCands(); document.getElementById('cands').classList.remove('hidden');}},i*550));
-}
-function toggleRej(){ rejShown=!rejShown; document.getElementById('rejbtn').textContent=rejShown?'Hide rejected':'Show rejected'; drawCands(); }
-function drawCands(){
-  const list=CANDS.filter(c=>rejShown||c.verdict==='accept').sort((a,b)=>b.sim-a.sim);
-  document.getElementById('cands').innerHTML=
-   `<p><span class="pill p-ok">${CANDS.filter(c=>c.verdict==='accept').length} accepted</span><span class="pill p-bad">${CANDS.filter(c=>c.verdict==='reject').length} rejected</span> of 25 candidates (7 shown)</p>`+
-   list.map(c=>`<div class="cand ${c.verdict==='accept'?'acc':'rej'}"><div class="h"><b>${c.id}</b><span class="pill ${c.verdict==='accept'?'p-ok':'p-bad'}">${c.verdict==='accept'?'ACCEPTED':'REJECTED'}</span><span class="pill p-mute">${c.prop}</span><span class="pill p-mute">${c.status}</span><span>similarity <span class="bar"><i style="width:${c.sim*100}%"></i></span> ${c.sim.toFixed(2)}</span></div>
-   <div>${c.type} · ${c.blk} · created ${c.created}${c.closed?' · closed '+c.closed:''}</div><div style="margin:4px 0;color:var(--mute)">“${c.txt}”</div>
-   <div><b>Why:</b> ${c.why}</div><div class="cite">${c.prov}</div></div>`).join('');
-}
-/* step 4 */
-function drawProgs(){
-  const open=document.getElementById('openCase').checked;
-  document.getElementById('progs').innerHTML=PROGRAMS.map(p=>{
-    const ok=!p.open||open;
-    return `<div class="cand ${ok?'acc':'rej'}"><div class="h"><b>${p.name}</b><span class="pill ${ok?'p-ok':'p-bad'}">${ok?'Potential match':'Not matched'}</span><span class="cite">${p.id}</span></div>
-    <div>${p.agency}${p.stream!=='—'?' · '+p.stream:''} · effective ${p.eff}</div><p>${p.txt}</p>
-    <div><span class="pill ${p.open?'p-warn':'p-mute'}">requires_open_habitability_case = ${p.open}</span><span class="pill p-mute">residential_tenants_only = ${p.res}</span></div>
-    ${ok?'':'<div class="note bad" style="margin:6px 0 0">Requires an open habitability case; none confirmed.</div>'}
-    <div class="cite">${p.url}</div></div>`}).join('');
-}
-/* step 5 */
-function drawTrap(){
-  const wrong=document.getElementById('trap').checked, n=3, np=EVQ.reduce((a,b)=>a+b.np,0);
-  document.getElementById('trapout').innerHTML=`<div class="kpi" style="margin-top:8px"><div><b>${wrong?np*n:np}</b><span>nonpayment filings (${wrong?'inflated':'correct'})</span></div><div><b>${wrong?n*4:n}</b><span>rows after join</span></div></div>${wrong?'<div class="note bad">4 quarters × 3 complaints → counts multiplied. Aggregate eviction filings by <code>census_tract_geoid</code> first.</div>':''}`;
-}
-/* step 8 */
-function updRev(){ const n=document.querySelectorAll('#stage input[type=checkbox]:checked').length; document.getElementById('revn').textContent=n+'/7'; }
+function go(i){if(i>cur)maxDone=Math.max(maxDone,cur);cur=i;render();window.scrollTo({top:0})}
+function renderSteps(){document.getElementById('steps').innerHTML=STEPS.map((s,i)=>`<li><button class="${i===cur?'on':''} ${i<=maxDone&&i!==cur?'done':''}" onclick="go(${i})"><span class="n">${i<=maxDone&&i!==cur?'✓':i+1}</span><span>${s[0]}<small>${s[1]}</small></span></button></li>`).join('')}
+const tbls=(...t)=>`<div class="note info"><b>Tables:</b> ${t.map(x=>`<code>${x}</code>`).join(' ')}</div>`;
 
-/* ---------- Architecture tab ---------- */
+const V=[
+/* 0 intake */
+()=>`<div class="card"><h2>Intake</h2><p class="sub">The paralegal types the case in plain words (an <code>adk web</code> chat). Intake date: <b>Thu 2026-11-19</b>. One intake per session.</p>
+ <div class="chat"><div class="msg u">${esc(INTAKE_TEXT)}</div></div>
+ <div class="note info">Why this UI: it is an internal paralegal tool, and ADK’s visible trace of every tool call makes the answer auditable.</div>
+ <div class="note">No names, phone numbers or unit numbers are requested. Raw narratives are not logged.</div>
+ <div class="btns"><button class="btn" onclick="go(1)">Send → navigator calls <code>build brief</code></button></div></div>`,
+/* 1 understand */
+()=>`<div class="card"><h2>1 · Understand</h2><p class="sub">Free text → structured intake. Original text preserved; inferences are never silently turned into facts.</p>
+ ${agentTag('intake_parser')}
+ <div class="two"><div><h3 style="margin-top:0"><code>state.intake</code></h3><pre>${esc(JSON.stringify(STATE_INTAKE,null,2))}</pre></div>
+ <div><h3 style="margin-top:0">Rewritten as inspector wording</h3><div class="note info" style="margin-top:0"><b>search_query:</b><br>“${SEARCH_Q}”</div>
+ <p class="sub">Tenant says “radiators stone cold”; the city record says “inadequate heating below code minimum”. Vector search bridges the wording gap.</p>
+ <h3>Urgency</h3><span class="pill p-bad">Hearing in 4 days</span><span class="pill p-warn">Habitability: heat</span></div></div>
+ <h3>Facts &amp; labels</h3><div class="scroll"><table><tr><th>Fact</th><th>Label</th><th>Detail</th></tr>${FACTS.map(f=>`<tr><td>${f[0]}</td><td><span class="pill ${f[1]==='Unknown'?'p-mute':'p-user'}">${f[1]}</span></td><td>${f[2]}</td></tr>`).join('')}</table></div>${nav()}</div>`,
+/* 2 evidence */
+()=>`<div class="card"><h2>2 · Gather: evidence</h2><p class="sub">Search wide by meaning → filter strictly by rules.</p>
+ ${agentTag('evidence_agent ★')}${tbls('complaints_embedded','municipal_311_housing_complaints')}
+ <div class="pipe" id="pipe">
+  <div class="st"><b>1 · Embed</b><span><code>AI.EMBED(search_query)</code></span></div>
+  <div class="st"><b>2 · VECTOR_SEARCH</b><span>top 50 by meaning (no SQL WHERE)</span></div>
+  <div class="st"><b>3 · Python rules</b><span>Residential · closed_date IS NULL · ≤ 400 m</span></div>
+  <div class="st"><b>4 · Join back</b><span>lat/lng, created_date, provenance</span></div></div>
+ <div class="btns" style="margin:0 0 6px"><button class="btn" onclick="runPipe()">▶ Run search</button>
+  <label class="chk" style="margin:0;align-items:center"><input type="checkbox" ${S.radius?'checked':''} onchange="S.radius=this.checked;drawCands()"> 400 m radius ON <span class="sub" style="margin:0">(tests turn it off: rules must still catch every decoy)</span></label>
+  <label class="chk" style="margin:0;align-items:center"><input type="checkbox" ${S.noRecord?'checked':''} onchange="S.noRecord=this.checked;drawCands()"> Simulate: no open record near the block</label></div>
+ <div id="cands" class="hidden"></div>
+ <div class="note">A complaint on the same <b>block</b> is not proof about <i>her apartment</i>. Absence of a record is never proof that nothing happened.</div>${nav()}</div>`,
+/* 3 context */
+()=>{const np=EVQ.reduce((a,e)=>a+e.nonpayment_filings_count,0),ho=EVQ.reduce((a,e)=>a+e.holdover_or_no_fault_filings_count,0),dj=EVQ.reduce((a,e)=>a+e.default_judgments_count,0);
+ return `<div class="card"><h2>3 · Gather: tract context</h2><p class="sub">Aggregate neighborhood context only: never an individual risk score. Tract <span class="mono">06075016300</span> (GEOID kept as text).</p>
+ ${agentTag('context_agent')}${tbls('acs_tract_housing_tenure','court_eviction_filings')}
+ <h3>Renter burden <span class="pill p-ok">REAL · Census ACS</span></h3>
+ <div class="kpi"><div><b>${TRACT.renter_occupied_units.toLocaleString()}</b><span>renter-occupied units</span></div><div><b>${TRACT.renter_hh_rent_50_pct_plus_count}</b><span>severely burdened (≥50% of income)</span></div><div><b>16.0%</b><span>of renter HH (SF overall ≈ 17.5%)</span></div><div><b>$${TRACT.median_gross_rent.toLocaleString()}</b><span>median gross rent</span></div></div>
+ ${raw('acs_tract_housing_tenure',TRACT,'Tract row')}
+ <h3>Eviction filings <span class="pill p-warn">MODELED, not real court records</span></h3>
+ <div class="scroll"><table><tr><th>filing_record_id</th><th>reporting_quarter</th><th>nonpayment</th><th>holdover / no-fault</th><th>default judgments</th><th>median arrears (USD)</th></tr>
+ ${EVQ.map(e=>`<tr><td><code>${e.filing_record_id}</code></td><td>${e.reporting_quarter}</td><td>${e.nonpayment_filings_count}</td><td>${e.holdover_or_no_fault_filings_count}</td><td>${e.default_judgments_count}</td><td>$${e.median_claimed_arrears_usd.toLocaleString()}</td></tr>`).join('')}
+ <tr><th colspan="2">Σ per tract (summed first)</th><th>${np}</th><th>${ho}</th><th>${dj}</th><th></th></tr></table></div>
+ ${raw('court_eviction_filings',EVQ[0],'One quarterly row')}
+ <h3>⚠ Grain trap</h3><label class="chk"><input type="checkbox" id="trap" onchange="drawTrap()"> Join the 4 quarterly rows <i>before</i> summing (wrong)</label><div id="trapout"></div>
+ <div class="note">Used to explain why the neighborhood matters and to spot reporting gaps; never to predict whether she will be evicted. <code>audit_*</code> columns are not read here.</div>${nav()}</div>`},
+/* 4 law */
+()=>`<div class="card"><h2>4 · Decide: law</h2><p class="sub">Which of the 3 SF/CA statutes apply, and when. Retrieval ≠ legal determination.</p>
+ ${agentTag('legal_agent')}${tbls('municipal_housing_ordinance_statutes')}
+ <p>Needs the evidence first: the 35-day clock starts at <code>created_date</code> of the matched complaint (<b>2026-11-03</b>). Intake date <b>2026-11-19</b> → <b>16 days</b>.</p>
+ ${STATUTES.map(s=>`<div class="cand ${s.v==='Yes'?'acc':s.v==='Yes, if'?'cond':'rej'}"><div class="h"><b>${s.r.code_citation}</b><span class="pill ${s.cls}">${s.v}</span><span class="pill p-info">${s.r.jurisdiction}</span><span class="cite">${s.r.statute_section_id}</span></div><i>${s.r.ordinance_title}</i><p style="margin:4px 0">${s.r.raw_statute_text}</p><div><b>Why:</b> ${s.why}</div>${raw('municipal_housing_ordinance_statutes',s.r)}</div>`).join('')}
+ <h3>35-day clock for §1942.4</h3><div><span class="bar" style="width:260px"><i style="width:${16/35*100}%"></i></span> <b>16 / 35 days</b> · applies from <b>2026-12-09</b> if still unabated</div>
+ ${nav()}</div>`,
+/* 5 funds */
+()=>`<div class="card"><h2>5 · Decide: funds</h2><p class="sub">Conditions come from <code>funds_sf.yaml</code>, taken from the bulletin text and boolean flags. Ranked for a 4-day deadline.</p>
+ ${agentTag('relief_agent')}${tbls('rental_relief_program_bulletins')}
+ <div id="ctl">${controls()}</div><div id="reliefbox">${reliefCards()}</div>
+ <div class="note">Block evidence alone never confirms “an open case on <i>your</i> unit”, so Prop F and the DBI Bridge stay <b>CONDITIONAL</b> until she gives her own case number.</div>${nav()}</div>`,
+/* 6 write & verify */
+()=>`<div class="card"><h2>6 · Write &amp; verify</h2><p class="sub">The writer drafts; code checks. A failing check sends it back (max 2×).</p>
+ ${agentTag('brief_writer')}${agentTag('verifier')}
+ <div class="btns" style="margin:0 0 10px"><button class="btn" onclick="runVerify()">▶ Run writer + verifier</button></div>
+ <div id="vout"></div>${nav()}</div>`,
+/* 7 brief */
+()=>{const rv=relief(),np=EVQ.reduce((a,e)=>a+e.nonpayment_filings_count,0)+EVQ.reduce((a,e)=>a+e.holdover_or_no_fault_filings_count,0);
+ return `<div class="card brief"><h2>Tenant Stabilization Brief: 1000 Block Fillmore St <span class="pill p-bad">hearing in 4 days</span><span class="pill p-warn">DRAFT · attorney review</span></h2>
+ <p class="sub">Stored as JSON in <code>state.brief</code>; shown as chat reply. Funds reflect the current answers from the previous step.</p>
+ <h3>1. City records that support the tenant</h3>
+ <div class="scroll"><table><tr><th>request_id</th><th>block_address</th><th>inspection_status</th><th>created_date</th><th>Match</th></tr><tr><td><code>SF-202665182</code></td><td>1000 Block Fillmore St</td><td>Open - Active DBI Case</td><td>2026-11-03</td><td><span class="pill p-ok">strong</span></td></tr></table></div>
+ <p style="margin:4px 0"><i>“…resident has been without heat… it’s 52 degrees in the dwelling unit.”</i> <span class="cite">[SF-202665182 · ${PROV_PUB.split(' (')[0]}]</span></p>
+ <p><b>Excluded look-alikes</b> (similar text, don’t count):</p>
+ <ul><li><code>DECOY-SANF-01</code> “no heat… commercial retail warehouse” → <i>commercial property</i></li><li><code>DECOY-SANF-04</code> “broken central boiler, freezing rooms” → <i>closed: landlord fixed it</i></li><li><code>DECOY-SANF-07</code> “winter readiness inspection… boiler at 71F” → <i>closed: no violation found</i></li></ul>
+ <h3>2. Laws</h3><table><tr><th>Citation</th><th>Applies?</th><th>Why</th></tr>${STATUTES.map(s=>`<tr><td>${s.r.code_citation} <span class="cite">[${s.r.statute_section_id}]</span></td><td><span class="pill ${s.cls}">${s.v}</span></td><td>${s.why}</td></tr>`).join('')}</table>
+ <h3>3. Emergency help (ranked for a 4-day deadline)</h3>${reliefTable()}
+ <p><b>Ask the tenant:</b> (1) Do you have your own DBI case number? (2) Household size and yearly income?</p>
+ <h3>4. Neighborhood context (tract 06075016300)</h3><ul><li>Severe rent burden: 265 of 1,653 renter households (16.0%), vs about 17.5% across SF <span class="pill p-ok">real</span></li><li>Eviction filings: about ${np} per year <span class="pill p-warn">MODELED estimate, not real court records</span></li></ul>
+ <h3>5. What this does NOT prove</h3><ul><li>The city record is about the <b>block</b>, not her apartment (and the caller may be a third party). Ask whether she has her own DBI case number.</li><li>Filing counts are modeled from county totals, not her court docket.</li></ul>
+ <h3>6. Draft intake memo (for attorney review)</h3><blockquote style="margin:0;color:var(--mute)">Client resides on the 1000 block of Fillmore St, facing a nonpayment hearing 11/23…</blockquote>
+ <div class="note"><b>Human-review notice:</b> intake aid, not legal advice. Facts, law, deadlines and eligibility must be verified by an advocate or attorney.</div>
+ <div class="btns"><button class="btn" onclick="window.print()">🖨 Print / save PDF</button></div>${nav()}</div>`},
+/* 8 follow-ups */
+()=>`<div class="card"><h2>Follow-ups in the same session</h2><p class="sub"><code>navigator</code> answers or calls a tool. Click a question.</p>
+ ${agentTag('navigator')}
+ <div class="btns" style="margin:0 0 10px">${[['why','Why did you drop the warehouse boiler one?'],['case','She has her own DBI case number'],['inc','2-person household, about $45k a year'],['mcp','How many open heat complaints are in this tract?'],['race','Note: tenant is Black; can that raise priority?']].map(b=>`<button class="btn ghost sm" onclick="ask('${b[0]}')">${b[1]}</button>`).join('')}</div>
+ <div class="chat" id="chat"><div class="msg a">Brief ready. Ask me anything about the evidence, or add facts and I’ll re-check funds.</div></div>
+ <h3>Current fund verdicts</h3><div id="fupfunds">${reliefTable()}</div>
+ <p class="sub">No open record near the block? Toggle “Simulate” in the evidence step: <code>inspection_request_drafter</code> takes over.</p>${nav()}</div>`,
+/* 9 review */
+()=>`<div class="card"><h2>Human review checklist</h2><p class="sub">Advocate/attorney verifies before any action. Nothing is filed or sent automatically.</p>
+ ${['Facts confirmed with the tenant (hearing time, rent owed, own DBI case number)','Hearing deadline / response calculated by counsel','DBI case located; citation status and age (>35 days from 2026-12-09?) verified','Statute applicability confirmed (rent ordinance coverage; who made the complaint)','Fund eligibility confirmed (AMI, documentation)','Source dates checked: no stale records relied on','Referrals warm-handed (Prop F intake first: 4 days)'].map(t=>`<label class="chk"><input type="checkbox" onchange="updRev()"> ${t}</label>`).join('')}
+ <div class="kpi" style="margin-top:14px"><div><b id="revn">0/7</b><span>verified</span></div><div><b>9/9</b><span>decoys rejected by rules (tests)</span></div><div><b>0</b><span>unsupported claims after verifier</span></div></div>
+ <h3>Offline equity audit <span class="pill p-info">analyst view only · scripts/equity_audit.py</span></h3>
+ <div class="firewall"><b>🔒 Firewall:</b> <code>audit_black_share</code>, <code>audit_hispanic_share</code>, <code>audit_asian_share</code>, <code>audit_indigenous_share</code>, <code>audit_white_share</code> are never read by any agent. Offline, many intakes are run across SF tracts to ask: <i>does “needs an open 311 record” miss high-burden neighborhoods?</i></div>
+ <div class="two" style="margin-top:12px"><div class="cand"><b>Audit output (illustrative)</b><p>Intakes with ≥1 kept record, by tract rent-burden quartile:</p>${[['Q1 low',82],['Q2',74],['Q3',55],['Q4 high',38]].map(r=>`<div>${r[0]} <span class="bar" style="width:200px"><i style="width:${r[1]}%"></i></span> ${r[1]}%</div>`).join('')}</div>
+ <div class="note" style="margin:0"><b>Reading:</b> a gradient means under-reporting in high-burden tracts: the reason the gaps workflow and CONDITIONAL verdicts exist, not evidence of fewer problems.</div></div>${nav()}</div>`,
+];
+function render(){renderSteps();document.getElementById('stage').innerHTML=V[cur]();if(cur===2)drawCands(false);if(cur===3)drawTrap()}
+
+/* step 2 */
+function runPipe(){const st=[...document.querySelectorAll('#pipe .st')];st.forEach(s=>s.classList.remove('on'));
+  st.forEach((s,i)=>setTimeout(()=>{s.classList.add('on');if(i===3)drawCands(true)},i*550))}
+let candsShown=false;
+function drawCands(show){
+  if(show===true)candsShown=true;
+  const el=document.getElementById('cands');if(!candsShown){el.classList.add('hidden');return}
+  el.classList.remove('hidden');
+  const rows=CANDS.map(c=>{const r=c.r;
+    const res={prop:r.property_type==='Residential',open:r.closed_date===null,rad:c.dist<=400};
+    let keep=res.prop&&res.open&&(S.radius?res.rad:true);
+    if(S.noRecord&&c.sel){keep=false;res.open=false;}
+    return {c,res,keep}}).sort((a,b)=>b.c.sim-a.c.sim);
+  const kept=rows.filter(x=>x.keep).length;
+  let h=`<p><span class="pill ${kept?'p-ok':'p-bad'}">${kept} kept</span><span class="pill p-bad">${rows.length-kept} excluded</span> <span class="sub">4 of top 50 shown · 6 more planted decoys also excluded by the same rules</span></p>
+   <p><label class="chk" style="margin:0"><input type="checkbox" ${S.rejShown?'checked':''} onchange="S.rejShown=this.checked;drawCands()"> show excluded</label></p>`;
+  h+=rows.filter(x=>S.rejShown||x.keep).map(({c,res,keep})=>{const r=c.r;
+   const why=keep?'Kept: all rules pass':'Excluded: '+[!res.prop?'property_type = '+r.property_type:'',!res.open?(S.noRecord&&c.sel?'(simulated) no open record':'closed_date = '+r.closed_date+' ('+r.inspection_status+')'):'',(S.radius&&!res.rad)?'outside 400 m ('+c.dist+' m)':''].filter(Boolean).join(' · ');
+   return `<div class="cand ${keep?'acc':'rej'}"><div class="h"><b>${r.request_id}</b><span class="pill ${keep?'p-ok':'p-bad'}">${keep?'KEPT':'EXCLUDED'}</span><span>similarity <span class="bar"><i style="width:${c.sim*100}%"></i></span> ${c.sim.toFixed(2)}</span><span class="pill p-mute">${c.dist} m away</span></div>
+   <div>${r.raw_complaint_type} · ${r.block_address} · created ${r.created_date}${r.closed_date?' · closed '+r.closed_date:''} · <b>${r.inspection_status}</b></div>
+   <div style="margin:4px 0;color:var(--mute)">“${r.complaint_narrative}”</div>
+   <div><span class="rule ${res.prop?'y':'n'}">Residential: ${res.prop?'✓':'✗'}</span><span class="rule ${res.open?'y':'n'}">closed_date IS NULL: ${res.open?'✓':'✗'}</span><span class="rule ${S.radius?(res.rad?'y':'n'):'x'}">≤ 400 m: ${S.radius?(res.rad?'✓':'✗'):'off'}</span></div>
+   <div><b>${why}</b> <span class="sub">${c.note}</span></div><div class="cite">${r.data_provenance}</div>${raw('municipal_311_housing_complaints',r)}</div>`}).join('');
+  if(!kept){h+=`<div class="note bad"><b>No open residential record near this block.</b> Absence of a record is not proof that nothing happened.</div>
+   <div class="agent LLM"><b>inspection_request_drafter</b><span class="pill p-mute">LLM</span><span>fallback</span></div>
+   <div class="cand"><b>Draft 311 / DBI inspection request</b><p>“Residents of the 1000 block of Fillmore St report no heat since early autumn, indoor temperature about 50°F, with a child in the household affected. Requesting an inspection under the housing code…”</p><b>Photo checklist:</b> thermostat reading with date · radiator/heater · mold or damp · written notice to landlord. <b>Meanwhile:</b> SF ERAP and MEDA do not require a habitability case.</div>`}
+  el.innerHTML=h}
+function drawTrap(){const w=document.getElementById('trap').checked,np=EVQ.reduce((a,e)=>a+e.nonpayment_filings_count+e.holdover_or_no_fault_filings_count,0);
+  document.getElementById('trapout').innerHTML=`<div class="kpi" style="margin-top:8px"><div><b>${w?np*4:np}</b><span>filings per year (${w?'WRONG, 4× inflated':'correct'})</span></div></div>${w?'<div class="note bad">Aggregate by <code>census_tract_geoid</code> first, then join.</div>':''}`}
+/* step 6 */
+function runVerify(){const o=document.getElementById('vout');o.innerHTML='';
+  const steps=[
+   ['p-info','brief_writer drafts attempt 1…'],
+   ['p-bad','verifier: ✗ “Prop F: ELIGIBLE” but relief verdict is CONDITIONAL (no own DBI case number) → over-claim. Feedback written to <code>state.verifier_feedback</code>'],
+   ['p-info','brief_writer rewrites attempt 2 (1 of 2 allowed rewrites)…'],
+   ['p-ok','verifier: ✓ every request_id / statute id / bulletin id exists in the retrieved state'],
+   ['p-ok','verifier: ✓ every external claim has a citation; tenant facts labeled “reported”'],
+   ['p-ok','verifier: ✓ block-level evidence not described as her unit · filings labeled MODELED'],
+   ['p-ok','PASS → state.brief']];
+  steps.forEach((s,i)=>setTimeout(()=>{o.insertAdjacentHTML('beforeend',`<div style="margin:6px 0"><span class="pill ${s[0]}">${i+1}</span> ${s[1]}</div>`)},i*600))}
+/* step 8 */
+function ask(k){const c=document.getElementById('chat');let q='',a='';
+  if(k==='why'){q='Why did you drop the warehouse boiler one?';a=`<code>explain_exclusion("DECOY-SANF-01")</code> → property_type = <b>Commercial</b>: “…commercial retail warehouse storefront; zero residential tenants.” It was the highest raw-similarity hit (0.93), which is why rules, not similarity, decide.`}
+  if(k==='case'){S.ownCase=true;q='She has her own DBI case number';a='Updated <code>tenant_has_own_dbi_case = true</code>. <code>relief_agent</code> re-ran: Prop F and the DBI Bridge are now <b>ELIGIBLE</b> (table below). Please still verify the number with DBI.'}
+  if(k==='inc'){S.income='le60';q='2-person household, about $45k a year';a='Income checked against AMI (illustrative: ≤ 60%). SF ERAP is now <b>ELIGIBLE</b>; MEDA stays <b>CONDITIONAL</b> pending medical leave or wage loss.'}
+  if(k==='mcp'){q='How many open heat complaints are in this tract?';a=`<span class="pill" style="background:var(--mcp);color:var(--mcp-b)">BigQuery MCP</span><pre>SELECT COUNT(*) FROM a4i_housing.municipal_311_housing_complaints
+WHERE census_tract_geoid='06075016300' AND closed_date IS NULL
+  AND REGEXP_CONTAINS(LOWER(complaint_narrative), r'heat')</pre>Result in the starter data: <b>1</b> (SF-202665182). The tract has 2 open complaints in total.`}
+  if(k==='race'){q='Note: tenant is Black; can that raise priority?';a='I ignore race and other protected traits: they are not used in retrieval, ranking, or fund verdicts. <code>audit_*</code> columns are used only offline for the equity audit.'}
+  c.insertAdjacentHTML('beforeend',`<div class="msg u">${q}</div><div class="msg a">${a}</div>`);c.scrollTop=c.scrollHeight;rerenderRelief()}
+function updRev(){document.getElementById('revn').textContent=document.querySelectorAll('#stage input[type=checkbox]:checked').length+'/7'}
+
+/* =================== architecture tab =================== */
 (function(){
   const f=document.getElementById('archflow');
-  const nodes=[['Tenant / Advocate','Case Workspace (web UI)'],['Google ADK Orchestrator + Gemini','One agent, typed tools, no swarm']];
-  f.innerHTML=nodes.map(n=>`<div class="node"><b>${n[0]}</b>${n[1]}</div><div class="arrow">↓</div>`).join('')+
-    TOOLS.map((t,i)=>`<div class="node tool" style="cursor:pointer" data-i="${i}"><b>${i+1}. ${t.n}</b><span class="sub">${t.d}</span></div>`).join('')+
-    '<div class="arrow">↓</div><div class="node"><b>Tenant Stabilization Brief</b>+ Human review gate</div>';
-  const show=i=>{const t=TOOLS[i];document.getElementById('archdetail').innerHTML=`<h3 style="margin-top:0"><code>${t.n}</code></h3><p>${t.d}</p><p><b>Reads:</b> ${t.t.length?t.t.map(x=>`<code>${x}</code>`).join(' '):'—'}</p><div class="note"><b>Rule:</b> ${t.rule}</div>`};
-  f.querySelectorAll('.tool').forEach(n=>n.onclick=()=>show(+n.dataset.i)); show(1);
+  const chip=n=>{const a=AGENTS.find(x=>x.n===n);return `<div class="chip ${a.kind}" data-n="${n}"><b>${n}</b><small>${a.model}</small></div>`};
+  f.innerHTML=`<div class="chip" style="border-color:var(--line);background:var(--panel)"><b>Paralegal</b><small>adk web · one intake per session</small></div><div class="arrow">↓</div>
+   <div class="stephd">AGENT RUNTIME (Vertex AI Agent Runtime)</div>${chip('navigator')}
+   <div class="par">${chip('explain_exclusion')}${chip('BigQuery MCP')}${chip('inspection_request_drafter')}</div>
+   <div class="arrow">↓ build brief (AgentTool)</div>
+   <div class="stephd">1 · UNDERSTAND</div>${chip('intake_parser')}<div class="arrow">↓</div>
+   <div class="stephd">2 · GATHER (parallel)</div><div class="par">${chip('evidence_agent ★')}${chip('context_agent')}</div><div class="arrow">↓</div>
+   <div class="stephd">3 · DECIDE (parallel)</div><div class="par">${chip('legal_agent')}${chip('relief_agent')}</div><div class="arrow">↓</div>
+   <div class="stephd">4 · WRITE</div>${chip('brief_writer')}<div class="arrow">↓</div>
+   <div class="stephd">5 · VERIFY</div>${chip('verifier')}<div class="arrow" style="font-size:12px">fails → rewrite (max 2×)</div>
+   <div class="chip" style="border-color:#d97706;background:var(--warn-soft)"><b>Tenant Stabilization Brief</b><small>+ human review gate</small></div>`;
+  const show=n=>{const a=AGENTS.find(x=>x.n===n);
+    f.querySelectorAll('.chip[data-n]').forEach(e=>e.classList.toggle('on',e.dataset.n===n));
+    document.getElementById('archdetail').innerHTML=`<h3 style="margin-top:0"><code>${a.n}</code> <span class="pill ${a.kind==='LLM'?'p-info':a.kind==='code'?'p-ok':'p-mute'}">${a.kind}</span></h3><p>${a.model} · ${a.step}</p><p><b>Reads:</b> <code>${a.reads}</code><br><b>Writes:</b> <code>${a.writes}</code></p><p><b>Tables:</b> ${a.tables.length?a.tables.map(t=>`<code>${t}</code>`).join(' '):'—'}</p><div class="note"><b>Rule:</b> ${a.rule}</div>`};
+  f.querySelectorAll('.chip[data-n]').forEach(e=>e.onclick=()=>show(e.dataset.n));show('evidence_agent ★');
 })();
 
-/* ---------- Datasets tab ---------- */
+/* =================== data tab =================== */
 (function(){
   const g=document.getElementById('tblgrid');
-  g.innerHTML=Object.entries(TABLES).map(([k,v])=>`<div class="tbl" data-k="${k}"><h4>${k}</h4><small>${v.cols.length} columns · ${v.rows}</small><p style="margin:6px 0 0;font-size:13px">${v.use}</p></div>`).join('');
-  const show=k=>{const v=TABLES[k];
-   g.querySelectorAll('.tbl').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
-   document.getElementById('tbldetail').innerHTML=`<h2 class="mono" style="font-size:16px">${k}</h2><p><b>Provenance:</b> ${v.prov}</p><p><b>How ShelterWise uses it:</b> ${v.use}</p>
-   <div class="scroll"><table><tr><th>#</th><th>column_name</th><th>data_type</th><th>notes</th></tr>${v.cols.map((c,i)=>`<tr><td>${i+1}</td><td><code>${c[0]}</code></td><td>${c[1]}</td><td>${c[2]==='audit'?'<span class="pill p-bad">Equity-audit only — never in retrieval/prompts</span>':c[0]==='census_tract_geoid'?'Keep as STRING (leading zeros)':c[0]==='embedding'?'NOT NULL · VECTOR_SEARCH':c[0]==='data_provenance'?'Surface in UI':c[0]==='request_id'?'Join key / citation id':''}</td></tr>`).join('')}</table></div>`};
-  g.querySelectorAll('.tbl').forEach(e=>e.onclick=()=>show(e.dataset.k)); show('municipal_311_housing_complaints');
+  g.innerHTML=Object.entries(TABLES).map(([k,v])=>`<div class="tbl" data-k="${k}"><h4>${k}</h4><small>${v.cols.length} columns · ${v.rows}</small><p style="margin:6px 0 0;font-size:13px">${v.use}</p><span class="pill p-info">${v.who}</span></div>`).join('');
+  const sample={acs_tract_housing_tenure:TRACT,complaints_embedded:R182,court_eviction_filings:EVQ[0],municipal_311_housing_complaints:R182,municipal_housing_ordinance_statutes:STATUTES[2].r,rental_relief_program_bulletins:PROGRAMS[1].r};
+  const show=k=>{const v=TABLES[k];g.querySelectorAll('.tbl').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+   const note=c=>c[2]==='audit'?'<span class="pill p-bad">Equity-audit only: never in retrieval/prompts</span>':c[0]==='census_tract_geoid'?'Keep as STRING (leading zeros)':c[2]==='notnull'?'NOT NULL · VECTOR_SEARCH':c[0]==='data_provenance'?'Surface in UI':c[0]==='request_id'?'PK / join key / citation id':/latitude|longitude/.test(c[0])?'Needed for 400 m radius':c[0]==='created_date'?'Starts the 35-day clock':c[0]==='closed_date'?'NULL = still open':c[0]==='reporting_quarter'?'4 per tract: SUM first':'';
+   document.getElementById('tbldetail').innerHTML=`<h2 class="mono" style="font-size:16px">${k}</h2><p><b>Provenance:</b> ${v.prov}</p><p><b>How ShelterWise uses it:</b> ${v.use}</p><p><b>Agent(s):</b> ${v.who}</p>
+   <div class="scroll"><table><tr><th>#</th><th>column_name</th><th>data_type</th><th>is_nullable</th><th>notes</th></tr>${v.cols.map((c,i)=>`<tr><td>${i+1}</td><td><code>${c[0]}</code></td><td>${c[1]}</td><td>${c[2]==='notnull'?'NO':'YES'}</td><td>${note(c)}</td></tr>`).join('')}</table></div>${raw(k,sample[k],'Sample row')}`};
+  g.querySelectorAll('.tbl').forEach(e=>e.onclick=()=>show(e.dataset.k));show('municipal_311_housing_complaints');
 })();
 
 render();
