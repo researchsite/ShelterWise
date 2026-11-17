@@ -125,7 +125,13 @@
 </style></head>
 <body>
 <div class="main" id="main"><div class="chatpane">
-<div class="maptoggle"><button class="btn tp-btn" onclick="tp.classList.toggle('open')">🧪 Test prompts</button><button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button></div>
+<div class="maptoggle">
+  <span id="adk-pill" style="margin-right:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:14px;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0">
+    <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
+    <b>ADK Agent Cloud:</b> <a href="https://shelterwise-backend-335751565476.us-central1.run.app" target="_blank" style="color:inherit;text-decoration:underline">shelterwise-backend</a>
+  </span>
+  <button class="btn tp-btn" onclick="tp.classList.toggle('open')">🧪 Test prompts</button><button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button>
+</div>
 <div class="thread" id="thread"><div class="col" id="col">
   <div class="hero" id="hero">
     <h2>What's the situation?</h2>
@@ -356,13 +362,33 @@ function sendBox(){const i=document.getElementById('inp');if(!i.value.trim())ret
 async function send(text){
   if(busy)return;busy=true;document.getElementById('hero')?.remove();
   col.insertAdjacentHTML('beforeend',`<div class="msg user"><div class="bub">${esc(text)}</div></div>`);
-  const res=backend(text);
   const el=document.createElement('div');el.className='msg bot';
-  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Working…</span></summary><ol></ol></details><div class="out"></div></div>`;
+  el.innerHTML=`<div class="ava">🏠</div><div class="body"><details class="trace" open><summary><span class="spin"></span> <span class="tl">Querying Google ADK Agents…</span></summary><ol></ol></details><div class="out"></div></div>`;
   col.append(el);scroll();
   const ol=el.querySelector('ol');const t0=performance.now();
-  // parallel lanes run together
-  const steps=res.agent_trace;let i=0;
+
+  let res = null;
+  try {
+    const apiRes = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: 'SF-1042', message: text, user: 'maria.r' })
+    });
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (!data.fallback && data.blocks && data.blocks.length) {
+        res = data;
+      }
+    }
+  } catch(e) {
+    console.warn('Live ADK Gateway not reachable, using mock:', e);
+  }
+
+  if (!res) {
+    res = backend(text);
+  }
+
+  const steps=res.agent_trace || [];let i=0;
   while(i<steps.length){
     const par=s=>s.label.includes('(parallel)');let j=i+1;if(par(steps[i]))while(j<steps.length&&par(steps[j]))j++;const group=steps.slice(i,j);
     const lis=group.map(s=>{const li=document.createElement('li');li.className='run';li.innerHTML=`<span class="agent">${s.agent}</span> ${s.label}`;ol.append(li);return li});
