@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShelterWise · 1 Case Queue</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .board{grid-template-columns:repeat(3,minmax(260px,1fr));align-items:start}
+  .col{background:#eef1f5;border-radius:var(--radius);padding:10px;min-height:420px}
+  .col h3{display:flex;align-items:center;gap:8px;margin:2px 4px 10px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#3b4858}
+  .col h3 .n{background:#fff;border-radius:99px;padding:0 8px;font-size:12px}
+  .case{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .case.mine{border-left:4px solid var(--brand)}
+  .case.urgent .clock{background:var(--bad-soft);color:var(--bad);border-color:#f5c2be}
+  .case .id{font-weight:700}
+  .case .blk{color:var(--muted);font-size:12.5px;margin:2px 0 8px}
+  .clock{font-weight:700}
+  .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .lockline{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .stat .v{font-size:22px;font-weight:800}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:40}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:12px;max-width:560px;padding:18px 20px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+  .diff td{font-size:13px}
+  .diff .old{background:var(--bad-soft)} .diff .new{background:var(--ok-soft)}
+  .pulse{animation:pulse 1s ease-out 2}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(43,92,171,.5)}100%{box-shadow:0 0 0 12px rgba(43,92,171,0)}}
+</style></head>
+<body>
+<div class="propbanner"><b>Proposal 1: Case Queue.</b> Firestore <code>cases/{case_id}</code> + lock metadata, driven by <span class="agent">claim_or_update_case_task</span> (<code>@firestore.transactional</code>). This screen proves the <b>Stretch +10</b> "3 paralegals don't overwrite each other". Try <b>Claim</b> on a card, then <b>Simulate concurrent edit</b>.</div>
+<div class="wrap">
+  <div class="grid stats" style="margin-bottom:16px">
+    <div class="card stat"><div class="small muted">Open cases</div><div class="v">7</div></div>
+    <div class="card stat"><div class="small muted">Hearing ≤ 4 days</div><div class="v" style="color:var(--bad)">3 <span class="b bad">URGENT</span></div></div>
+    <div class="card stat"><div class="small muted">Life-safety flagged</div><div class="v">1 <span class="b bad">⚠ HAZARD</span></div></div>
+    <div class="card stat"><div class="small muted">Attorney-ready tonight</div><div class="v" style="color:var(--ok)">2</div></div>
+  </div>
+
+  <div class="row" style="margin-bottom:12px">
+    <input type="text" placeholder="Search case ID or block…" style="max-width:280px" aria-label="Search cases">
+    <button class="btn">Mine only</button><button class="btn">Hearing ≤ 4 days</button>
+    <span class="sp"></span>
+    <button class="btn" onclick="simulateConflict()">⚡ Simulate concurrent edit</button>
+    <a class="btn primary" href="2-intake-safety.html">＋ New intake</a>
+  </div>
+
+  <div class="grid board">
+    <section class="col" aria-label="Intake column"><h3>Intake <span class="n">3</span></h3>
+      <article class="case mine urgent" id="c1042">
+        <div class="row"><span class="id">SF-1042</span><span class="b bad">⚠ Life-safety</span><span class="sp"></span><span class="b clock">⏱ 89h · Mon 9:00am</span></div>
+        <div class="blk">1000 Block Fillmore St · tract <code>06075016300</code></div>
+        <div class="small">No heat ~50°F, water near fuse box · nonpayment</div>
+        <div class="meta"><span class="b ok">1 corroborating 311</span><span class="b grey">3 decoys excluded</span><span class="b warn">Brief v1 draft</span></div>
+        <div class="lockline" id="lock1042">🔒 <b>Maria R. (you)</b><span class="muted">· lock_version <code id="lv1042">3</code></span><span class="sp"></span><a href="6-brief-chat.html">Open →</a></div>
+      </article>
+      <article class="case urgent" id="c1044">
+        <div class="row"><span class="id">SF-1044</span><span class="sp"></span><span class="b clock">⏱ 46h · answer due Sat</span></div>
+        <div class="blk">700 Block Ellis St · tract <code>06075012501</code></div>
+        <div class="small">Mold + leak, 3-day notice served</div>
+        <div class="meta"><span class="b grey">Triage not run</span></div>
+        <div class="lockline" id="lock1044">🔓 <span class="muted">Unassigned · lock_version <code>0</code></span><span class="sp"></span><button class="btn" onclick="claim('1044')">Claim</button></div>
+      </article>
+      <article class="case">
+        <div class="row"><span class="id">SF-1045</span><span class="sp"></span><span class="b warn">⏱ 9 days</span></div>
+        <div class="blk">2400 Block Mission St · tract <code>06075020800</code></div>
+        <div class="small">Owner move-in notice, rent arrears</div>
+        <div class="meta"><span class="b warn">0 open 311 → drafter suggested</span></div>
+        <div class="lockline">🔒 <b>Devon K.</b><span class="muted">· editing now…</span></div>
+      </article>
+    </section>
+
+    <section class="col" aria-label="Review column"><h3>Review <span class="n">2</span></h3>
+      <article class="case urgent">
+        <div class="row"><span class="id">SF-1039</span><span class="sp"></span><span class="b clock">⏱ 89h · Mon 9:00am</span></div>
+        <div class="blk">200 Block Turk St · tract <code>06075012402</code></div>
+        <div class="small">Broken heater, child with asthma</div>
+        <div class="meta"><span class="b ok">2 corroborating 311s</span><span class="b ok">Prop F eligible</span></div>
+        <div class="lockline">🔒 <b>Priya S.</b><span class="muted">· lock_version <code>5</code></span></div>
+      </article>
+      <article class="case">
+        <div class="row"><span class="id">SF-1040</span><span class="sp"></span><span class="b warn">⏱ 6 days</span></div>
+        <div class="blk">1500 Block Golden Gate Ave</div>
+        <div class="small">Retaliatory rent increase after DBI complaint</div>
+        <div class="meta"><span class="b info">§1942.5 retaliation</span></div>
+        <div class="lockline">🔓 <span class="muted">Unassigned</span><span class="sp"></span><button class="btn" onclick="toast('Claimed SF-1040 · lock_version 2 → 3')">Claim</button></div>
+      </article>
+    </section>
+
+    <section class="col" aria-label="Attorney ready column"><h3>Attorney ready <span class="n">2</span></h3>
+      <article class="case">
+        <div class="row"><span class="id">SF-1037</span><span class="sp"></span><span class="b warn">⏱ 4 days</span></div>
+        <div class="blk">600 Block Eddy St</div>
+        <div class="meta"><span class="b ok">Checklist 6/6 ✓</span><span class="b brand">Brief v3</span></div>
+        <div class="lockline">👩‍⚖️ <b>Attorney Chen</b><span class="muted">· reviewing tonight</span></div>
+      </article>
+      <article class="case">
+        <div class="row"><span class="id">SF-1035</span><span class="sp"></span><span class="b grey">⏱ 12 days</span></div>
+        <div class="blk">3000 Block 16th St</div>
+        <div class="meta"><span class="b ok">Checklist 6/6 ✓</span><span class="b brand">Brief v2</span></div>
+        <div class="lockline">👩‍⚖️ <b>Attorney Okafor</b></div>
+      </article>
+    </section>
+  </div>
+</div>
+
+<div class="modal-bg" id="conflict" role="dialog" aria-modal="true" aria-labelledby="ct">
+  <div class="modal">
+    <h3 id="ct">⚠ SF-1042 was updated by Priya S. while you were editing</h3>
+    <p class="muted small">Your save was rejected by the Firestore transaction: you had <code>lock_version 3</code>, the server is now at <code>4</code>. Nothing was overwritten.</p>
+    <table class="diff"><thead><tr><th>Field</th><th>Your edit</th><th>Priya's saved value</th></tr></thead>
+      <tbody>
+        <tr><td><code>intake_facts.rent_owed</code></td><td class="old">~2 months</td><td class="new">$4,350 (2 months · lease confirmed)</td></tr>
+        <tr><td><code>intake_facts.household_size</code></td><td class="old">—</td><td class="new">3</td></tr>
+      </tbody></table>
+    <div class="row" style="margin-top:14px"><span class="sp"></span>
+      <button class="btn" onclick="closeM()">Discard mine</button>
+      <button class="btn primary" onclick="merge()">Reload &amp; re-apply my edits</button></div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function claim(id){
+    const l=document.getElementById('lock'+id);
+    l.innerHTML='🔒 <b>Maria R. (you)</b><span class="muted">· lock_version <code>1</code></span><span class="sp"></span><a href="2-intake-safety.html">Start intake →</a>';
+    const c=document.getElementById('c'+id); c.classList.add('mine','pulse');
+    toast('✅ Transaction committed · <code>cases/SF-'+id+'</code><br>assigned_paralegal = "Maria R." · lock_version 0 → 1');
+  }
+  function simulateConflict(){document.getElementById('conflict').classList.add('show')}
+  function closeM(){document.getElementById('conflict').classList.remove('show')}
+  function merge(){closeM();document.getElementById('lv1042').textContent='5';
+    document.getElementById('c1042').classList.add('pulse');
+    toast('🔁 Reloaded v4, re-applied your edits → saved as lock_version 5');}
+</script>
+</body></html>
