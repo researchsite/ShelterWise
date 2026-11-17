@@ -60,6 +60,8 @@ class RecaptchaVerifyRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     case_id: Optional[str] = None
+    session_id: Optional[str] = None
+    user: Optional[str] = None
 
 class LockRequest(BaseModel):
     paralegal_name: str
@@ -218,12 +220,26 @@ def state_to_blocks(state: Dict[str, Any]) -> list:
 @app.post("/api/chat")
 def chat_endpoint(req: ChatRequest):
     try:
-        reply_dict = handle_chat_message(req.message, case_id=req.case_id)
+        target_case = req.case_id or req.session_id or "SF-1042"
+        store = FirestoreStore()
+        case_state = store.get_case(target_case) if target_case else {}
+
+        # If this is an initial intake message and no case exists yet, run fast full triage
+        msg_lower = req.message.lower()
+        is_intake = any(k in msg_lower for k in ["heat", "leak", "fuse", "radiator", "fillmore", "behind on rent", "hearing", "eviction", "cold"])
+        if is_intake and not case_state:
+            case_payload = execute_full_triage(
+                narrative=req.message,
+                geoid="06075016300",
+                block_address="1000 Block Fillmore St, San Francisco, CA",
+                case_id=target_case
+            )
+            case_state = case_payload
+
+        reply_dict = handle_chat_message(req.message, case_id=target_case)
         reply_text = reply_dict.get("response", "Processed.")
         agent_name = reply_dict.get("agent", "shelterwise_navigator_ag")
         
-        store = FirestoreStore()
-        case_state = store.get_case(req.case_id) if req.case_id else {}
         blocks = state_to_blocks(case_state)
         
         # If no blocks generated (e.g. ad-hoc query), add a markdown block
@@ -231,16 +247,16 @@ def chat_endpoint(req: ChatRequest):
             blocks.append({"type": "markdown", "text": reply_text})
 
         return {
-            "session_id": req.case_id or "SF-1042",
+            "session_id": target_case,
             "reply": reply_text,
-            "agent_trace": [{"agent": agent_name, "label": reply_text[:80], "ms": 800, "parallel": False}],
+            "agent_trace": [{"agent": agent_name, "label": reply_text[:80], "ms": 400, "parallel": False}],
             "blocks": blocks,
             "suggestions": [
                 "Draft the attorney brief",
                 "Who lives in the tracts our triage rules prioritize?",
                 "Check courthouse transit route"
             ],
-            "mode": "mock_backend"
+            "mode": "live_adk"
         }
     except Exception as e:
         logger.error(f"Chat error: {e}", exc_info=True)

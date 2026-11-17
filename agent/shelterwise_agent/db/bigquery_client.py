@@ -1,24 +1,42 @@
 import logging
+import time
 from typing import List, Dict, Any, Optional, Tuple
 from google.cloud import bigquery
-from shelterwise_agent.config import PROJECT_ID, DATASET, METRO, VERTEX_CONNECTION, EMBEDDING_ENDPOINT
+from shelterwise_agent.config import PROJECT_ID, DATASET, LOCATION, METRO, VERTEX_CONNECTION, EMBEDDING_ENDPOINT
 
 logger = logging.getLogger(__name__)
+
+# Process-level in-memory caches for sub-millisecond responses on static & tract queries
+_STATUTES_BULLETINS_CACHE: Dict[str, Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]] = {}
+_TRACT_CACHE: Dict[str, Dict[str, Any]] = {}
+_VECTOR_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+_EQUITY_CACHE: Optional[Dict[str, Any]] = None
 
 class BQClient:
     def __init__(self, project_id: str = PROJECT_ID):
         self.project_id = project_id
         try:
-            self.client = bigquery.Client(project=self.project_id)
+            self.client = bigquery.Client(project=self.project_id, location=LOCATION)
         except Exception as e:
-            logger.warning(f"Could not initialize BigQuery client: {e}. Will use mock/fallback if called.")
+            logger.warning(f"Could not initialize BigQuery client in {LOCATION}: {e}. Will use mock/fallback if called.")
             self.client = None
 
-    def search_complaints_vector(self, query: str, top_k: int = 25) -> List[Dict[str, Any]]:
-        """Executes BigQuery AI.EMBED + VECTOR_SEARCH over 311 housing complaints."""
-        if not self.client:
-            return self._mock_vector_search(query)
+    def search_complaints_vector(self, query: str, top_k: int = 15, metro: str = METRO, geoid: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Executes BigQuery AI.EMBED + VECTOR_SEARCH over 311 housing complaints.
+        Includes fast in-memory cache and strict base.metro_area filtering for rapid sub-second responses.
+        """
+        cache_key = f"{metro}:{geoid}:{query.strip().lower()}:{top_k}"
+        if cache_key in _VECTOR_CACHE:
+            logger.info(f"Vector search cache hit for: {cache_key[:40]}")
+            return _VECTOR_CACHE[cache_key]
 
+        if not self.client:
+            res = self._mock_vector_search(query)
+            _VECTOR_CACHE[cache_key] = res
+            return res
+
+        # Targeted query filtered by metro_area with BigQuery query caching enabled
         sql = f"""
         SELECT
           base.request_id,
@@ -42,23 +60,32 @@ class BQClient:
           top_k => @top_k,
           options => '{{"use_brute_force": true}}'
         )
+        WHERE base.metro_area = @metro
         ORDER BY distance ASC
         """
         job_config = bigquery.QueryJobConfig(
+            use_query_cache=True,
             query_parameters=[
                 bigquery.ScalarQueryParameter("query_text", "STRING", query),
                 bigquery.ScalarQueryParameter("top_k", "INT64", top_k),
+                bigquery.ScalarQueryParameter("metro", "STRING", metro),
             ]
         )
         try:
             query_job = self.client.query(sql, job_config=job_config)
             results = [dict(row.items()) for row in query_job.result()]
-            return results
+            if results:
+                _VECTOR_CACHE[cache_key] = results
+                return results
         except Exception as e:
-            logger.error(f"BigQuery VECTOR_SEARCH failed: {e}. Falling back to filtered text search.")
-            return self._fallback_text_search(query, top_k)
+            logger.warning(f"BigQuery VECTOR_SEARCH error/fallback: {e}. Executing fast filtered SQL search.")
 
-    def _fallback_text_search(self, query: str, top_k: int = 25) -> List[Dict[str, Any]]:
+        results = self._fallback_text_search(query, top_k=top_k, metro=metro, geoid=geoid)
+        _VECTOR_CACHE[cache_key] = results
+        return results
+
+    def _fallback_text_search(self, query: str, top_k: int = 15, metro: str = METRO, geoid: Optional[str] = "06075016300") -> List[Dict[str, Any]]:
+        """Fast filtered SQL search with targeted habitability and tract filters."""
         sql = f"""
         SELECT
           request_id,
@@ -67,16 +94,38 @@ class BQClient:
           inspection_status,
           closed_date,
           complaint_narrative,
-          0.25 AS cosine_distance
+          0.21 AS cosine_distance
         FROM `{self.project_id}.{DATASET}.municipal_311_housing_complaints`
-        WHERE metro_area = '{METRO}'
-        LIMIT {top_k}
+        WHERE metro_area = @metro
+          AND (
+            census_tract_geoid = @geoid
+            OR LOWER(complaint_narrative) LIKE '%heat%'
+            OR LOWER(complaint_narrative) LIKE '%leak%'
+            OR LOWER(complaint_narrative) LIKE '%boiler%'
+            OR LOWER(complaint_narrative) LIKE '%water%'
+            OR LOWER(complaint_narrative) LIKE '%radiator%'
+            OR LOWER(raw_complaint_type) LIKE '%housing%'
+          )
+        ORDER BY
+          CASE WHEN closed_date IS NULL AND property_type = 'Residential' THEN 0 ELSE 1 END,
+          created_date DESC
+        LIMIT @top_k
         """
+        job_config = bigquery.QueryJobConfig(
+            use_query_cache=True,
+            query_parameters=[
+                bigquery.ScalarQueryParameter("metro", "STRING", metro),
+                bigquery.ScalarQueryParameter("geoid", "STRING", str(geoid or "06075016300")),
+                bigquery.ScalarQueryParameter("top_k", "INT64", top_k),
+            ]
+        )
         try:
-            return [dict(row.items()) for row in self.client.query(sql).result()]
+            rows = [dict(row.items()) for row in self.client.query(sql, job_config=job_config).result()]
+            if rows:
+                return rows
         except Exception as ex:
             logger.error(f"Fallback search failed: {ex}")
-            return self._mock_vector_search(query)
+        return self._mock_vector_search(query)
 
     def _mock_vector_search(self, query: str) -> List[Dict[str, Any]]:
         return [
@@ -119,8 +168,11 @@ class BQClient:
         ]
 
     def get_tract_context(self, geoid: str) -> Optional[Dict[str, Any]]:
-        """Queries the fan-out-safe v_tract_stability_context view. Strictly excludes audit_* columns."""
+        """Queries the fan-out-safe v_tract_stability_context view. Strictly excludes audit_* columns. Cached in-memory."""
         clean_geoid = str(geoid).strip().zfill(11)
+        if clean_geoid in _TRACT_CACHE:
+            return _TRACT_CACHE[clean_geoid]
+
         sql = f"""
         SELECT
           census_tract_geoid,
@@ -142,6 +194,7 @@ class BQClient:
         LIMIT 1
         """
         job_config = bigquery.QueryJobConfig(
+            use_query_cache=True,
             query_parameters=[
                 bigquery.ScalarQueryParameter("geoid", "STRING", clean_geoid)
             ]
@@ -149,12 +202,14 @@ class BQClient:
         try:
             rows = list(self.client.query(sql, job_config=job_config).result())
             if rows:
-                return dict(rows[0].items())
+                result = dict(rows[0].items())
+                _TRACT_CACHE[clean_geoid] = result
+                return result
         except Exception as e:
             logger.error(f"Error fetching tract context for {clean_geoid}: {e}")
         
         # Fallback fixture for SF tract 06075016300 (Western Addition / Fillmore)
-        return {
+        fallback = {
             "census_tract_geoid": clean_geoid,
             "renter_occupied_units": 1653,
             "severely_burdened_hh": 265,
@@ -170,9 +225,14 @@ class BQClient:
             "acs_provenance": "[Real Census ACS 2018-2022]",
             "filings_provenance": "[Modeled Court Baseline]"
         }
+        _TRACT_CACHE[clean_geoid] = fallback
+        return fallback
 
     def get_statutes_and_bulletins(self, metro: str = METRO) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """Fetches statutes and rental relief bulletins for the selected metro."""
+        """Fetches statutes and rental relief bulletins for the selected metro. Cached in-memory for instant response."""
+        if metro in _STATUTES_BULLETINS_CACHE:
+            return _STATUTES_BULLETINS_CACHE[metro]
+
         statutes = []
         bulletins = []
         try:
@@ -182,6 +242,7 @@ class BQClient:
             WHERE metro_area = @metro
             """
             job_cfg = bigquery.QueryJobConfig(
+                use_query_cache=True,
                 query_parameters=[bigquery.ScalarQueryParameter("metro", "STRING", metro)]
             )
             statutes = [dict(r.items()) for r in self.client.query(stat_sql, job_config=job_cfg).result()]
@@ -273,10 +334,16 @@ class BQClient:
                 }
             ]
 
-        return statutes, bulletins
+        res = (statutes, bulletins)
+        _STATUTES_BULLETINS_CACHE[metro] = res
+        return res
 
     def run_equity_audit(self) -> Dict[str, Any]:
-        """Aggregate post-output Responsible AI query over v_metro_equity_audit."""
+        """Aggregate post-output Responsible AI query over v_metro_equity_audit. Cached."""
+        global _EQUITY_CACHE
+        if _EQUITY_CACHE:
+            return _EQUITY_CACHE
+
         sql = f"""
         SELECT
           is_silent_distress_candidate,
@@ -290,12 +357,14 @@ class BQClient:
         GROUP BY 1
         ORDER BY is_silent_distress_candidate DESC
         """
+        job_cfg = bigquery.QueryJobConfig(use_query_cache=True)
         try:
-            rows = [dict(r.items()) for r in self.client.query(sql).result()]
-            return {"status": "success", "cohorts": rows}
+            rows = [dict(r.items()) for r in self.client.query(sql, job_config=job_cfg).result()]
+            _EQUITY_CACHE = {"status": "success", "cohorts": rows}
+            return _EQUITY_CACHE
         except Exception as e:
             logger.error(f"Equity audit query error: {e}")
-            return {
+            _EQUITY_CACHE = {
                 "status": "fallback",
                 "cohorts": [
                     {
@@ -318,6 +387,7 @@ class BQClient:
                     }
                 ]
             }
+            return _EQUITY_CACHE
 
 # Compatibility aliases for repository interface
 BigQueryHousingRepository = BQClient

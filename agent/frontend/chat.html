@@ -359,6 +359,7 @@ assigned_attorney : "Chen"
 status            : review → attorney_ready
 lock_version      : 4 → 5</pre>`,
  diff:b=>`<div class="blk tight small"><b>What changed</b><ul style="margin:4px 0 0;padding-left:18px">${b.items.map(i=>`<li><code>${i}</code></li>`).join('')}</ul></div>`,
+ markdown:b=>`<div class="blk"><div class="small">${md(b.text||'')}</div></div>`,
 };
 function rngd(seed,n,mid,spread){let s=seed*7919+13;const r=()=>(s=(s*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{let t=0;for(let i=0;i<4;i++)t+=r();return mid+(t/4-.5)*spread*2})}
 const md=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
@@ -378,12 +379,12 @@ async function send(text){
   const summaryTl=el.querySelector('.tl');
 
   const phases=[
-    {min:0,max:6,agent:'Google ADK',action:'Querying Google ADK Agents…',desc:'initializing triage session'},
-    {min:6,max:18,agent:'intake_structurer_ag',action:'analyzing facts & detecting life-safety hazards…',desc:'extracting facts verbatim & normalizing GEOID'},
-    {min:18,max:42,agent:'corroboration_fanout_ag',action:'querying BigQuery Vector Search on 311 records…',desc:'AI.EMBED + VECTOR_SEARCH & decoy trap filtering'},
-    {min:42,max:68,agent:'statute_and_bulletin_ag',action:'retrieving SF Rent Ordinance Ch 37 & Cal Civ Code…',desc:'evaluating SF Housing Code § 701 & relief bulletins'},
-    {min:68,max:95,agent:'displacement_baseline_ag',action:'evaluating census tract displacement risk…',desc:'tract-level eviction filings & rent burden context'},
-    {min:95,max:99999,agent:'eligibility_and_brief_ag',action:'synthesizing Tenant Stabilization Brief with Gemini…',desc:'reconciling evidence gaps & drafting brief'}
+    {min:0,max:1,agent:'Google ADK',action:'Querying Google ADK Agents…',desc:'initializing triage session'},
+    {min:1,max:2,agent:'intake_structurer_ag',action:'analyzing facts & detecting life-safety hazards…',desc:'extracting facts verbatim & normalizing GEOID'},
+    {min:2,max:3,agent:'corroboration_fanout_ag',action:'querying filtered BigQuery Vector Search on 311 records…',desc:'targeted SQL filter + VECTOR_SEARCH'},
+    {min:3,max:4,agent:'statute_and_bulletin_ag',action:'retrieving SF Rent Ordinance Ch 37 & Cal Civ Code…',desc:'evaluating SF Housing Code § 701 & relief bulletins (cached)'},
+    {min:4,max:5,agent:'displacement_baseline_ag',action:'evaluating census tract displacement risk…',desc:'tract-level eviction filings & rent burden context (cached)'},
+    {min:5,max:99999,agent:'eligibility_and_brief_ag',action:'synthesizing Tenant Stabilization Brief with Gemini…',desc:'reconciling evidence gaps & drafting brief'}
   ];
 
   let currentPhaseIdx=-1;
@@ -479,10 +480,13 @@ async function send(text){
   const spinEl=el.querySelector('.spin');
   if(spinEl)spinEl.outerHTML='<span style="color:var(--ok);font-weight:bold">✓</span>';
   if(summaryTl)summaryTl.textContent=`${steps.length || 6} agent steps (Gemini 3.8 Flash) · ${secs}s · view trace`;
+  if(steps.length){
+    ol.innerHTML=steps.map(s=>`<li class="ok"><span class="agent">${esc(s.agent)}</span>: ${esc(s.label)} <span class="muted small">(${s.ms}ms)</span></li>`).join('');
+  }
   el.querySelector('.trace').open=false;
 
   el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply)}</div>
-    <div class="blocks">${res.blocks.map(b=>R[b.type](b)).join('')}</div>
+    <div class="blocks">${res.blocks.map(b=>(R[b.type]?R[b.type](b):(b.text?`<div class="blk"><div class="small">${md(b.text)}</div></div>`:''))).join('')}</div>
     ${res.suggestions.length?`<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>`:''}
     <details class="json"><summary>{ } response JSON (contract for /api/chat)</summary><pre class="code">${esc(JSON.stringify({session_id:'SF-1042',...res},null,2))}</pre></details>`;
   el.querySelectorAll('[data-ref]').forEach(c=>{c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false))});
