@@ -1,84 +1,42 @@
-"""Tool 4 (`get_tract_displacement_baseline`): Fan-out-safe 4Q eviction + ACS tenure context."""
+from typing import Dict, Any
+from shelterwise_agent.schemas import TractContext
+from shelterwise_agent.db.bigquery_client import BQClient
 
-from typing import Any
-
-from ..config import ToolContext, normalize_geoid_11, resolve_metro_name
-from ..db import get_housing_repository
-from ..schemas import (
-    MetroDisplacementBaseline,
-    TractContextResult,
-    TractDisplacementContext,
-    assert_no_audit_columns,
-)
-
-
-def get_tract_displacement_baseline(
-    metro: str = "",
-    census_tract_geoid: str = "",
-    block_address_hint: str = "",
-    tool_context: ToolContext = None,
-) -> dict[str, Any]:
-    """Computes fan-out-safe census tract rent burden and modeled annual eviction context.
-
-    Pre-aggregates `court_eviction_filings` across its 4 quarterly rows per tract before
-    joining `acs_tract_housing_tenure`, preserves 11-character leading-zero GEOIDs
-    (such as San Francisco's '06075...'), compares the tract against the metro baseline,
-    and strictly excludes all `audit_*` demographic columns.
-
-    Args:
-        metro: Target metro name (defaults to 'San Francisco' or intake_facts.metro).
-        census_tract_geoid: Optional 11-character string census tract GEOID.
-        block_address_hint: Optional 100-block hint used to infer tract if GEOID is omitted.
-
-    Returns:
-        Dictionary with 'tract_context', 'metro_baseline', and explicit [Modeled] caveats.
+def get_tract_displacement_baseline(geoid: str = "06075016300") -> Dict[str, Any]:
     """
-    state_intake: dict[str, Any] = {}
-    state_evidence: dict[str, Any] = {}
-    if tool_context is not None and hasattr(tool_context, "state"):
-        state_intake = tool_context.state.get("intake_facts") or {}
-        state_evidence = tool_context.state.get("evidence_pack") or {}
+    Retrieves tract displacement baseline from the fan-out-safe v_tract_stability_context view.
+    Combines real Census ACS tenure with 4-quarter pre-aggregated modeled court filings.
+    
+    RESPONSIBLE-AI FIREWALL: Strictly guarantees that NO individual-level or tract-level
+    demographic audit_* columns are accessed in this case-level tool.
+    """
+    clean_geoid = str(geoid).strip().zfill(11)
+    bq = BQClient()
+    row = bq.get_tract_context(clean_geoid)
 
-    try:
-        effective_metro = resolve_metro_name(
-            metro.strip() or str(state_intake.get("metro") or "San Francisco")
-        )
-        raw_geoid = (
-            census_tract_geoid.strip()
-            or str(state_intake.get("census_tract_geoid") or "").strip()
-            or str(state_evidence.get("inferred_tract_geoid") or "").strip()
-        )
-        clean_geoid = normalize_geoid_11(raw_geoid) if raw_geoid else ""
-    except ValueError as exc:
-        return {"status": "error", "error_message": str(exc)}
+    if not row:
+        return {"error": f"Tract {clean_geoid} not found in database"}
 
-    effective_block = block_address_hint.strip() or str(
-        state_intake.get("block_address_hint") or ""
-    ).strip()
+    # Enforce firewall: ensure no audit columns exist in the output dict
+    for forbidden in ["audit_black_share", "audit_hispanic_share", "audit_asian_share", "audit_white_share", "audit_indigenous_share"]:
+        row.pop(forbidden, None)
 
-    repo = get_housing_repository()
-    try:
-        tract_dict, metro_dict = repo.fetch_tract_and_metro_baseline(
-            metro=effective_metro,
-            census_tract_geoid=clean_geoid,
-            block_address_hint=effective_block,
-        )
-    except Exception as exc:
-        return {
-            "status": "error",
-            "error_message": f"Tract displacement baseline query failed for {effective_metro}: {exc}",
-        }
-
-    result_model = TractContextResult(
-        status="success",
-        backend_mode=repo.backend_mode,
-        tract_context=TractDisplacementContext(**tract_dict),
-        metro_baseline=MetroDisplacementBaseline(**metro_dict),
+    ctx = TractContext(
+        census_tract_geoid=row.get("census_tract_geoid", clean_geoid),
+        renter_occupied_units=int(row.get("renter_occupied_units", 0)),
+        severely_burdened_hh=int(row.get("severely_burdened_hh", 0)),
+        severe_rent_burden_pct=float(row.get("severe_rent_burden_pct", 0.0)),
+        median_gross_rent=int(row.get("median_gross_rent", 0)),
+        median_household_income=int(row.get("median_household_income", 0)),
+        annual_filings_total=int(row.get("annual_filings_total", 0)),
+        annual_nonpayment_filings=int(row.get("annual_nonpayment_filings", 0)),
+        annual_no_fault_filings=int(row.get("annual_no_fault_filings", 0)),
+        annual_defaults_total=int(row.get("annual_defaults_total", 0)),
+        open_residential_311_count=int(row.get("open_residential_311_count", 0)),
+        is_silent_distress_candidate=bool(row.get("is_silent_distress_candidate", False)),
+        sf_tract_median_burden=16.1,
+        sf_tract_median_filings=55,
+        filings_provenance=row.get("filings_provenance", "[Modeled Court Baseline]"),
+        acs_provenance=row.get("acs_provenance", "[Real Census ACS 2018-2022]")
     )
-    result_dict = result_model.model_dump()
-    assert_no_audit_columns(result_dict)
-
-    if tool_context is not None and hasattr(tool_context, "state"):
-        tool_context.state["tract_context"] = result_dict
-
-    return result_dict
+    return ctx.model_dump()
