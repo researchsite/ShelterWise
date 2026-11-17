@@ -68,3 +68,12 @@ def test_off_task_draft_fails_quality_floor():
 
 def test_heading_then_explanation_is_not_flagged():
     assert _issues() == []  # GOOD has "### § 1942.4" followed by "does not apply yet"
+
+
+def test_mcp_firewall_blocks_other_projects(monkeypatch):
+    import shelterwise_hualin.tools.mcp as mcp
+    monkeypatch.setattr(mcp.config, "PROJECT", "my-proj")
+    assert firewall_reason("list_table_ids", {"projectId": "bigquery-public-data", "datasetId": "x"})
+    assert firewall_reason("execute_sql_readonly", {"projectId": "my-proj",
+                                                    "query": "SELECT 1 FROM `bigquery-public-data.a.b`"})
+    assert firewall_reason("list_table_ids", {"projectId": "my-proj", "datasetId": "a4i_housing"}) is None

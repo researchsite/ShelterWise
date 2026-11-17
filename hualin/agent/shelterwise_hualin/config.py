@@ -9,7 +9,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]  # hualin/agent/shelterwise_hualin/config.py
 
 # --- Google Cloud -----------------------------------------------------------
-PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "")
+# HUALIN_GCP_PROJECT wins: Agent Runtime may set GOOGLE_CLOUD_PROJECT to the project NUMBER.
+PROJECT = os.getenv("HUALIN_GCP_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT", "")
 # Shared team source tables: READ ONLY, never written by this version.
 DATASET = os.getenv("A4I_DATASET", "a4i_housing")
 # Hualin's own dataset for everything this version creates (embeddings, views).
