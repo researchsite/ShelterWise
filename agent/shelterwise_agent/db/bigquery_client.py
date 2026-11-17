@@ -13,7 +13,7 @@ class BQClient:
         FROM VECTOR_SEARCH(
           TABLE `{PROJECT_ID}.{DATASET}.complaints_embedded`,
           'embedding',
-          (SELECT AI.EMBED('{query}', connection_id => 'us.a4i-vertex', endpoint => 'gemini-embedding-2')),
+          (SELECT embedded.result AS embedding FROM (SELECT AI.EMBED('{query}', connection_id => 'us.a4i-vertex', endpoint => 'gemini-embedding-2') AS embedded)),
           top_k => {top_k},
           options => '{{"use_brute_force": true}}'
         )

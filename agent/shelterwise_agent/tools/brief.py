@@ -1,7 +1,5 @@
-from google.adk import tool
 from shelterwise_agent.schemas import StabilizationBrief, IntakeFacts, EvidencePack, PolicyPack, TractContext
 
-@tool
 def reconcile_gaps_and_generate_brief(
     intake: dict, 
     evidence: dict, 

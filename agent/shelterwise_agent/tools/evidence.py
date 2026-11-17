@@ -1,8 +1,6 @@
-from google.adk import tool
 from shelterwise_agent.schemas import EvidencePack, EvidenceRecord
 from shelterwise_agent.db.bigquery_client import BQClient
 
-@tool
 def search_public_evidence(narrative_query: str) -> dict:
     """Runs vector search on 311 complaints and applies business rules to exclude decoys."""
     bq = BQClient()
@@ -18,12 +16,12 @@ def search_public_evidence(narrative_query: str) -> dict:
         if r.property_type != 'Residential':
             is_decoy = True
             reason = "Commercial property decoy"
-        elif r.closed_date is not None:
-            is_decoy = True
-            reason = "Closed/Abated case decoy"
         elif 'no violation' in str(r.inspection_status).lower():
             is_decoy = True
             reason = "Zero violation decoy"
+        elif r.closed_date is not None or 'closed' in str(r.inspection_status).lower():
+            is_decoy = True
+            reason = "Closed/Abated case decoy"
             
         record = EvidenceRecord(
             request_id=r.request_id,

@@ -1,9 +1,7 @@
-from google.adk import tool
 from shelterwise_agent.schemas import PolicyPack, PolicyRecord
 from shelterwise_agent.db.bigquery_client import BQClient
 from shelterwise_agent.config import METRO
 
-@tool
 def fetch_statutes_and_bulletins() -> dict:
     """Fetches statutes and rental relief bulletins for the metro area."""
     bq = BQClient()

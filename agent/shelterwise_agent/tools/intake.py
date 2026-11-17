@@ -1,7 +1,5 @@
-from google.adk import tool
 from shelterwise_agent.schemas import IntakeFacts
 
-@tool
 def structure_intake(narrative: str, geoid: str = None) -> dict:
     """Structures raw tenant intake narrative, detects life safety hazards, and sanitizes PII."""
     hazard = any(word in narrative.lower() for word in ['water near fuse', 'gas leak', 'sparks', 'raw sewage'])

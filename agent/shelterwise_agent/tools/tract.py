@@ -1,8 +1,6 @@
-from google.adk import tool
 from shelterwise_agent.schemas import TractContext
 from shelterwise_agent.db.bigquery_client import BQClient
 
-@tool
 def get_tract_displacement_baseline(geoid: str) -> dict:
     """Queries pre-aggregated tract displacement context without audit columns."""
     bq = BQClient()
