@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShelterWise · Executive Summary & Pitch Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/stitch/tokens.css">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --text-mute: #94a3b8;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --green: #4ade80;
+      --green-soft: rgba(74, 222, 128, 0.15);
+      --green-border: rgba(74, 222, 128, 0.3);
+      --red: #f87171;
+      --red-soft: rgba(248, 113, 113, 0.15);
+      --red-border: rgba(248, 113, 113, 0.3);
+      --amber: #fbbf24;
+      --purple: #c084fc;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 40%, #020617 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* TOP PRESENTATION BAR */
+    header {
+      height: 64px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #1a73e8, #38bdf8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+    }
+
+    /* STOPWATCH TIMER */
+    .timer-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .timer-pill.safe { color: var(--green); border-color: var(--green-border); }
+    .timer-pill.warn { color: var(--amber); border-color: rgba(251, 191, 36, 0.4); }
+    .timer-pill.alert { color: var(--red); border-color: var(--red-border); animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .timer-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-mute);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .timer-btn:hover { color: #fff; }
+
+    /* CONTROLS */
+    .controls-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid var(--card-border);
+      background: rgba(30, 41, 59, 0.7);
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #1a73e8, #0284c7);
+      border-color: #38bdf8;
+      box-shadow: 0 0 14px var(--primary-glow);
+    }
+    .btn.primary:hover {
+      background: linear-gradient(135deg, #1557b0, #0369a1);
+    }
+
+    /* SLIDE STAGE */
+    main {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px) scale(0.98);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    .slide-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
+
+    .slide-eyebrow .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+
+    .slide-headline {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 12px;
+      max-width: 1100px;
+    }
+
+    .slide-subtitle {
+      font-size: 18px;
+      color: var(--text-mute);
+      line-height: 1.45;
+      max-width: 950px;
+      margin-bottom: 28px;
+    }
+
+    /* SLIDE 1: COMPARISON GRID */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .comp-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      border: 1px solid var(--card-border);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .comp-card.loss {
+      border-color: var(--red-border);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%);
+    }
+
+    .comp-card.win {
+      border-color: var(--green-border);
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%);
+    }
+
+    .comp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+    }
+    .comp-card.loss .comp-badge {
+      background: var(--red-soft);
+      color: #fca5a5;
+      border: 1px solid var(--red-border);
+    }
+    .comp-card.win .comp-badge {
+      background: var(--green-soft);
+      color: #86efac;
+      border: 1px solid var(--green-border);
+    }
+
+    .comp-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .comp-quote {
+      font-size: 14.5px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      border-left: 3px solid;
+    }
+    .comp-card.loss .comp-quote { border-color: var(--red); font-style: italic; }
+    .comp-card.win .comp-quote { border-color: var(--green); }
+
+    .comp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .comp-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .comp-card.loss .comp-list li::before {
+      content: "✕";
+      color: var(--red);
+      font-weight: 800;
+    }
+    .comp-card.win .comp-list li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    /* METRICS STRIP */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .metric-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .metric-value.cyan { color: #38bdf8; }
+    .metric-value.green { color: #4ade80; }
+    .metric-value.amber { color: #fbbf24; }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-mute);
+      font-weight: 500;
+    }
+
+    /* SLIDE 2: SCOPE BEATS AMBITION GRID */
+    .scope-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 22px;
+    }
+
+    .scope-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 26px 30px;
+      backdrop-filter: blur(12px);
+    }
+
+    .scope-card.avoid {
+      border-color: rgba(248, 113, 113, 0.25);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(15, 23, 42, 0.7) 100%);
+    }
+
+    .scope-card.built {
+      border-color: rgba(56, 189, 248, 0.3);
+      background: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%);
+    }
+
+    .scope-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #fff;
+    }
+
+    .scope-items {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .scope-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .scope-item-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .scope-card.avoid .scope-item-icon { background: var(--red-soft); color: var(--red); }
+    .scope-card.built .scope-item-icon { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+    .scope-item-text b { color: #fff; display: block; margin-bottom: 2px; }
+    .scope-item-text span { color: var(--text-mute); font-size: 13px; }
+
+    /* SLIDE 3: ARCHETYPES & TIMELINE */
+    .archetypes-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .arch-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .arch-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.15);
+    }
+
+    .arch-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .arch-tag.heat { background: #fef3c7; color: #92400e; }
+    .arch-tag.leak { background: #e0f2fe; color: #0369a1; }
+    .arch-tag.mold { background: #fae8ff; color: #86198f; }
+    .arch-tag.sro { background: #f3e8ff; color: #6b21a8; }
+
+    .arch-name {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .arch-desc {
+      font-size: 12px;
+      color: var(--text-mute);
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .arch-statute {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #38bdf8;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 8px;
+    }
+
+    /* ADK FLOW RIBBON */
+    .pipeline-ribbon {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .pipe-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .pipe-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pipe-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .pipe-title { font-size: 12.5px; font-weight: 700; color: #fff; }
+    .pipe-sub { font-size: 11px; color: var(--text-mute); }
+
+    .pipe-arrow {
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 16px;
+    }
+
+    /* BOTTOM BAR */
+    footer {
+      height: 60px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--card-border);
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    .slide-dots {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dot-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      color: var(--text-mute);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .dot-btn:hover { color: #fff; }
+    .dot-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+    }
+    .dot-btn .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* PRESENTER NOTES DRAWER */
+    .notes-drawer {
+      position: fixed;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+      background: #020617;
+      border-top: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 16px 28px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 90;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .notes-drawer.open {
+      transform: translateY(0);
+    }
+
+    .notes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .notes-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #38bdf8;
+    }
+    .notes-body {
+      font-size: 15px;
+      line-height: 1.55;
+      color: #e2e8f0;
+      max-width: 1200px;
+    }
+    .notes-body b {
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-wrap">
+      <div class="brand-logo">⚖️</div>
+      <div>
+        <span class="brand-title">ShelterWise</span>
+        <span style="font-size:13px;color:var(--text-mute);margin-left:6px">· Pitch &amp; Executive Summary</span>
+      </div>
+      <span class="brand-badge">Google ADK Multi-Agent</span>
+    </div>
+
+    <!-- STOPWATCH -->
+    <div class="timer-pill safe" id="timer-display">
+      <span>⏱️</span>
+      <span id="time-text">01:30</span>
+      <button class="timer-btn" onclick="toggleTimer()" id="timer-toggle-btn" title="Start / Pause">▶</button>
+      <button class="timer-btn" onclick="resetTimer()" title="Reset">↺</button>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls-wrap">
+      <button class="btn" onclick="toggleNotes()" id="notes-btn" title="Toggle Presenter Script (Key: P or N)">
+        <span>🎙️ Script Notes</span>
+      </button>
+      <button class="btn" onclick="toggleFullscreen()" title="Fullscreen (Key: F)">
+        <span>⛶ Fullscreen</span>
+      </button>
+      <a href="/" class="btn primary" title="Launch Live Web App">
+        <span>🚀 Launch App</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN SLIDE CONTAINER -->
+  <main>
+
+    <!-- SLIDE 1: EXECUTIVE SUMMARY -->
+    <div class="slide active" id="slide-0">
+      <div class="slide-eyebrow">
+        <span class="dot"></span>
+        <span>Executive Summary · San Francisco Superior Court Dept 501</span>
+      </div>
+      <h1 class="slide-headline">
+        In eviction court, a family has less than 3 minutes to defend their home.
+      </h1>
+      <p class="slide-subtitle">
+        When an unrepresented tenant's word clashes with a landlord's unpaid ledger, judges are procedurally bound to order summary eviction—unless third-party certified municipal proof exists.
+      </p>
+
+      <div class="comparison-grid">
+        <!-- WITHOUT SHELTERWISE -->
+        <div class="comp-card loss">
+          <div class="comp-badge">❌ Without Grounding · Summary Eviction</div>
+          <div class="comp-title">The Tenant's Word Alone (Loses in 3 Min)</div>
+          <div class="comp-quote">
+            "Your Honor, our heat was broken for a month and my 4-year-old got sick. That is why I withheld rent."
+          </div>
+          <ul class="comp-list">
+            <li><b>Landlord's Lawyer</b> produces an official unpaid ledger ($4,200 arrears) and statutory notice.</li>
+            <li><b>Bench Procedural Trap</b>: Unsworn photos or tenant statements cannot legally refute a nonpayment claim.</li>
+            <li><b>Outcome</b>: Judge signs Writ of Possession. Sheriff lock-out scheduled within 5 business days.</li>
+          </ul>
+        </div>
+
+        <!-- WITH SHELTERWISE -->
+        <div class="comp-card win">
+          <div class="comp-badge">✅ With ShelterWise · Statutory Bar Active</div>
+          <div class="comp-title">Certified Municipal 311 Citation (Wins Case)</div>
+          <div class="comp-quote">
+            <b>Active Notice of Violation #SF-202665182</b> (52°F measured) issued 42 days ago. Repair clock expired.
+          </div>
+          <ul class="comp-list">
+            <li><b>Statutory Affirmative Defense</b>: Cal. Civ. Code § 1942.4 legally bars landlord from demanding rent or evicting.</li>
+            <li><b>28-Line Court Pleading</b>: Ready-to-file legal brief generated in California judicial format.</li>
+            <li><b>Relief Bridge Unlocked</b>: $12,000 emergency grant funds disbursed directly to resolve back arrears.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- METRICS STRIP -->
+      <div class="metrics-strip">
+        <div class="metric-box">
+          <span class="metric-value amber">&lt; 3 Min</span>
+          <span class="metric-label">Average hearing time before eviction bench</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-value cyan">840ms</span>
+          <span class="metric-label">ShelterWise live multi-agent triage time</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-value green">$12,000</span>
+          <span class="metric-label">Emergency rent relief cap unlocked</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-value cyan">100%</span>
+          <span class="metric-label">Grounded in official SF 311 municipal records</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: SCOPE BEATS AMBITION -->
+    <div class="slide" id="slide-1">
+      <div class="slide-eyebrow">
+        <span class="dot"></span>
+        <span>Engineering Philosophy · Google ADK Architecture</span>
+      </div>
+      <h1 class="slide-headline">
+        "Scope beats ambition, and a real job is deciding what NOT to build."
+      </h1>
+      <p class="slide-subtitle">
+        We did not build an ungrounded chatbot to replace attorneys. We engineered an autonomous evidentiary bridge linking tenant lived narratives to authentic City Hall public records.
+      </p>
+
+      <div class="scope-grid">
+        <!-- WHAT WE DECIDED NOT TO BUILD -->
+        <div class="scope-card avoid">
+          <div class="scope-header">
+            <span style="color:var(--red)">❌</span>
+            <span>What We Decided NOT to Build</span>
+          </div>
+          <div class="scope-items">
+            <div class="scope-item">
+              <div class="scope-item-icon">✕</div>
+              <div class="scope-item-text">
+                <b>No Ungrounded Chatbot Hallucinations</b>
+                <span>Generic LLMs invent fake court citations, giving vulnerable families false confidence that results in default eviction.</span>
+              </div>
+            </div>
+            <div class="scope-item">
+              <div class="scope-item-icon">✕</div>
+              <div class="scope-item-text">
+                <b>No Unauthorized Practice of Law</b>
+                <span>ShelterWise never gives unguided legal advice. It prepares certified evidentiary packets for paralegal and attorney review.</span>
+              </div>
+            </div>
+            <div class="scope-item">
+              <div class="scope-item-icon">✕</div>
+              <div class="scope-item-text">
+                <b>No Demographic Case Scoring Bias</b>
+                <span>Demographic attributes (race, language, vehicle access) are strictly isolated behind a Responsible AI firewall during case triage.</span>
+              </div>
+            </div>
+            <div class="scope-item">
+              <div class="scope-item-icon">✕</div>
+              <div class="scope-item-text">
+                <b>No Commercial or Closed Lookalikes</b>
+                <span>Actively filters out warehouse decoys, resolved 2024 complaints, and zero-violation inspections that would harm tenant credibility.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WHAT WE BUILT -->
+        <div class="scope-card built">
+          <div class="scope-header">
+            <span style="color:#38bdf8">✓</span>
+            <span>What We Built with Google Cloud</span>
+          </div>
+          <div class="scope-items">
+            <div class="scope-item">
+              <div class="scope-item-icon">✓</div>
+              <div class="scope-item-text">
+                <b>1-Second Google ADK Multi-Agent Pipeline</b>
+                <span>7 specialized agents on Gemini 2.5 Flash executing structured intake, parallel corroboration fan-out, and brief synthesis.</span>
+              </div>
+            </div>
+            <div class="scope-item">
+              <div class="scope-item-icon">✓</div>
+              <div class="scope-item-text">
+                <b>BigQuery AI.EMBED + Vector Search</b>
+                <span>Scans 174 real municipal 311 housing records to discover exact building citations and cosine distance within 400m.</span>
+              </div>
+            </div>
+            <div class="scope-item">
+              <div class="scope-item-icon">✓</div>
+              <div class="scope-item-text">
+                <b>Decoy Rejection Engine with Statutory Business Rules</b>
+                <span>Rejects commercial properties under SF Housing Code § 701 and abated repairs to ensure unassailable court evidence.</span>
+              </div>
+            </div>
+            <div class="scope-item">
+              <div class="scope-item-icon">✓</div>
+              <div class="scope-item-text">
+                <b>Cloud Firestore Optimistic Concurrency Locks</b>
+                <span>Enforces versioned state transactions so multiple clinic paralegals and attorneys never overwrite active case files.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: PITCH CONTEXT & ARCHETYPES -->
+    <div class="slide" id="slide-2">
+      <div class="slide-eyebrow">
+        <span class="dot"></span>
+        <span>Pitch Context · Lived Experience to Legal Victory</span>
+      </div>
+      <h1 class="slide-headline">
+        Four Real Crisis Archetypes. One Connected Pipeline.
+      </h1>
+      <p class="slide-subtitle">
+        Every housing crisis maps to distinct statutory affirmative defenses, municipal citations, and emergency relief bridge grants.
+      </p>
+
+      <div class="archetypes-row">
+        <a href="/?scenario=winter-freeze" class="arch-card">
+          <span class="arch-tag heat">🔥 Winter Freeze</span>
+          <div class="arch-name">Western Addition Freeze</div>
+          <div class="arch-desc">1000 Block Fillmore · Central boiler failure · 52°F measured ambient temp.</div>
+          <div class="arch-statute">SF Housing Code § 701 · Citation #SF-202665182</div>
+        </a>
+
+        <a href="/?scenario=electrical-hazard" class="arch-card">
+          <span class="arch-tag leak">⚡ Electrical Hazard</span>
+          <div class="arch-name">Mission Ceiling Leak</div>
+          <div class="arch-desc">2000 Block Mission · Water intrusion in 200A breaker service panel.</div>
+          <div class="arch-statute">Cal. Civ. Code § 1941.1 · Citation #SF-202665186</div>
+        </a>
+
+        <a href="/?scenario=mold-retaliation" class="arch-card">
+          <span class="arch-tag mold">🍄 Toxic Mold</span>
+          <div class="arch-name">Tenderloin Retaliation</div>
+          <div class="arch-desc">700 Block Ellis · Stachybotrys mold · Landlord cut heat after 311 filing.</div>
+          <div class="arch-statute">Cal. Civ. Code § 1942.5 · Citation #SF-202665201</div>
+        </a>
+
+        <a href="/?scenario=chinatown-sewage" class="arch-card">
+          <span class="arch-tag sro">🚰 SRO Sewage</span>
+          <div class="arch-name">Chinatown Plumbing</div>
+          <div class="arch-desc">1200 Block Stockton · Shared hallway raw sewage backup and backflow.</div>
+          <div class="arch-statute">SF Health Code Art 11 · Citation #SF-202665189</div>
+        </a>
+      </div>
+
+      <!-- PIPELINE FLOW RIBBON -->
+      <div class="pipeline-ribbon">
+        <div class="pipe-step">
+          <div class="pipe-num">1</div>
+          <div class="pipe-info">
+            <span class="pipe-title">Intake &amp; Scrub</span>
+            <span class="pipe-sub">GEOID normalization · 142ms</span>
+          </div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">2</div>
+          <div class="pipe-info">
+            <span class="pipe-title">BigQuery Vectors</span>
+            <span class="pipe-sub">311 Grounding · 210ms</span>
+          </div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">3</div>
+          <div class="pipe-info">
+            <span class="pipe-title">Decoy Filter</span>
+            <span class="pipe-sub">Rejects 3 commercial traps</span>
+          </div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">4</div>
+          <div class="pipe-info">
+            <span class="pipe-title">Statutory Clock</span>
+            <span class="pipe-sub">§ 1942.4 rent bar</span>
+          </div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">5</div>
+          <div class="pipe-info">
+            <span class="pipe-title">Court Defense Brief</span>
+            <span class="pipe-sub">28-line legal pleading</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- PRESENTER SCRIPT NOTES DRAWER -->
+  <div class="notes-drawer" id="notes-drawer">
+    <div class="notes-header">
+      <span class="notes-title" id="notes-title">🎙️ Presenter Script (Slide 1 · 0:00 – 0:25)</span>
+      <span style="font-size:12px;color:var(--text-mute)">Press <b>P</b> or <b>N</b> to toggle drawer</span>
+    </div>
+    <div class="notes-body" id="notes-body">
+      "In San Francisco eviction court, a family has less than three minutes to defend their home. When a mother tells the judge, 'Our heat was broken all winter and my baby got sick,' the landlord's lawyer hands over an unpaid rent ledger. Without certified third-party proof, the judge must order an eviction. ShelterWise turns that lived narrative into verified municipal proof."
+    </div>
+  </div>
+
+  <!-- FOOTER CONTROLS -->
+  <footer>
+    <div class="slide-dots">
+      <button class="dot-btn active" onclick="goToSlide(0)">
+        <span class="indicator"></span>
+        <span>1. Executive Summary</span>
+      </button>
+      <button class="dot-btn" onclick="goToSlide(1)">
+        <span class="indicator"></span>
+        <span>2. Scope Beats Ambition</span>
+      </button>
+      <button class="dot-btn" onclick="goToSlide(2)">
+        <span class="indicator"></span>
+        <span>3. Pitch Context</span>
+      </button>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn" onclick="prevSlide()" id="prev-btn" title="Previous Slide (←)">
+        <span>← Prev</span>
+      </button>
+      <button class="btn" onclick="nextSlide()" id="next-btn" title="Next Slide (→ or Space)">
+        <span>Next →</span>
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 3;
+
+    const SLIDE_SCRIPTS = [
+      {
+        title: "🎙️ Presenter Script (Slide 1 · Executive Summary · 0:00 – 0:25)",
+        text: ""In San Francisco eviction court, a family has less than three minutes to defend their home. When a mother tells the judge, 'Our heat was broken all winter and my baby got sick,' the landlord's lawyer hands over an unpaid rent ledger. Without certified third-party proof, the judge must order an eviction. ShelterWise equips that family with official City Hall records in under one second.""
+      },
+      {
+        title: "🎙️ Presenter Script (Slide 2 · Scope Beats Ambition · 0:25 – 0:55)",
+        text: ""Our core engineering philosophy is that scope beats ambition, and a real job is deciding what NOT to build. We did not build an ungrounded chatbot that invents fake legal citations. We built an autonomous Google ADK pipeline that queries real municipal BigQuery 311 records, rejects deceptive decoy lookalikes, isolates demographic data behind a Responsible AI firewall, and saves verified cases to Cloud Firestore.""
+      },
+      {
+        title: "🎙️ Presenter Script (Slide 3 · Pitch Context & Archetypes · 0:55 – 1:25)",
+        text: ""Here on screen, we see Maria's story on Fillmore Street. When she clicks 'Winter Freeze', our system maps her cold radiators to California Civil Code Section 1942.4, generates an official 28-line legal pleading paper for court, and unlocks $12,000 in emergency rental relief. We don't replace lawyers—we give vulnerable families the proof they need to stay in their homes.""
+      }
+    ];
+
+    function updateSlide() {
+      document.querySelectorAll('.slide').forEach((el, idx) => {
+        el.classList.toggle('active', idx === currentSlide);
+      });
+      document.querySelectorAll('.dot-btn').forEach((el, idx) => {
+        el.classList.toggle('active', idx === currentSlide);
+      });
+
+      // Update script notes
+      const script = SLIDE_SCRIPTS[currentSlide];
+      const titleEl = document.getElementById('notes-title');
+      const bodyEl = document.getElementById('notes-body');
+      if(titleEl && script) titleEl.innerText = script.title;
+      if(bodyEl && script) bodyEl.innerHTML = script.text;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function goToSlide(idx) {
+      currentSlide = idx;
+      updateSlide();
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'p' || e.key === 'P' || e.key === 'n' || e.key === 'N') {
+        toggleNotes();
+      }
+    });
+
+    // Notes drawer toggle
+    function toggleNotes() {
+      const drawer = document.getElementById('notes-drawer');
+      const btn = document.getElementById('notes-btn');
+      if (drawer) {
+        drawer.classList.toggle('open');
+        if (btn) btn.style.borderColor = drawer.classList.contains('open') ? '#38bdf8' : 'var(--card-border)';
+      }
+    }
+
+    // Fullscreen toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // STOPWATCH TIMER (90 Seconds)
+    let timerSeconds = 90;
+    let timerRunning = false;
+    let timerInterval = null;
+
+    function renderTime() {
+      const m = Math.floor(timerSeconds / 60);
+      const s = timerSeconds % 60;
+      const str = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      const textEl = document.getElementById('time-text');
+      const pillEl = document.getElementById('timer-display');
+      if (textEl) textEl.innerText = str;
+
+      if (pillEl) {
+        pillEl.classList.remove('safe', 'warn', 'alert');
+        if (timerSeconds <= 15) {
+          pillEl.classList.add('alert');
+        } else if (timerSeconds <= 35) {
+          pillEl.classList.add('warn');
+        } else {
+          pillEl.classList.add('safe');
+        }
+      }
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timer-toggle-btn');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        if (btn) btn.innerText = '▶';
+      } else {
+        timerRunning = true;
+        if (btn) btn.innerText = '⏸';
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            renderTime();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            if (btn) btn.innerText = '▶';
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerSeconds = 90;
+      const btn = document.getElementById('timer-toggle-btn');
+      if (btn) btn.innerText = '▶';
+      renderTime();
+    }
+
+    // Init
+    updateSlide();
+    renderTime();
+  </script>
+</body>
+</html>

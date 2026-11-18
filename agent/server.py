@@ -260,6 +260,21 @@ def serve_stitch_page():
                 return f.read()
     return "<h1>Google Stitch Design System</h1><p>Tokens available at /stitch/tokens.css</p>"
 
+slides_paths = [
+    os.path.join(BASE_DIR, "frontend", "slides.html"),
+    os.path.join(PROJECT_ROOT, "frontend", "slides.html"),
+    os.path.join(PROJECT_ROOT, "agent", "frontend", "slides.html"),
+]
+
+@app.get("/slides", response_class=HTMLResponse)
+@app.get("/pitch", response_class=HTMLResponse)
+def serve_slides_page():
+    for p in slides_paths:
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                return f.read()
+    return "<h1>ShelterWise Presentation Slides</h1><p>Slides file not found.</p>"
+
 
 
 @app.get("/", response_class=HTMLResponse)
