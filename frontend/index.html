@@ -434,16 +434,40 @@ lock_version      : 4 → 5</pre>`,
 function rngd(seed,n,mid,spread){let s=seed*7919+13;const r=()=>(s=(s*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{let t=0;for(let i=0;i<4;i++)t+=r();return mid+(t/4-.5)*spread*2})}
 const md = s => {
   if (!s) return '';
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/^#+ (.*$)/gim, '<b>$1</b><br>')
-    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-    .replace(/\*(.+?)\*/g, '<i>$1</i>')
-    .replace(/`([^`]+)`/g, '<code style="background:var(--bg-line);padding:2px 4px;border-radius:3px;font-size:12px">$1</code>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n- /g, '<br>• ')
-    .replace(/\n\d+\. /g, (m) => `<br><b>${m.trim()}</b> `)
-    .replace(/\n/g, '<br>');
+  let str = String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // Format markdown tables
+  str = str.replace(/((?:\|[^\n]+\|\r?\n)+)/g, (match) => {
+    const lines = match.trim().split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2 || !lines[1].includes('-')) return match;
+    const parseRow = (line, tag) => {
+      const cells = line.split('|').slice(1, -1);
+      return '<tr>' + cells.map(c => `<${tag} style="padding:6px 10px;border:1px solid var(--line,#ddd);text-align:left">${c.trim()}</${tag}>`).join('') + '</tr>';
+    };
+    const header = parseRow(lines[0], 'th');
+    const rows = lines.slice(2).map(l => parseRow(l, 'td')).join('');
+    return `<div style="overflow-x:auto;margin:10px 0"><table style="width:100%;border-collapse:collapse;font-size:12.5px;background:var(--card-bg,#fff)"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`;
+  });
+
+  // Headers
+  str = str.replace(/^### (.*$)/gim, '<h4 style="margin:12px 0 4px;color:var(--ink);font-size:14px;font-weight:700">$1</h4>');
+  str = str.replace(/^## (.*$)/gim, '<h3 style="margin:14px 0 6px;color:var(--brand);font-size:15px;font-weight:700">$1</h3>');
+  str = str.replace(/^# (.*$)/gim, '<h2 style="margin:16px 0 8px;color:var(--brand);font-size:16px;font-weight:800">$1</h2>');
+
+  // Bold & Italics
+  str = str.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  str = str.replace(/\*(.+?)\*/g, '<i>$1</i>');
+  str = str.replace(/`([^`]+)`/g, '<code style="background:var(--bg-line,#f1f5f9);padding:2px 5px;border-radius:4px;font-size:12px;font-family:monospace;color:var(--brand,#2563eb)">$1</code>');
+
+  // Blockquotes
+  str = str.replace(/^>[ \t]*(.*$)/gim, '<blockquote style="margin:8px 0;padding:6px 12px;border-left:3px solid var(--brand,#2563eb);background:var(--bg-line,#f1f5f9);border-radius:0 4px 4px 0">$1</blockquote>');
+
+  // Newlines & lists
+  str = str.replace(/\n\n/g, '<br><br>');
+  str = str.replace(/\n[-*] /g, '<br>• ');
+  str = str.replace(/\n(\d+)\. /g, '<br><b>$1.</b> ');
+  str = str.replace(/\n/g, '<br>');
+  return str;
 };
 const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 

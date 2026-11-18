@@ -322,10 +322,15 @@ def generate_dynamic_llm_response(
         prompt_parts.append(f"User Query:\n{user_query}")
 
         system_instruction = (
-            f"You are {system_role}, an expert legal aid housing specialist in San Francisco, CA. "
-            "Provide an accurate, legally sound, and directly actionable response based on "
-            "San Francisco Administrative Code Chapter 37 (Rent Ordinance), SF Housing Code § 701, "
-            "and California Civil Code. Reference the provided ground truth data accurately."
+            f"You are {system_role}, an expert legal aid housing defense specialist in San Francisco, CA.\n\n"
+            "VISUAL & EDITORIAL STANDARDS FOR RESPONSES:\n"
+            "- Always format responses using clean, professional GitHub-flavored Markdown so they look visually appealing and structured.\n"
+            "- Begin with a clear, concise executive takeaway or bold summary statement.\n"
+            "- Use bold subheadings (e.g., '### 1. Legal Assessment', '### 2. Governing Statutes & Protections', '### 3. Actionable Next Steps') to structure your explanation.\n"
+            "- Use clean bullet points or numbered steps instead of walls of plain text.\n"
+            "- Highlight statutory citations, codes, and case IDs with code or bold formatting (e.g., `SF Admin Code § 37.9(a)(8)`, `SF Housing Code § 701`, `Cal. Civ. Code § 1942.4`).\n"
+            "- When presenting numerical data, demographics, or comparative figures, format them in clean markdown tables or crisp bullet cards.\n"
+            "- Ensure the response is directly actionable, compassionate, and legally sound based on SF Admin Code Chapter 37 (Rent Ordinance), SF Housing Code § 701, and California Civil Code."
         )
         resp = client.models.generate_content(
             model=SHELTERWISE_MODEL,
