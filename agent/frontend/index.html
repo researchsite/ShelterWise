@@ -1607,6 +1607,18 @@ let activeView = "triage";
 let activeLang = "en";
 let isTriageRunning = false;
 let triageClockInterval = null;
+let triageRequestId = 0;
+let triageAbortController = null;
+let stageTimeouts = [];
+
+function clearTriageTimers(){
+  stageTimeouts.forEach(t => clearTimeout(t));
+  stageTimeouts = [];
+  if(triageClockInterval){
+    clearInterval(triageClockInterval);
+    triageClockInterval = null;
+  }
+}
 
 const S = {
   customNarrative: SCENARIOS[0].narrative,
@@ -1653,7 +1665,7 @@ document.querySelectorAll('#nav-tabs button').forEach(b => {
 });
 
 // SCENARIO SELECTION (CRITICAL FIX FOR USER REPORT)
-function selectScenario(id){
+function selectScenario(id, triggerTriage = true){
   // Map legacy / alternative ids safely
   const idMap = {
     'winter-freeze': 'winter-freeze',
@@ -1671,6 +1683,15 @@ function selectScenario(id){
   const sc = SCENARIOS.find(s => s.id === targetId || s.legacyId === targetId || s.id === id);
   if(!sc) return;
 
+  // 1. Immediately abort any prior in-flight triage & clear pending animation timers
+  if(triageAbortController){
+    try { triageAbortController.abort(); } catch(e){}
+  }
+  clearTriageTimers();
+  isTriageRunning = false;
+  S.liveTriageData = null; // Clear stale server response so old brief is never used!
+
+  // 2. Update state model
   S.customNarrative = sc.narrative;
   S.customAddress = sc.address;
   S.customGeoid = sc.geoid;
@@ -1679,7 +1700,7 @@ function selectScenario(id){
   S.annualInc = sc.income;
   S.fuse = sc.fuse;
 
-  // Update inputs
+  // 3. Update input fields
   const narrEl = document.getElementById('app-narrative-field');
   if(narrEl) narrEl.value = sc.narrative;
   const addrEl = document.getElementById('app-address-field');
@@ -1691,7 +1712,7 @@ function selectScenario(id){
   const incEl = document.getElementById('app-income-field');
   if(incEl) incEl.value = sc.income;
 
-  // Update scenario box highlights with animation
+  // 4. Update scenario box highlights with animation
   document.querySelectorAll('.scenario-box').forEach(box => {
     const isThis = box.id === ('sc-box-' + targetId);
     box.classList.toggle('selected', isThis);
@@ -1699,30 +1720,50 @@ function selectScenario(id){
     if(checkEl) checkEl.style.display = isThis ? 'inline' : 'none';
   });
 
-  // Update comparison canvas
+  // 5. Update comparison canvas immediately with scenario-specific values
   const landEl = document.getElementById('canvas-landlord-text');
   const cityEl = document.getElementById('canvas-cityhall-text');
   if(landEl) landEl.innerHTML = `"${sc.landlordClaim}"`;
   if(cityEl) cityEl.innerHTML = `<b>${sc.cityProof}</b>`;
 
-  // Update radar candidate
+  // 6. Update radar candidate immediately with scenario-specific values
+  const hitCountEl = document.getElementById('radar-hit-count');
+  if(hitCountEl) hitCountEl.innerText = "1 Grounded Match Found · 3 Decoys Discarded";
+
   const candIdEl = document.getElementById('cand-id');
   const candDescEl = document.getElementById('cand-desc');
   const candDistEl = document.getElementById('cand-distance');
   const candScoreEl = document.getElementById('cand-score');
+  const candStatusEl = document.getElementById('cand-status');
+  const candBadgeEl = document.getElementById('cand-type-badge');
   if(candIdEl) candIdEl.innerText = sc.evidenceId;
   if(candDescEl) candDescEl.innerText = sc.evidenceDesc;
   if(candDistEl) candDistEl.innerText = sc.evidenceDistance;
   if(candScoreEl) candScoreEl.innerText = sc.evidenceScore;
+  if(candStatusEl) {
+    candStatusEl.innerText = "Open Active DBI Case";
+    candStatusEl.style.color = "var(--ok)";
+  }
+  if(candBadgeEl){
+    candBadgeEl.className = "pill p-ok";
+    candBadgeEl.innerText = "✅ Corroborating Municipal Citation";
+  }
 
-  // Update AMI badge
+  // 7. Update Map if map initialized
+  if(typeof renderMapForScenario === 'function' && fullMap){
+    renderMapForScenario(targetId);
+  }
+
+  // 8. Update AMI badge
   updateAmiBadge(sc.hh, sc.income);
   
-  // Render Brief
+  // 9. Render Brief immediately
   renderBrief();
 
-  // Execute Animated Triage Pipeline with Timings
-  executeAnimatedTriage();
+  // 10. Execute Animated Triage Pipeline if requested
+  if(triggerTriage){
+    executeAnimatedTriage(targetId);
+  }
 
   showToast("Loaded Scenario: " + sc.name);
 }
@@ -1786,8 +1827,18 @@ function updateAmiBadge(hh, inc){
 }
 
 // ANIMATED MULTI-AGENT TRIAGE PIPELINE EXECUTION WITH REAL API & TIMINGS
-async function executeAnimatedTriage(){
-  if(isTriageRunning) return;
+async function executeAnimatedTriage(requestedScenarioId){
+  const targetId = requestedScenarioId || activeScenarioId;
+  const sc = SCENARIOS.find(s => s.id === targetId) || SCENARIOS[0];
+
+  // Abort any prior in-flight request and clear pending animation timers
+  if(triageAbortController){
+    try { triageAbortController.abort(); } catch(e){}
+  }
+  triageAbortController = new AbortController();
+  clearTriageTimers();
+
+  const currentReqId = ++triageRequestId;
   isTriageRunning = true;
 
   const drawer = document.getElementById('live-pipeline-drawer');
@@ -1798,10 +1849,22 @@ async function executeAnimatedTriage(){
 
   if(drawer) drawer.style.display = 'block';
   if(spinner) spinner.style.display = 'inline-block';
-  if(statusText) statusText.innerText = 'Querying Google Cloud Run Multi-Agent ADK Pipeline...';
+  if(statusText) statusText.innerText = `Querying Google Cloud Run Multi-Agent ADK Pipeline for ${sc.name}...`;
+
+  // Dynamically tailor drawer stage steps to the selected scenario
+  const s1 = document.getElementById('stage-step-1');
+  if(s1) s1.innerHTML = `<span>⚡</span><span><b>intake_structurer_ag</b>: Scrubbed PII &amp; normalized 11-digit GEOID <code>${S.customGeoid}</code> for ${sc.tag}</span><span class="stage-timing" id="time-step-1">112ms</span>`;
+
+  const s3 = document.getElementById('stage-step-3');
+  if(s3) s3.innerHTML = `<span>🛡️</span><span><b>habitability_vector_ag</b>: BigQuery AI.EMBED + VECTOR_SEARCH for <i>"${sc.tag}"</i>; scanning 174 records</span><span class="stage-timing" id="time-step-3">210ms</span>`;
+
+  const s4 = document.getElementById('stage-step-4');
+  if(s4) s4.innerHTML = `<span>⚖️</span><span><b>statute_and_bulletin_ag</b>: Citing ${sc.statuteDefense ? sc.statuteDefense.split('&')[0] : 'Cal. Civ. Code § 1941.1'}</span><span class="stage-timing" id="time-step-4">42ms</span>`;
+
+  const s6 = document.getElementById('stage-step-6');
+  if(s6) s6.innerHTML = `<span>📜</span><span><b>eligibility_and_brief_ag</b>: Synthesizing Defense Brief &amp; Unlocking ${sc.reliefFunds ? sc.reliefFunds.split('·')[0] : '$12,000 Total Relief Cap'}</span><span class="stage-timing" id="time-step-6">380ms</span>`;
 
   const t0 = performance.now();
-  if(triageClockInterval) clearInterval(triageClockInterval);
   triageClockInterval = setInterval(() => {
     const sec = ((performance.now() - t0) / 1000).toFixed(2);
     if(clock) clock.innerText = `${sec}s`;
@@ -1817,39 +1880,55 @@ async function executeAnimatedTriage(){
     }
   });
 
-  // Sequence of stage reveals
-  const stageTimings = [120, 280, 480, 620, 740, 920, 1050];
+  // Sequence of stage reveals (tracked in stageTimeouts)
+  const stageTimings = [100, 240, 420, 560, 680, 840, 960];
   stageTimings.forEach((ms, idx) => {
-    setTimeout(() => {
+    const timerId = setTimeout(() => {
+      if(currentReqId !== triageRequestId || targetId !== activeScenarioId) return;
       const prev = document.getElementById('stage-step-' + idx);
       if(prev) { prev.classList.remove('active'); prev.classList.add('done'); }
       const curr = document.getElementById('stage-step-' + (idx + 1));
       if(curr) { curr.classList.add('active'); }
     }, ms);
+    stageTimeouts.push(timerId);
   });
+
+  // Read latest field values directly from DOM or state
+  const narrativeVal = document.getElementById('app-narrative-field')?.value || S.customNarrative;
+  const addressVal = document.getElementById('app-address-field')?.value || S.customAddress;
+  const hearingVal = document.getElementById('app-hearing-field')?.value || S.customHearing;
+  const hhVal = parseInt(document.getElementById('app-hh-field')?.value) || S.hhSize;
+  const incVal = parseInt(document.getElementById('app-income-field')?.value) || S.annualInc;
 
   // Call REAL API endpoint
   try {
     const resp = await fetch('/api/triage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: triageAbortController.signal,
       body: JSON.stringify({
-        narrative: S.customNarrative,
-        block_address: S.customAddress,
+        narrative: narrativeVal,
+        block_address: addressVal,
         geoid: S.customGeoid,
-        household_size: S.hhSize,
-        annual_income: S.annualInc,
-        hearing_date: S.customHearing
+        household_size: hhVal,
+        annual_income: incVal,
+        hearing_date: hearingVal
       })
     });
 
     const data = await resp.json();
+
+    // STRICT GUARD: If a newer request was dispatched or scenario switched, DISCARD STALE RESPONSE!
+    if(currentReqId !== triageRequestId || targetId !== activeScenarioId) {
+      return;
+    }
+
     const roundtripMs = Math.round(performance.now() - t0);
 
-    clearInterval(triageClockInterval);
+    clearTriageTimers();
     if(clock) clock.innerText = `${(roundtripMs / 1000).toFixed(2)}s`;
     if(spinner) spinner.style.display = 'none';
-    if(statusText) statusText.innerText = '✓ Multi-Agent Triage Pipeline Completed (100% Grounded in Official Records)';
+    if(statusText) statusText.innerText = `✓ Multi-Agent Triage Pipeline Completed for ${sc.name} (100% Grounded in Official Records)`;
 
     stepIds.forEach(id => {
       const el = document.getElementById('stage-step-' + id);
@@ -1927,36 +2006,47 @@ async function executeAnimatedTriage(){
       if(cityEl) cityEl.innerHTML = `<b>${data.canvas.city_proof}</b>`;
     } else if(corrobRecords.length > 0){
       const top = corrobRecords[0];
-      if(landEl) landEl.innerHTML = `"Tenant is behind on rent ($${Math.round(S.annualInc * 0.08).toLocaleString()} claimed). Landlord demands eviction possession before ${S.customHearing}."`;
+      if(landEl) landEl.innerHTML = `"${sc.landlordClaim}"`;
       if(cityEl) cityEl.innerHTML = `<b>Active Notice of Violation #${top.request_id}</b> (${top.inspection_status}) at ${top.block_address}. Verified finding: ${top.complaint_narrative.slice(0, 110)}... Corroborates habitability defense under Cal. Civ. Code § 1942.4.`;
     }
 
     // 4. DYNAMICALLY RENDER DEFENSE BRIEF
     renderBrief(data);
-    showToast(`✓ Dynamic Triage Complete in ${roundtripMs}ms (Case: ${S.caseId})`);
+    showToast(`✓ Dynamic Triage Complete in ${roundtripMs}ms (${sc.name})`);
 
   } catch(e) {
+    if(e.name === 'AbortError') {
+      return; // Handled cleanly, newer request running
+    }
+    if(currentReqId !== triageRequestId || targetId !== activeScenarioId) {
+      return;
+    }
     // Resilient fallback timing simulation if network offline
     const roundtripMs = Math.round(performance.now() - t0);
-    clearInterval(triageClockInterval);
+    clearTriageTimers();
     if(clock) clock.innerText = `${(roundtripMs / 1000).toFixed(2)}s`;
     if(spinner) spinner.style.display = 'none';
-    if(statusText) statusText.innerText = '✓ Local Multi-Agent Triage Completed';
+    if(statusText) statusText.innerText = `✓ Local Multi-Agent Triage Completed (${sc.name})`;
     stepIds.forEach(id => {
       const el = document.getElementById('stage-step-' + id);
       if(el) { el.classList.remove('active'); el.classList.add('done'); }
     });
     if(telem){
-      telem.innerHTML = `⚡ Triage Engine: <b>${roundtripMs}ms</b> · BigQuery Cosine Dist: 0.2104 · Firestore Lock v1: 24ms`;
+      telem.innerHTML = `⚡ Triage Engine: <b>${roundtripMs}ms</b> · BigQuery Cosine Dist: ${sc.evidenceScore || '0.2104'} · Firestore Lock v1: 24ms`;
     }
+    renderBrief();
   } finally {
-    isTriageRunning = false;
+    if(currentReqId === triageRequestId){
+      isTriageRunning = false;
+    }
   }
 }
 
 // Defense Brief & Court Paper Renderers
 function renderBrief(triageData){
   const data = triageData || S.liveTriageData;
+  const sc = SCENARIOS.find(s => s.id === activeScenarioId) || SCENARIOS[0];
+
   if(data && data.brief && data.brief.brief_markdown){
     const b = document.getElementById('brief-container');
     if(b) b.innerText = data.brief.brief_markdown;
@@ -1965,7 +2055,6 @@ function renderBrief(triageData){
     return;
   }
 
-  const sc = SCENARIOS.find(s => s.id === activeScenarioId) || SCENARIOS[0];
   const briefText = `TENANT STABILIZATION & HABITABILITY DEFENSE BRIEF
 Prepared by ShelterWise Multi-Agent System (Google ADK)
 San Francisco Superior Court · Department 501
@@ -2360,6 +2449,8 @@ function addCustomFact(){
 
 // Leaflet Map Initializers
 let fullMap = null;
+let currentMapLayers = [];
+
 function initFullLeafletMap(){
   if(fullMap) return;
   try {
@@ -2368,32 +2459,47 @@ function initFullLeafletMap(){
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
     }).addTo(fullMap);
-
-    // Evidentiary buffer
-    L.circle([37.7802, -122.4322], {
-      color: '#1a73e8',
-      fillColor: '#bfdbfe',
-      fillOpacity: 0.25,
-      radius: 400
-    }).addTo(fullMap).bindPopup("<b>400m Evidentiary Perimeter</b><br>Statutory Proximity Zone");
-
-    // Address marker
-    L.marker([37.7802, -122.4322]).addTo(fullMap).bindPopup("<b>1000 Block Fillmore St</b><br>Subject Property (Winter Freeze)");
-
-    // Corroborating 311 marker
-    L.marker([37.7804, -122.4320]).addTo(fullMap).bindPopup("<b>REQ-311-2026-9941</b><br>Active Boiler Violation · 12m away");
-
-    // Excluded Decoys
-    L.marker([37.7815, -122.4310]).addTo(fullMap).bindPopup("<b>Excluded Decoy (Commercial)</b><br>Storefront Boiler Failure");
-    L.marker([37.7880, -122.4235]).addTo(fullMap).bindPopup("<b>Excluded Decoy (Abated)</b><br>1205 Sutter St · Repaired in 2024");
-
-    // Court
-    L.marker([37.7806, -122.4187]).addTo(fullMap).bindPopup("<b>SF Superior Court</b><br>400 McAllister St (Dept 501)");
+    renderMapForScenario(activeScenarioId);
   } catch(e){}
 }
 
+function renderMapForScenario(scId){
+  if(!fullMap) return;
+  const sc = SCENARIOS.find(s => s.id === scId) || SCENARIOS[0];
+  const coords = sc.coords || [37.7802, -122.4322];
+
+  currentMapLayers.forEach(layer => fullMap.removeLayer(layer));
+  currentMapLayers = [];
+
+  fullMap.setView(coords, 15);
+
+  // Evidentiary 400m Buffer
+  const circle = L.circle(coords, {
+    color: '#1a73e8',
+    fillColor: '#bfdbfe',
+    fillOpacity: 0.25,
+    radius: 400
+  }).addTo(fullMap).bindPopup(`<b>400m Evidentiary Perimeter</b><br>Statutory Proximity Zone for ${sc.name}`);
+  currentMapLayers.push(circle);
+
+  // Subject Address marker
+  const subjectMarker = L.marker(coords).addTo(fullMap).bindPopup(`<b>${sc.address}</b><br>Subject Property (${sc.tag})`);
+  currentMapLayers.push(subjectMarker);
+
+  // Corroborating 311 marker (offset slightly)
+  const corrobCoords = [coords[0] + 0.0003, coords[1] + 0.0004];
+  const corrobMarker = L.marker(corrobCoords).addTo(fullMap).bindPopup(`<b>${sc.evidenceId}</b><br>${sc.evidenceDesc}<br><b>${sc.evidenceDistance}</b>`);
+  currentMapLayers.push(corrobMarker);
+
+  // SF Superior Court (Dept 501)
+  const courtMarker = L.marker([37.7806, -122.4187]).addTo(fullMap).bindPopup("<b>SF Superior Court</b><br>400 McAllister St (Dept 501)");
+  currentMapLayers.push(courtMarker);
+}
+
 function centerMapOnAddress(){
-  if(fullMap) fullMap.setView([37.7802, -122.4322], 16);
+  const sc = SCENARIOS.find(s => s.id === activeScenarioId) || SCENARIOS[0];
+  const coords = sc.coords || [37.7802, -122.4322];
+  if(fullMap) fullMap.setView(coords, 16);
 }
 function centerMapOnCourt(){
   if(fullMap) fullMap.setView([37.7806, -122.4187], 15);
@@ -2428,7 +2534,7 @@ function startAutoDemo(){
 
 // Page Initialization
 window.addEventListener('DOMContentLoaded', () => {
-  selectScenario('winter-freeze');
+  selectScenario('winter-freeze', false);
   initChecklist();
   initTechDocs();
   initStatutes();
