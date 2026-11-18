@@ -1,137 +1,182 @@
 # 🏠 ShelterWise: Housing Stability & Habitability Defense Navigator
 
-<div align="center">
+[![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Live_Deployment-4285F4?style=for-the-badge&logo=googlecloud)](https://shelterwise-335751565476.us-central1.run.app)
+[![Google ADK](https://img.shields.io/badge/Google_ADK-Multi--Agent_Architecture-34A853?style=for-the-badge&logo=google)](https://github.com/google/agent-development-kit)
+[![BigQuery Vector Search](https://img.shields.io/badge/BigQuery-AI.EMBED_+_VECTOR_SEARCH-FBBC05?style=for-the-badge&logo=googlebigquery)](https://cloud.google.com/bigquery)
+[![Cloud Firestore](https://img.shields.io/badge/Cloud_Firestore-Transactional_Locks-EA4335?style=for-the-badge&logo=firebase)](https://cloud.google.com/firestore)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge)](LICENSE)
 
-[![Live Web Application](https://img.shields.io/badge/🟢_Live_Production_UI-us--west2.run.app-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://shelterwise-frontend-335751565476.us-west2.run.app/)
-[![Google ADK Multi-Agent](https://img.shields.io/badge/Google_ADK-11_Coordinated_Agents-34A853?style=for-the-badge&logo=google&logoColor=white)](https://github.com/google/agent-development-kit)
-[![Gemini 2.5 Flash](https://img.shields.io/badge/Gemini_2.5_Flash-Vertex_AI-8E75C2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://cloud.google.com/vertex-ai)
-[![BigQuery Vector Search](https://img.shields.io/badge/BigQuery-AI.EMBED_+_Vector_Search-FBBC05?style=for-the-badge&logo=googlebigquery&logoColor=white)](https://cloud.google.com/bigquery)
-[![Cloud Firestore Locks](https://img.shields.io/badge/Cloud_Firestore-Transactional_Locks-EA4335?style=for-the-badge&logo=firebase&logoColor=white)](https://cloud.google.com/firestore)
-[![License Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge)](LICENSE)
-
-<br/>
-
-**Google Cloud Agents for Impact Hackathon 2026**  
-*An autonomous, grounded multi-agent platform that protects vulnerable tenants facing eviction by pairing lived crisis narratives with official municipal 311 habitability citations, statutory affirmative defenses, and emergency rental grants.*
-
-[ Explore Live Web App ](https://shelterwise-frontend-335751565476.us-west2.run.app/) · [ System Architecture ](#-multi-agent-system-architecture) · [ Plain-English Guide ](#-plain-english-guide-how-the-tech-works) · [ Automated Tests ](#-automated-verification--test-suite)
-
-</div>
+> **Agents for Impact 2026 Submission**  
+> An autonomous, grounded multi-agent case stabilization platform that pairs low-income tenants facing eviction with municipal habitability evidence, statutory affirmative defenses, and emergency rental relief grants.
 
 ---
 
-## 🚀 Live Services & Deployment Status
+## 🌐 Live Application & Endpoints
 
-| Service | Environment | Endpoint URL | Status |
-| :--- | :--- | :--- | :--- |
-| **Interactive Defense Workspace UI** | Cloud Run (`us-west2`) | [**https://shelterwise-frontend-335751565476.us-west2.run.app/**](https://shelterwise-frontend-335751565476.us-west2.run.app/) | 🟢 **Live & Serving** |
-| **Google ADK Multi-Agent Gateway** | Cloud Run (`us-central1`) | [**https://shelterwise-backend-335751565476.us-central1.run.app**](https://shelterwise-backend-335751565476.us-central1.run.app) | 🟢 **Healthy** |
-| **Frontend Health & Status API** | Cloud Run (`us-west2`) | [`/api/status`](https://shelterwise-frontend-335751565476.us-west2.run.app/api/status) | 🟢 **Connected** |
-| **Google Maps Live Config** | Cloud Run (`us-west2`) | [`/config.local.js`](https://shelterwise-frontend-335751565476.us-west2.run.app/config.local.js) | 🟢 **Active Key** |
-
----
-
-## 📸 Visual Showcase
-
-<div align="center">
-
-| 🖥️ Production Defense Workspace | 📊 Multi-Agent System Architecture |
-| :---: | :---: |
-| [![ShelterWise Consumer UI Snapshot](https://shelterwise-frontend-335751565476.us-west2.run.app/app_ui_snapshot.png)](https://shelterwise-frontend-335751565476.us-west2.run.app/) | [![ShelterWise Infographic](https://shelterwise-frontend-335751565476.us-west2.run.app/hero.png)](https://shelterwise-frontend-335751565476.us-west2.run.app/) |
-| *Trauma-informed, accessible housing defense workspace with live 10-step progress stepper, 400m Google Maps evidentiary radius, and back-rent relief calculator.* | *End-to-end multi-agent orchestration bridging tenant stories, BigQuery 311 records, and statutory affirmative defenses.* |
-
-</div>
-
----
-
-## 💡 The Problem & Executive Summary
-
-Every day in San Francisco, hundreds of low-income families enter Unlawful Detainer (eviction) court alone and unrepresented. Most do not realize that the chronic issues in their apartments—freezing rooms with broken heaters, leaking ceilings near electrical wiring, or hazardous black mold—are **complete affirmative defenses** under **California Civil Code § 1941.1 / § 1942.4** and **SF Housing Code § 701**. 
-
-Furthermore, over **$10M in municipal emergency relief funds** (such as SF ERAP and Prop F Right-to-Counsel grants) go unclaimed because overburdened legal aid advocates lack the time to manually search city archives for inspection proof before strict court filing deadlines.
-
-### 🛡️ How ShelterWise Solves This in Seconds:
-1. **Intelligent Intake & Life-Safety Triage**: Parses messy, unstructured voice or text descriptions from tenants and immediately intercepts acute life-safety hazards (e.g., active water intrusion near fuse boxes).
-2. **Semantic 311 Evidence Matching**: Queries 165+ real San Francisco Department of Building Inspection (DBI) records using **BigQuery Vertex AI Vector Search (`AI.EMBED`)** within a 400-meter radius of the tenant's home.
-3. **Automated Decoy Filter**: Intelligently discards deceptive decoy records (commercial warehouses, pre-repaired/abated items, or zero-defect reports) so that only ironclad proof enters the court record.
-4. **Statutory Clocks & Relief Matching**: Computes the statutory 35-day repair clock under Cal. Civ. Code § 1942.4 and unlocks emergency relief grants up to $10,000.
-5. **Courtroom-Ready Brief Export**: Produces a structured 9-section **Tenant Stabilization Brief** with clickable citations ready for paralegal review and immediate court filing.
-
----
-
-## 📖 Plain-English Guide: How the Tech Works
-
-*For advocates, judges, and evaluators who prefer human language over jargon:*
-
-| Everyday Name | Cloud Technology | What It Actually Does |
+| Resource | URL | Status |
 | :--- | :--- | :--- |
-| 🔍 **City Hall Record Matcher** | BigQuery `AI.EMBED` + `VECTOR_SEARCH` | Matches the *meaning* of a tenant's words to official city inspection citations in milliseconds—even if the tenant says "radiator is ice cold" and the inspector wrote "SFHC § 701 space heater inoperative." |
-| 🚫 **False Lead Filter** | Decoy Rejection Engine | Weeds out misleading records like coffee shop boilers or inspections where the landlord already fixed the issue, protecting the tenant from getting challenged in court. |
-| 🤖 **AI Legal Defense Squad** | Google ADK Multi-Agent Team (`*_ag`) | A coordinated team of 11 AI legal specialists: an intake screener, evidence researcher, statutory code analyst, transit guide, and brief drafter. |
-| 🔒 **Collaborator Shield** | Cloud Firestore Optimistic Lock (`lock_version`) | Prevents paralegals and attorneys from accidentally overwriting or erasing each other's work while collaborating simultaneously on the same case. |
-| 🧱 **Demographic Firewall** | Responsible AI Demographic Sandbox | Personal demographics (race, ethnicity) are strictly isolated behind an architectural firewall. Demographics are NEVER factored into legal eligibility scoring—only into macro city-wide equity audits. |
-| ⏱️ **Landlord Repair Clock** | Cal. Civ. Code § 1942.4 Calculator | If a landlord fails to fix cited violations within 35 days, California law bars them from collecting back rent or pursuing nonpayment eviction. ShelterWise computes this automatically. |
+| **Interactive Case Workspace UI** | [https://shelterwise-335751565476.us-central1.run.app](https://shelterwise-335751565476.us-central1.run.app) | 🟢 Live & Serving |
+| **App UI Workspace Snapshot** | [https://shelterwise-335751565476.us-central1.run.app/app_ui_snapshot.png](https://shelterwise-335751565476.us-central1.run.app/app_ui_snapshot.png) | 🟢 Live Asset |
+| **Civic Tech Infographic Asset** | [https://shelterwise-335751565476.us-central1.run.app/hero.png](https://shelterwise-335751565476.us-central1.run.app/hero.png) | 🟢 Live Asset |
+| **Backend API Health Check** | [https://shelterwise-335751565476.us-central1.run.app/api/health](https://shelterwise-335751565476.us-central1.run.app/api/health) | 🟢 Healthy |
+| **Interactive Swagger API Docs** | [https://shelterwise-335751565476.us-central1.run.app/docs](https://shelterwise-335751565476.us-central1.run.app/docs) | 🟢 Live |
 
 ---
 
-## 🤖 Multi-Agent System Architecture
+## 📱 Application Workspace Snapshot & Architecture Visual
 
-All 11 agents in ShelterWise are built using the **Google Agent Development Kit (ADK)** on **Gemini 2.5 Flash** via **Vertex AI**. Per competition guidelines, **all agent names strictly end with the `_ag` suffix**:
+| 🖥️ Consumer App Workspace Snapshot | 📊 Multi-Agent Architecture & Problem Explainer |
+| :---: | :---: |
+| [![ShelterWise Consumer UI Snapshot](https://shelterwise-335751565476.us-central1.run.app/app_ui_snapshot.png)](https://shelterwise-335751565476.us-central1.run.app) | [![ShelterWise Infographic](https://shelterwise-335751565476.us-central1.run.app/hero.png)](https://shelterwise-335751565476.us-central1.run.app) |
+| *Modern, warm, consumer-friendly housing defense flow with 10-step progress, interactive map, and emergency back-rent calculator.* | *End-to-end multi-agent orchestration bridging tenant stories, BigQuery 311 records, and statutory defenses.* |
+
+> 📖 **Comprehensive System Reference**:  
+> For the complete registry of all 11 Google ADK agents, exact source code paths, Google Cloud services, and CLI commands, see **[`docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md`](docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md)**.
+> 
+> 🎨 **Google Stitch Design System & Plain-English Technical Guide**:  
+> For the complete specification of the Stitch-Civic design system, 24 component taxonomy, and plain-English guides, see **[`docs/STITCH_DESIGN_SYSTEM.md`](docs/STITCH_DESIGN_SYSTEM.md)**.
+
+---
+
+## 🌟 Google Product Stack & Data Entry Innovations
+
+ShelterWise integrates Google's full cloud & developer ecosystem to eliminate data-entry bottlenecks for advocates and tenants:
+
+1. **Google Maps Geospatial Buffer & Courthouse Route**:
+   - Visualizes the tenant's residence, the **400-meter evidentiary radius**, the corroborating 311 citation (12m away), and rejected decoy traps across San Francisco.
+   - Traces the transit polyline to the **SF Superior Courthouse (400 McAllister St)** with live MUNI Route 31/5 transit calculations.
+2. **Google reCAPTCHA Enterprise Shield**:
+   - Integrated bot and abuse prevention protecting the public legal aid intake portal with risk score assessment (`score: 0.94`), ensuring only authentic tenant advocates generate court briefs.
+3. **Google Places Address Autocomplete**:
+   - Standardizes messy verbal tenant addresses into San Francisco 100-block coarsened format and 11-digit Census Tract GEOIDs (`06075...`).
+4. **Google Cloud Speech-to-Text Voice Dictation**:
+   - Enables low-literacy tenants or advocates conducting telephone intake to dictate statements verbally with automated acoustic transcription.
+5. **MOHCD Area Median Income (AMI) Calculator**:
+   - Dynamic 2026 San Francisco Area Median Income calculator that evaluates household size (1–4+ people) and annual earnings to assess eligibility for SF ERAP (<=80% AMI) and MEDA (<=60% AMI).
+6. **Google Cloud Storage (GCS) Evidence Dropzone**:
+   - Interactive evidence upload for photos (thermostat at 50°F, ceiling water damage) and legal PDFs (notice to landlord, 3-day notice to quit).
+7. **Multilingual Access (English / Español / 中文)**:
+   - High-priority legal warnings, life-safety gates, and court countdown timers accessible to San Francisco's diverse renter population.
+8. **Interactive Case Builder & 4 Realistic Prefilled Scenarios**:
+   - Freeform editable intake narrative, address picker, date/time scheduler, household size, and income calculator.
+   - Preloaded with 4 authentic San Francisco cases:
+     - *Case 1 (Western Addition)*: Winter heating failure, 50°F indoor temperature, sick child, hearing Monday at 9am.
+     - *Case 2 (Mission District)*: Acute life-safety emergency, water dripping onto electrical breaker box with arcing.
+     - *Case 3 (Tenderloin)*: Toxic black mold, retaliatory heating shutoff under Cal. Civ. Code § 1942.5.
+     - *Case 4 (Chinatown SRO)*: Shared hallway sewage backup, elderly immigrant tenant, DBI Repair Bridge grant.
+9. **Reviewable & Editable Facts Table**:
+   - In Step 1, extracted facts are rendered in directly editable table cells (`contenteditable="true"`), allowing advocates to correct claims or add additional verified facts.
+10. **Automated 3-Minute Walkthrough**:
+   - A prominent **`▶ 3-Min Walkthrough`** header button autonomously advances through the complete 10-step demo script with automated vector search and brief verification.
+11. **Defense Brief Export**:
+   - Includes one-click **Print / Save Defense Brief PDF** and **Copy Brief to Clipboard** buttons for immediate court filing.
+12. **Consumer-Friendly & Accessible Product Design**:
+   - Built to feel like a modern, warm, consumer-grade civic product rather than an intimidating research paper or legal database.
+   - Empowering tenant messaging, intuitive top-level navigation (**🏠 Protect My Home**, **⚙️ Behind The Scenes**, **📊 City Inspection Data**, **⚖️ Tenant Rights**), and high-trust badges (🛡️ City-Verified 311 Records, ⚖️ Prop F Universal Right to Counsel, 💵 Up to $12,000 Back-Rent Grants, 🔒 100% Free & Confidential).
+   - Clear visual iconography for crisis triage (❄️ Broken Heat, ⚡ Electrical Leak, 🍄 Mold Retaliation, 🚰 Sewage Backup) with responsive, card-based layouts.
+
+---
+
+## 🎯 Executive Summary & Mission
+
+Every day in San Francisco, tenants appear in unlawful detainer (eviction) court unrepresented, unaware that chronic building conditions—such as weeks without heat or ceiling leaks—constitute affirmative defenses under **California Civil Code § 1941.1 / § 1942.4** and **SF Housing Code § 701**. At the same time, municipal and philanthropic rental relief funds (such as **Prop F Legal Defense** and the **DBI Repair Bridge**) go underutilized because tenants lack official corroboration.
+
+**ShelterWise** bridges this gap:
+1. **Understands & Triages**: Ingests unstructured tenant narratives, evaluates acute life-safety hazards, and structures inspector-standard queries.
+2. **Retrieves Grounded Evidence**: Uses **BigQuery `AI.EMBED` + `VECTOR_SEARCH`** to semantically retrieve public 311 housing inspection records while discarding planted decoy lookalikes (commercial properties, abated cases, zero-violation inspections).
+3. **Applies Statutory Protections**: Tracks the statutory 35-day repair window under CA Civil Code § 1942.4 and unlocks emergency relief funds.
+4. **Protects Advocate Collaboration**: Employs **Cloud Firestore `@firestore.transactional` optimistic concurrency locks** to prevent conflicting edits between paralegals and attorneys.
+5. **Maintains Demographic Integrity**: Adheres to a strict **Responsible AI Demographic Firewall**, isolating demographic indicators (`audit_*`) from individual case triage to aggregate cohort auditing only.
+
+---
+
+## 🎨 Google Stitch Design System Architecture
+
+ShelterWise implements a component-driven design system following **Google Stitch** principles—Google's generative multimodal design architecture that unifies design tokens, modular components, responsive layouts, and trauma-informed interaction patterns.
+
+### 5-Tier Component Taxonomy (24 Modular Components)
+
+| Tier | Components | Purpose & Design Behavior |
+| :--- | :--- | :--- |
+| **Tier 1: Tokens** | Colors, Typography, Spacing, Radii, Shadows | Semantic tokens (`--stitch-brand`, `--stitch-surface`, `--stitch-danger`) with instant `distress-mode` high-contrast overrides. |
+| **Tier 2: Atoms** | `StitchBadge`, `StitchButton`, `StitchInput`, `StitchTooltip`, `StitchAvatar` | Single-purpose, accessible, keyboard-navigable interactive controls with WCAG AAA contrast. |
+| **Tier 3: Molecules** | `DistressModeBanner`, `HabitabilityClockPill`, `ReliefFundingMeter`, `DecoyRejectionCard`, `GeoProximityRadar` | Domain-specific civic-tech components communicating complex legal timelines and monetary balances. |
+| **Tier 4: Organisms** | `UniversalHeader`, `StepStepper`, `EvidenceCandidateList`, `PleadingPaperViewer`, `MultiAgentVisualizer` | Self-contained functional workspaces binding agent outputs to user-actionable controls. |
+| **Tier 5: Templates** | `IntakeFlowLayout`, `MapExplorerLayout`, `CodexReferenceLayout`, `CourtExportLayout` | Responsive page shells ensuring visual consistency and intuitive tab navigation across the entire application. |
+
+### 📖 Plain-English Guide: How Complex Cloud Tech Works in Everyday Language
+
+| Advanced Cloud Feature | What It Actually Is (Technical) | Plain Everyday English Translation |
+| :--- | :--- | :--- |
+| **The City Hall Record Matcher** | BigQuery `AI.EMBED` + `VECTOR_SEARCH` | Matches the *meaning* of your story to official city citations in seconds, even if your words differ from the inspector's technical notes. |
+| **The False Lead Filter** | Decoy Rejection Engine | Weeds out irrelevant records (commercial coffee shops, old closed cases) so only valid residential proof is brought to court. |
+| **Your AI Legal Support Team** | Google ADK Multi-Agent Pipeline (`*_ag`) | A coordinated team of AI legal specialists: intake paralegal, records researcher, housing attorney, neighborhood analyst, and court drafter. |
+| **The Collaborator Shield** | Cloud Firestore Concurrency Lock (`lock_version`) | Prevents tenants and legal aid attorneys from accidentally erasing or overwriting each other's work while editing at the same time. |
+| **The Fairness Firewall** | Responsible AI Demographic Sandbox | Personal demographics are sealed behind a firewall and NEVER used to score individual tenants or alter legal triage. |
+| **The Landlord Repair Deadline** | Statutory Repair Clock (Cal. Civ. Code § 1942.4) | If a landlord fails to fix cited violations within 35 days, California law bars them from demanding rent or evicting. |
+
+---
+
+## 🤖 Multi-Agent Architecture (Google ADK)
+
+Every agent in ShelterWise is built with the **Google Agent Development Kit (ADK)** on **Gemini 2.5 Flash (Vertex AI)**. Per project requirements, **every agent name strictly ends with `_ag`**:
 
 ```mermaid
 graph TD
-    User([Paralegal / Housing Advocate]) -->|Crisis Intake Narrative| NAV[shelterwise_navigator_ag<br/><i>Root Coordinator</i>]
-    NAV -->|Life-Safety Emergency Check| NAV
-    NAV -->|Dispatches Case Triage| SEQ[case_triage_pipeline_ag<br/><i>SequentialAgent Pipeline</i>]
+    User(["Paralegal / Housing Advocate"]) -->|Intake Narrative| NAV["shelterwise_navigator_ag<br/><i>Root Coordinator</i>"]
+    NAV -->|Emergency Life-Safety Check| NAV
+    NAV -->|Delegates Case Triage| SEQ["case_triage_pipeline_ag<br/><i>SequentialAgent</i>"]
     
-    subgraph Step 1: Understand & Structure
-        SEQ --> INT[intake_structurer_ag<br/><i>Extract facts, 11-digit GEOID, search query</i>]
+    subgraph Step 1: Understand
+        SEQ --> INT["intake_structurer_ag<br/><i>Extract facts, 11-digit GEOID, search query</i>"]
     end
 
-    subgraph Step 2: Parallel Grounding & Retrieval
-        INT --> FAN[corroboration_fanout_ag<br/><i>ParallelAgent Fanout</i>]
-        FAN --> VEC[habitability_vector_ag<br/><i>BigQuery AI.EMBED + VECTOR_SEARCH</i>]
-        FAN --> POL[statute_and_bulletin_ag<br/><i>Housing Code & Relief Bulletins</i>]
-        FAN --> TRC[tract_displacement_ag<br/><i>v_tract_stability_context & Court Baseline</i>]
+    subgraph Step 2: Gather Corroboration
+        INT --> FAN["corroboration_fanout_ag<br/><i>ParallelAgent</i>"]
+        FAN --> VEC["habitability_vector_ag<br/><i>BigQuery AI.EMBED + VECTOR_SEARCH</i>"]
+        FAN --> POL["statute_and_bulletin_ag<br/><i>Housing Code & Relief Bulletins</i>"]
+        FAN --> TRC["tract_displacement_ag<br/><i>v_tract_stability_context & Court Baseline</i>"]
     end
 
-    subgraph Step 3: Synthesize & Seal
-        VEC --> BRF[eligibility_and_brief_ag<br/><i>Reconciles Evidence Gaps & Generates 9-Section Brief</i>]
+    subgraph Step 3: Synthesize & Verify
+        VEC --> BRF["eligibility_and_brief_ag<br/><i>Reconciles Evidence Gaps & Generates 9-Section Brief</i>"]
         POL --> BRF
         TRC --> BRF
     end
 
-    BRF --> FS[(Cloud Firestore<br/><i>cases/{case_id} & locks</i>)]
+    BRF --> FS[("Cloud Firestore<br/><i>cases/{case_id} &amp; locks</i>")]
     
-    subgraph Specialist On-Demand Agents
-        NAV --> EXP[evidence_explainer_ag<br/><i>Explains Decoy Filter Rationale</i>]
-        NAV --> AUD[equity_audit_ag<br/><i>Responsible AI Silent Distress Audit</i>]
-        NAV --> DRF[hazard_311_drafter_ag<br/><i>Emergency 311 Inspection Drafter</i>]
+    subgraph Specialist Support Agents
+        NAV --> EXP["evidence_explainer_ag<br/><i>Explains Decoy Filter Rationale</i>"]
+        NAV --> AUD["equity_audit_ag<br/><i>Responsible AI Silent Distress Audit</i>"]
+        NAV --> DRF["hazard_311_drafter_ag<br/><i>Emergency 311 Inspection Drafter</i>"]
     end
 ```
 
-### 📋 Full 11-Agent Registry
+### Complete Agent Registry
 
-| Agent Name | ADK Type | Source File | Engine | Purpose & Legal Responsibility |
+*(Full details, tool schemas, and lifecycle hooks documented in **[`docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md`](docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md)**)*
+
+| Agent Name | Type | Source File Path | Model / Engine | Role & Responsibilities |
 | :--- | :--- | :--- | :--- | :--- |
-| **`shelterwise_navigator_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | **Root Orchestrator**. Intercepts acute life-safety hazards, manages multi-turn advocate chats, and routes inquiries to specialists. |
-| **`case_triage_pipeline_ag`** | Sequential Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | ADK Pipeline | Sequentially chains intake structuring, parallel data retrieval, and defense brief synthesis. |
-| **`intake_structurer_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Extracts verbatim tenant claims, normalizes 11-digit Census Tract GEOID (`06075...`), and formulates inspector-standard search queries. |
-| **`corroboration_fanout_ag`** | Parallel Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | ADK Fanout | Triggers concurrent, asynchronous retrieval across BigQuery vector search, legal statutes, and neighborhood stability baselines. |
-| **`habitability_vector_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Executes BigQuery `VECTOR_SEARCH` with `AI.EMBED`; rejects commercial, abated, and zero-violation decoy traps. |
-| **`statute_and_bulletin_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Queries municipal housing codes, affirmative defense statutes, and evaluates the statutory 35-day repair clock. |
-| **`tract_displacement_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Pulls 4-quarter pre-aggregated modeled eviction baselines and ACS rent burden. Firewalled against demographic indicators. |
-| **`eligibility_and_brief_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Synthesizes the 9-section Tenant Stabilization Brief and assesses relief fund eligibility based on verified DBI case status. |
-| **`evidence_explainer_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Explains why decoy near-miss records were excluded, providing complete auditability for reviewing attorneys. |
-| **`equity_audit_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Audits "silent distress" tracts (high rent burden with low 311 reporting rates) across the metro area. STRICTLY isolated from case triage. |
-| **`hazard_311_drafter_ag`** | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Drafts formal emergency SF DBI 311 inspection requests when zero complaints currently exist on a block. |
+| `shelterwise_navigator_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Root orchestrator. Intercepts acute life-safety hazards, runs triage, handles multi-turn advocate chats. |
+| `case_triage_pipeline_ag` | Sequential Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | ADK Pipeline | Sequentially chains intake structuring, parallel data gathering, and brief synthesis. |
+| `intake_structurer_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Extracts reported facts verbatim; normalizes 11-digit census tract GEOID (`06075...`); drafts inspector-vocabulary query. |
+| `corroboration_fanout_ag` | Parallel Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | ADK Fanout | Dispatches concurrent parallel retrieval across BigQuery vector search, policy tables, and tract context. |
+| `habitability_vector_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Executes BigQuery `VECTOR_SEARCH` with `AI.EMBED`; filters out decoy traps (commercial, abated, zero-violation). |
+| `statute_and_bulletin_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Queries municipal housing codes, affirmative defense statutes, and 35-day repair clocks. |
+| `tract_displacement_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Pulls pre-aggregated 4-quarter modeled eviction baselines and ACS rent burden. Firewalled against demographics. |
+| `eligibility_and_brief_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Synthesizes 9-section Tenant Stabilization Brief; assesses fund eligibility based on open DBI case status. |
+| `evidence_explainer_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Explains why decoy near-miss records were excluded to ensure advocate transparency. |
+| `equity_audit_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Evaluates silent distress tracts (under-reporting) across the metro area. STRICTLY isolated from case triage. |
+| `hazard_311_drafter_ag` | LLM Agent | [`agent/shelterwise_agent/agent.py`](agent/shelterwise_agent/agent.py) | `gemini-2.5-flash` | Drafts formal emergency SF DBI 311 inspection requests when zero complaints exist on a block. |
 
 ---
 
-## 🔍 BigQuery Vector Search & The 3 Decoy Trap Classes
+## 🔍 BigQuery Vector Search & Decoy Rejection
 
-### Live Vector Search Query
-The `habitability_vector_ag` queries BigQuery using Vertex AI embeddings directly in SQL without external vector database dependencies:
+### Live BigQuery Vector Query
+The `habitability_vector_ag` queries BigQuery using Vertex AI embeddings directly in SQL:
 
 ```sql
 SELECT base.request_id,
@@ -155,91 +200,112 @@ FROM VECTOR_SEARCH(
 );
 ```
 
-### 🚫 Robust Decoy Trap Rejection Rules
-BigQuery returns top semantically matching records, including planted adversarial decoys. The system enforces strict legal domain filters **without hardcoding decoy IDs**:
+### The 3 Decoy Trap Classes & Rejection Rules
+BigQuery returns 25 semantically similar hits, which include synthetic planted decoys. The system applies strict business rule post-filters—**without hardcoding `"DECOY"` strings**:
 
-```mermaid
-graph LR
-    HITS[Raw BigQuery Vector Hits<br/>Top 25 Semantically Similar] --> R1{Property Type == Residential?}
-    R1 -- No --> DIS1[❌ Discard: Commercial Property Decoy<br/><i>e.g. Retail storefront boiler</i>]
-    R1 -- Yes --> R2{Closed Date == NULL & Status != Abated?}
-    R2 -- No --> DIS2[❌ Discard: Closed / Abated Decoy<br/><i>Violation already resolved</i>]
-    R2 -- Yes --> R3{Status != No Violation?}
-    R3 -- No --> DIS3[❌ Discard: Zero-Violation Decoy<br/><i>Inspector found no defect</i>]
-    R3 -- Yes --> KEPT[✅ KEPT: Grounded Residential Habitability Evidence<br/><i>Ready for Court Affirmative Defense</i>]
-```
-
-1. **Commercial Property Decoys (`DECOY-SANF-01` to `03`)**:
+1. **Commercial Property Decoys (e.g., `DECOY-SANF-01` to `03`)**:
    - *Trap*: High semantic similarity (0.93) regarding boiler failure in a warehouse/storefront.
-   - *Legal Filter*: Discard if `property_type != 'Residential'`. SF Housing Code § 701 applies solely to residential dwelling units.
-2. **Closed - Abated Decoys (`DECOY-SANF-04` to `06`)**:
-   - *Trap*: Real habitability violation that the landlord previously repaired.
-   - *Legal Filter*: Discard if `closed_date IS NOT NULL` or status contains `Abated`. Prior resolved complaints cannot corroborate an ongoing failure to repair.
-3. **Closed - Zero Violation Decoys (`DECOY-SANF-07` to `09`)**:
-   - *Trap*: Inspection where the inspector measured indoor temperatures at 71°F and found zero defects.
-   - *Legal Filter*: Discard if status or narrative indicates `No Violation`. Introducing a clean inspection in court would undermine the tenant's defense.
+   - *Rule*: Discard if `property_type != 'Residential'`. SF Housing Code § 701 applies solely to residential dwellings.
+2. **Closed - Abated Decoys (e.g., `DECOY-SANF-04` to `06`)**:
+   - *Trap*: Real habitability violation that the landlord previously resolved.
+   - *Rule*: Discard if `closed_date IS NOT NULL` or status contains `Abated`. Prior resolved complaints cannot corroborate an ongoing failure to repair.
+3. **Closed - Zero Violation Decoys (e.g., `DECOY-SANF-07` to `09`)**:
+   - *Trap*: Winter readiness inspection where the inspector tested radiators at 71°F and found zero defects.
+   - *Rule*: Discard if status or narrative indicates `No Violation`. Introducing a clean inspection would undermine the tenant in court.
 
 ---
 
-## 🛡️ Responsible AI: Demographic Firewall
+## 📊 Data Provenance & Grounding Principles
 
-To prevent algorithmic bias, ShelterWise implements an **architectural firewall** isolating demographic variables:
+All data in ShelterWise is rigorously attributed with unambiguous provenance tags:
 
-> **Strict Demographic Isolation Rule**:  
-> In individual case stabilization, **zero demographic indicators** (`audit_black_share`, `audit_hispanic_share`, etc.) are ever queried, displayed, or used in eligibility scoring. Case priority is governed exclusively by **objective legal urgency** (e.g., hearing within 72 hours) and **verified life-safety hazards** (e.g., electrical water intrusion).
+| BigQuery Table / View | Provenance Tag | Description & Safe Usage |
+| :--- | :--- | :--- |
+| `complaints_embedded` | `[Real 311 Public Record]` / `[Planted Decoy Record]` | 174 rows (165 real SF 311 complaints coarsened to 100-block + 9 planted decoys) embedded with `gemini-embedding-2`. |
+| `municipal_311_housing_complaints` | `[Real 311 Public Record]` | Ground truth inspection citations from the SF Department of Building Inspection. |
+| `v_tract_stability_context` | `[Real Census ACS 2018-2022]` + `[Modeled Court Baseline]` | 42 SF census tracts pre-aggregating 4 quarterly court filing records to avoid multi-row duplication. **Omit demographic columns.** |
+| `municipal_housing_ordinance_statutes` | `[Public Statutory Reference]` | Enforceable affirmative defenses: SF Housing Code § 701, SF Admin Code Ch. 37 (Prop F), and Cal. Civ. Code § 1941.1 / § 1942.4 / § 1942.5. |
+| `rental_relief_program_bulletins` | `[Public Program Guidelines]` | Guidelines for SF ERAP, MEDA Anti-Displacement Grants, Prop F Legal Defense, and DBI Repair Bridge. |
+| `v_metro_equity_audit` | `[Responsible AI Audit View]` | Aggregate cohort view containing `audit_*` demographic columns. **Strictly firewalled from individual case triage.** |
 
-Demographic shares are strictly reserved for the **`equity_audit_ag`** agent, querying the aggregate `v_metro_equity_audit` view to identify **"Silent Distress Tracts"**—underserved neighborhoods where high severe rent burden (28.4% avg) coincides with unusually low 311 complaint counts due to digital divide friction or immigration fears.
-
----
-
-## 🔒 Cloud Firestore Concurrency & Collaboration
-
-ShelterWise uses **Google Cloud Firestore in Native Mode** (`projects/qwiklabs-gcp-04-99fa355171e1/databases/(default)`) with optimistic concurrency locks:
-
-```python
-@firestore.transactional
-def _tx_claim(transaction, doc_ref):
-    snapshot = doc_ref.get(transaction=transaction)
-    curr = snapshot.to_dict()
-    if expected_version is not None and curr.get("lock_version") != expected_version:
-        raise ValueError(f"Concurrency Conflict: current version is {curr.get('lock_version')}")
-    transaction.update(doc_ref, {
-        "assigned_paralegal": paralegal_name,
-        "lock_version": curr.get("lock_version", 1) + 1,
-        "updated_at": firestore.SERVER_TIMESTAMP
-    })
-```
-
-- Prevents race conditions when multiple advocates review the same case.
-- Persists the 7-item **Attorney Review Checklist** (life-safety communicated, decoys excluded, 11-digit GEOID confirmed, relief prerequisites checked).
+### Grounding Rules
+- **Preserve Leading Zeros**: Census tract GEOIDs are strictly handled as 11-character strings (`06075...`).
+- **4× Eviction Grain Pre-Aggregation**: Eviction court filing tables contain 4 quarters per tract. Queries must pre-aggregate `SUM(filings)` to prevent 400% over-counting.
+- **Absence ≠ Proof**: The absence of a 311 complaint on a block does not mean conditions are habitable; it activates `hazard_311_drafter_ag`.
+- **Block ≠ Unit**: A block-level 311 complaint corroborates building-wide neglect but does not replace unit-specific testimony.
 
 ---
 
-## 🎬 Interactive 10-Step Demo Scenarios
+## 🔒 Cloud Firestore Transactional Case Store
 
-The live workspace comes pre-loaded with **4 authentic San Francisco defense scenarios**:
+ShelterWise uses **Google Cloud Firestore in Native Mode** (`projects/qwiklabs-gcp-04-99fa355171e1/databases/(default)` in `nam5`) for transactional case integrity.
 
-| Case Scenario | Neighborhood | Habitability Hazards | Legal Strategy & Relief |
-| :--- | :--- | :--- | :--- |
-| **Case 1: Winter Freeze** | Western Addition | Broken boiler, 50°F indoor temp, sick child; 9am Monday hearing. | Nonpayment defense under SFHC § 701; SF ERAP grant application. |
-| **Case 2: Electrical Arc Hazard** | Mission District | Water leaking onto main circuit breaker panel; imminent life safety. | Immediate DBI emergency inspection; Cal. Civ. Code § 1941.1 defense. |
-| **Case 3: Toxic Mold Retaliation** | Tenderloin | Severe black mold; landlord issued 3-day notice after tenant complained. | Retaliatory eviction defense under Cal. Civ. Code § 1942.5. |
-| **Case 4: SRO Sewage Failure** | Chinatown | Overflowing common hallway drain; elderly non-English-speaking tenant. | DBI Rapid Habitability Repair Bridge Grant ($5,000). |
+- **Optimistic Concurrency Locking**:
+  ```python
+  @firestore.transactional
+  def _tx_claim(transaction, doc_ref):
+      snapshot = doc_ref.get(transaction=transaction)
+      curr = snapshot.to_dict()
+      if expected_version is not None and curr.get("lock_version") != expected_version:
+          raise ValueError(f"Concurrency Conflict: current version is {curr.get('lock_version')}")
+      transaction.update(doc_ref, {
+          "assigned_paralegal": paralegal_name,
+          "lock_version": curr.get("lock_version", 1) + 1,
+          "updated_at": firestore.SERVER_TIMESTAMP
+      })
+  ```
+- **Attorney Review Checklist**: Persists verification items (life-safety communicated, decoys excluded, 11-digit GEOID confirmed, relief prerequisites checked).
 
 ---
 
-## 🧪 Automated Verification & Test Suite
+## 🎬 10-Step Demo Walkthrough Guide
 
-The comprehensive test suite covers agent naming conventions, decoy rejection rules, demographic firewall guarantees, and full end-to-end multi-agent pipeline runs.
+Follow these steps in the [Live Web UI](https://shelterwise-335751565476.us-central1.run.app):
+
+1. **Step 0: Intake & Acute Safety Gate**
+   - Review incoming narrative: *"Tenant at 1000 Block Fillmore St. No heat for weeks... Nonpayment hearing Monday at 9am."*
+   - Toggle *"Simulate Acute Hazard"* to see immediate life-safety intercept (water dripping into electrical panel).
+   - Click **"▶ Send & Run Triage"** to trigger `case_triage_pipeline_ag`.
+2. **Step 1: Understand (`intake_structurer_ag`)**
+   - Inspect structured JSON: 11-digit GEOID `06075016300`, eviction urgency flagged (`<72h`).
+   - Notice inspector-wording query: *"no heat cold dwelling radiators inoperative"*.
+3. **Step 2: Gather Evidence (`habitability_vector_ag`)**
+   - Click **"▶ Run Vector Search"**. Watch BigQuery `AI.EMBED` execute and return 25 hits.
+   - Inspect kept record `SF-202665182` and observe that `DECOY-SANF-01`, `04`, and `07` were excluded.
+4. **Step 3: Gather Context (`tract_displacement_ag`)**
+   - Inspect neighborhood stability context: 1,653 renter units, 16.0% severe rent burden, 65 annual filings.
+   - Notice the **Responsible AI Demographic Firewall** badge confirming zero demographic queries.
+5. **Step 4: Decide Law (`statute_and_bulletin_ag`)**
+   - Review applicable statutes: SF Housing Code § 701, Prop F Counsel, Cal. Civ. Code § 1942.5.
+   - Check the **CA Civil Code § 1942.4 Repair Clock**: 16 of 35 days elapsed (matures 2026-12-09).
+6. **Step 5: Decide Relief Funds (`eligibility_and_brief_ag`)**
+   - Notice Prop F & DBI Bridge marked **CONDITIONAL** because tenant's own DBI case number is unconfirmed.
+   - Check *"Tenant has her own verified DBI case number"*: Watch status flip immediately to **ELIGIBLE**.
+7. **Step 6: Write & Verify**
+   - Click **"▶ Run Automated Validation Checks"**. Watch 6 automated verifier checks pass.
+8. **Step 7: Defense Brief**
+   - Review the complete 9-section **Tenant Stabilization Brief** with grounded citations.
+   - Click **"🖨 Print / Save Defense Brief PDF"**.
+9. **Step 8: Interactive Follow-ups (`shelterwise_navigator_ag`)**
+   - Click *"Why did you drop the warehouse boiler one?"* → `evidence_explainer_ag` explains the commercial exclusion.
+   - Click *"Transit before 9am Monday?"* → `estimate_courthouse_transit` calculates route to SF Civic Center Courthouse.
+   - Click *"Lock this case for Attorney Chen"* → Firestore transaction commits with `lock_version: 2`.
+10. **Step 9: Human Review & Equity Audit**
+    - Check off the 7 Attorney Review Checklist items (persisted to Firestore).
+    - Click **"▶ Run Aggregate Equity Audit"** → `equity_audit_ag` identifies silent-distress tracts across SF.
+
+---
+
+## 🧪 Automated Test Suite
+
+ShelterWise includes 9 unit and integration tests verifying all core requirements:
 
 ```bash
-# Run test suite from repository root
-python3 -m unittest discover -s agent/tests -v
+# Run test suite
+PYTHONPATH=".libs:agent:$PYTHONPATH" /opt/venv/bin/python3 -m unittest discover -s agent/tests -v
 ```
 
-<details>
-<summary><b>Click to expand verified test suite output (15/15 Passing)</b></summary>
-
+### Test Results
 ```text
 test_all_agent_names_end_with_ag (test_shelterwise.TestShelterWise.test_all_agent_names_end_with_ag)
 STRICT REQUIREMENT: All agent names must end with _ag. ... ok
@@ -259,6 +325,7 @@ test_intake_hazard_and_geoid (test_shelterwise.TestShelterWise.test_intake_hazar
 Tests acute life safety hazard detection and 11-digit GEOID normalization. ... ok
 test_statute_clocks_and_relief (test_shelterwise.TestShelterWise.test_statute_clocks_and_relief)
 Verifies that statutes and relief programs evaluate habitability prerequisites. ... ok
+
 test_bigquery_mcp_toolset (test_triage_pipeline.TestTriagePipeline.test_bigquery_mcp_toolset)
 Verify BigQuery McpToolset initializes with Google-managed endpoint. ... ok
 test_evidence_explainer_logic (test_triage_pipeline.TestTriagePipeline.test_evidence_explainer_logic)
@@ -273,21 +340,14 @@ test_runner_with_in_memory_session (test_triage_pipeline.TestTriagePipeline.test
 Verify create_runner instantiates Runner backed by InMemorySessionService. ... ok
 
 ----------------------------------------------------------------------
-Ran 15 tests in 8.349s
+Ran 15 tests in 10.109s
 
 OK
 ```
 
-</details>
-
 ---
 
-## 🛠️ Local Development & Quickstart
-
-### Prerequisites
-- Python 3.10+
-- Google Cloud SDK (`gcloud`)
-- Access to GCP Project with BigQuery & Vertex AI enabled
+## 🚀 Local Development Quickstart
 
 ```bash
 # 1. Clone repository
@@ -296,55 +356,21 @@ cd ShelterWise
 
 # 2. Install dependencies
 pip install -r agent/requirements.txt
-pip install -r frontend/requirements.txt
 
-# 3. Configure environment variables
+# 3. Set environment variables
 export PROJECT_ID="qwiklabs-gcp-04-99fa355171e1"
 export BIGQUERY_DATASET="a4i_housing"
 export METRO_AREA="San Francisco"
 export VERTEX_AI_LOCATION="us-central1"
-export ADK_BACKEND_URL="https://shelterwise-backend-335751565476.us-central1.run.app"
-export ADK_APP_NAME="shelterwise"
 
-# 4. Start local frontend gateway server
-python3 frontend/server.py
+# 4. Run FastAPI server locally
+python3 agent/server.py
 
-# 5. Open http://localhost:8080 in your browser
+# 5. Open browser at http://localhost:8080
 ```
 
 ---
 
-## 📁 Repository Structure
-
-```text
-ShelterWise/
-├── agent/                         # Multi-Agent Core (Google ADK)
-│   ├── shelterwise_agent/
-│   │   ├── __init__.py            # Module exports & sys.modules package aliasing
-│   │   ├── agent.py               # Complete 11 ADK agent definitions (*_ag)
-│   │   ├── config.py              # GCP Project, BigQuery datasets, and models
-│   │   ├── tools.py               # BigQuery, Firestore, and statute tool bindings
-│   │   └── prompt.py              # Grounding prompts & legal citation rules
-│   ├── tests/                     # 15 Unit & Integration Tests
-│   │   ├── test_shelterwise.py
-│   │   └── test_triage_pipeline.py
-│   ├── Dockerfile                 # Backend ADK container specification
-│   └── requirements.txt
-├── frontend/                      # Presentation Layer & Gateway Proxy
-│   ├── index.html                 # Stitch-Civic accessible case workspace
-│   ├── server.py                  # Resilient presentation mapper & fallback gateway
-│   ├── Dockerfile                 # Frontend Cloud Run container specification
-│   ├── app_ui_snapshot.png        # Workspace preview asset
-│   └── hero.png                   # Architectural infographic asset
-├── docs/                          # Comprehensive Technical Documentation
-│   ├── SYSTEM_ARCHITECTURE_AND_SERVICES.md
-│   └── STITCH_DESIGN_SYSTEM.md
-└── README.md                      # Project documentation & reference
-```
-
----
-
-## 📄 License & Team Attribution
-
-Developed with ❤️ by the **ShelterWise Team** for the **Google Cloud Agents for Impact Hackathon 2026**.  
-Licensed under the [Apache License 2.0](LICENSE).
+## 📄 License & Attribution
+Developed for the **Google Cloud Agents for Impact Hackathon 2026**.  
+Licensed under the Apache License 2.0.
