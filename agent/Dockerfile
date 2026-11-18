@@ -7,6 +7,8 @@ ENV PYTHONUNBUFFERED=1 \
     PROJECT_ID=qwiklabs-gcp-04-99fa355171e1 \
     BIGQUERY_DATASET=a4i_housing \
     METRO_AREA="San Francisco" \
+    GOOGLE_GENAI_USE_VERTEXAI=true \
+    SHELTERWISE_MODEL="gemini-2.5-flash" \
     PYTHONPATH="/app"
 
 COPY requirements.txt .

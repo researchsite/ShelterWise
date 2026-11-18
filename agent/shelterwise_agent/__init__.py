@@ -20,6 +20,7 @@ from .agent import (
     handle_chat_message,
     # Aliases
     shelterwise_navigator,
+    shelterwise_navigator_agent,
     case_triage_pipeline,
     intake_structurer_agent,
     corroboration_fanout,
@@ -54,6 +55,7 @@ __all__ = [
     "execute_full_triage",
     "handle_chat_message",
     "shelterwise_navigator",
+    "shelterwise_navigator_agent",
     "case_triage_pipeline",
     "intake_structurer_agent",
     "corroboration_fanout",

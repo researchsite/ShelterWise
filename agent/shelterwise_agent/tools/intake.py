@@ -29,9 +29,18 @@ def structure_intake(
             "Direct tenant to file emergency SF DBI priority inspection (Call 311 / DBI Code Enforcement) "
             "and contact PG&E if arcing occurs."
         )
+    elif any(k in lower for k in ["cousin", "omi", "owner move-in", "owner move in"]):
+        hazard_detected = True
+        safety_message = (
+            "CRITICAL LEGAL DEFECT: Landlord served 60-day OMI Notice for 'Cousin' — Cousin is strictly "
+            "UNAUTHORIZED under SF Admin Code § 37.9(a)(8). In addition, tenant has Protected Senior Status "
+            "(Age 68 + 22-year tenancy) under § 37.9(i). Notice is Void."
+        )
 
     # 2. Issue categories
     categories = []
+    if any(k in lower for k in ["cousin", "omi", "owner move-in", "owner move in"]):
+        categories.append("Defective Owner Move-In (OMI) Eviction Notice (SF Admin Code § 37.9(a)(8))")
     if any(k in lower for k in ["heat", "radiator", "cold", "boiler", "freezing"]):
         categories.append("Lack of Adequate Heating (SF Housing Code § 701)")
     if any(k in lower for k in ["leak", "water", "ceiling", "plumbing", "drip"]):

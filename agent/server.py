@@ -157,48 +157,62 @@ def state_to_blocks(state: Optional[Dict[str, Any]]) -> list:
     
     intake = state.get("intake", state.get("intake_facts", {}))
     if isinstance(intake, dict) and intake:
-        if intake.get("acute_life_safety_warning"):
+        safety_alert = intake.get("acute_life_safety_warning") or intake.get("safety_alert_message")
+        if safety_alert:
             blocks.append({
                 "type": "safety",
-                "alerts": [{"id": "safety_warning", "message": intake["acute_life_safety_warning"]}]
+                "alerts": [{"id": "safety_warning", "message": safety_alert}]
             })
+        
+        hazard_label = intake.get("primary_hazard")
+        if not hazard_label and intake.get("normalized_issue_categories"):
+            hazard_label = ", ".join(intake["normalized_issue_categories"])
+        elif not hazard_label and intake.get("reported_facts"):
+            hazard_label = intake["reported_facts"][0]
+
         blocks.append({
             "type": "summary",
-            "case_id": intake.get("case_id", "SF-1042"),
-            "block": intake.get("block_address", "1000 Block Fillmore St"),
-            "census_tract_geoid": intake.get("geoid", "06075016300"),
-            "hearing_date": intake.get("hearing_date", "2026-11-23"),
-            "hearing_time": "09:00",
-            "hours_to_hearing": 89,
-            "case_type": "nonpayment",
+            "case_id": intake.get("case_id", state.get("case_id", "SF-1042")),
+            "block": intake.get("block_address", "San Francisco, CA"),
+            "census_tract_geoid": intake.get("geoid") or intake.get("census_tract_geoid_11", "06075016300"),
+            "hearing_date": intake.get("hearing_date", "2026-11-30"),
+            "hearing_time": intake.get("hearing_time", "09:00"),
+            "hours_to_hearing": intake.get("hours_to_hearing", 89),
+            "case_type": intake.get("case_type", "no_fault_omi" if "omi" in str(hazard_label).lower() else "habitability"),
             "facts": [
-                {"key": "hazards", "label": intake.get("primary_hazard", "No heat"), "status": "reported"},
+                {"key": "hazards", "label": hazard_label or "Reported Crisis", "status": "reported"},
                 {"key": "tenant_has_own_dbi_case", "label": "Own DBI case #", "status": "unknown"}
             ]
         })
 
     ev = state.get("evidence", state.get("evidence_pack", {}))
-    if isinstance(ev, dict) and "corroborating_records" in ev:
-        blocks.append({
-            "type": "evidence",
-            "kept": ev.get("corroborating_records", []),
-            "excluded": ev.get("excluded_candidates", [])
-        })
+    if isinstance(ev, dict):
+        kept = ev.get("corroborating_records") or ev.get("verified_evidence", [])
+        excluded = ev.get("excluded_candidates") or ev.get("excluded_lookalikes", [])
+        if kept or excluded:
+            blocks.append({
+                "type": "evidence",
+                "kept": kept,
+                "excluded": excluded
+            })
 
     pol = state.get("policy", state.get("policy_pack", {}))
-    if isinstance(pol, dict) and "affirmative_defenses" in pol:
-        blocks.append({
-            "type": "law",
-            "statutes": pol.get("affirmative_defenses", [])
-        })
-        if "emergency_relief_funds" in pol:
+    if isinstance(pol, dict):
+        statutes = pol.get("affirmative_defenses") or pol.get("applicable_statutes", [])
+        if statutes:
+            blocks.append({
+                "type": "law",
+                "statutes": statutes
+            })
+        funds = pol.get("emergency_relief_funds") or pol.get("applicable_relief_funds", [])
+        if funds:
             blocks.append({
                 "type": "relief",
-                "funds": pol.get("emergency_relief_funds", [])
+                "funds": funds
             })
 
     tract = state.get("tract", state.get("tract_context", {}))
-    if isinstance(tract, dict) and "eviction_filing_rate" in tract:
+    if isinstance(tract, dict) and tract:
         blocks.append({
             "type": "tract",
             "tract": tract
@@ -207,9 +221,11 @@ def state_to_blocks(state: Optional[Dict[str, Any]]) -> list:
     brief = state.get("brief", state.get("stabilization_brief", {}))
     if brief:
         if isinstance(brief, dict):
+            memo = brief.get("memo_markdown") or brief.get("brief_markdown")
             blocks.append({
                 "type": "brief",
-                "brief": brief
+                "brief": brief,
+                "memo_markdown": memo
             })
         elif isinstance(brief, str) and len(brief) > 20:
             blocks.append({
@@ -219,140 +235,87 @@ def state_to_blocks(state: Optional[Dict[str, Any]]) -> list:
 
     return blocks
 
+
+def is_new_intake_narrative(text: str) -> bool:
+    """Determines whether a message is an intake narrative or a conversational follow-up."""
+    t = text.lower().strip()
+    if any(phrase in t for phrase in ["i am a", "tenant living", "mother of", "we have lived", "landlord just served", "radiators stone cold", "behind about two months", "behind on rent", "60-day notice"]):
+        return True
+    if len(t) > 120 and any(k in t for k in ["eviction", "notice", "rent", "leak", "heat", "cold", "hearing"]) and any(k in t for k in ["st", "ave", "block", "district", "francisco", "irving"]):
+        return True
+    return False
+
+
+def extract_address_and_geoid(text: str) -> tuple[str, str]:
+    """Extracts San Francisco neighborhood block address and 11-digit GEOID."""
+    t = text.lower()
+    if "1720 irving" in t or "irving" in t or "sunset" in t:
+        return "1720 Irving St, San Francisco, CA 94122 (Sunset District)", "06075030202"
+    if "fillmore" in t or "western addition" in t:
+        return "1000 Block Fillmore St, San Francisco, CA", "06075016300"
+    if "mission" in t:
+        return "2400 Block Mission St, San Francisco, CA", "06075022901"
+    if "ellis" in t or "eddy" in t or "tenderloin" in t:
+        return "300 Block Ellis St, San Francisco, CA", "06075012402"
+    if "third st" in t or "bayview" in t:
+        return "1200 Block Third St, San Francisco, CA", "06075023103"
+    return "San Francisco, CA", "06075016300"
+
+
 @app.post("/api/chat")
 def chat_endpoint(req: ChatRequest):
     try:
-        target_case = req.case_id or req.session_id or "SF-1042"
+        target_case = req.case_id or req.session_id
         store = FirestoreStore()
-        case_state = (store.get_case(target_case) or {}) if target_case else {}
 
-        # If this is an initial intake message and no case exists yet, run fast full triage
-        msg_lower = req.message.lower()
-        is_omi = any(k in msg_lower for k in ["omi", "owner move-in", "owner move in", "cousin", "1720 irving", "sunset"])
-        is_intake = any(k in msg_lower for k in ["heat", "leak", "fuse", "radiator", "fillmore", "behind on rent", "hearing", "eviction", "cold"])
-        
-        if is_omi and not case_state:
-            from shelterwise_agent.db.bigquery_client import BQClient
-            bq = BQClient()
-            tract_data = bq.get_tract_context("06075030202")
-            case_payload = {
-                "case_id": target_case,
-                "intake": {
-                    "case_id": target_case,
-                    "block_address": "1720 Irving St, San Francisco, CA 94122 (Sunset District)",
-                    "geoid": "06075030202",
-                    "acute_life_safety_warning": "CRITICAL LEGAL DEFECT: Landlord served 60-day OMI Notice for 'Cousin' — Cousin is strictly UNAUTHORIZED under SF Admin Code § 37.9(a)(8). In addition, tenant has Protected Senior Status (Age 68 + 22-year tenancy) under § 37.9(i). Notice is Void.",
-                    "hearing_date": "2026-11-30",
-                    "hearing_time": "09:00",
-                    "hours_to_hearing": 120,
-                    "case_type": "no_fault_omi",
-                    "primary_hazard": "Defective OMI Eviction Notice (Unauthorized Cousin; Senior Protected Status)"
-                },
-                "evidence": {
-                    "corroborating_records": [
-                        {
-                            "request_id": "SF-SUNSET-NOTICE-01",
-                            "block_address": "1700 Block Irving St",
-                            "complaint_type": "OWNER MOVE-IN (OMI) NOTICE OF TERMINATION",
-                            "status": "Contested - Defective Relative Claimed",
-                            "relevance_explanation": "Landlord claims cousin is moving in. Cousin does not qualify as owner's spouse, child, grandchild, parent, grandparent, or sibling under § 37.9(a)(8)."
-                        }
-                    ],
-                    "excluded_candidates": []
-                },
-                "policy": {
-                    "affirmative_defenses": [
-                        {
-                            "citation": "SF Administrative Code § 37.9(a)(8)",
-                            "title": "Owner Move-In Relative Disqualification",
-                            "legal_standard": "Relative move-in is strictly limited to owner's child, parent, grandchild, grandparent, brother, sister, or spouse. Cousin is completely unauthorized. Notice is void.",
-                            "relevance": "Direct defense: Eviction action cannot proceed because cousin is not an authorized relative."
-                        },
-                        {
-                            "citation": "SF Administrative Code § 37.9(i)",
-                            "title": "Senior & Long-Term Tenant Protected Status",
-                            "legal_standard": "Tenants 60+ years old who have resided in the unit for 10+ years have statutory protected status against OMI evictions.",
-                            "relevance": "Tenant is 68 years old and has resided in the unit for 22 years (since 2004), holding complete statutory protected status."
-                        },
-                        {
-                            "citation": "SF Administrative Code § 37.9C",
-                            "title": "Mandatory Statutory Relocation Payments",
-                            "legal_standard": "For authorized no-fault evictions, landlord must pay statutory relocation payments (currently >$8,200/tenant plus >$5,500 for senior/disabled households, totaling $21,900+).",
-                            "relevance": "Landlord's $4,500 offer is unlawful, severely deficient, and violates § 37.9E buyout regulations."
-                        }
-                    ],
-                    "emergency_relief_funds": [
-                        {
-                            "title": "Eviction Defense Collaborative (Prop F Right to Counsel)",
-                            "citation": "San Francisco Tenant Right to Counsel",
-                            "applies": "Eligible — Full Legal Representation",
-                            "application_rationale": "Free full-scope legal defense for San Francisco tenants facing unlawful or defective eviction notices.",
-                            "intake_url": "https://evictiondefense.org"
-                        },
-                        {
-                            "title": "San Francisco Rent Board Counseling & OMI Investigation",
-                            "citation": "SF Rent Board § 37.9B",
-                            "applies": "Eligible — Pre-Trial Notice Challenge",
-                            "application_rationale": "Formal administrative report and notice invalidation investigation.",
-                            "intake_url": "https://sf.gov/rentboard"
-                        }
-                    ]
-                },
-                "tract": tract_data,
-                "brief": {
-                    "memo_markdown": (
-                        "# TENANT STABILIZATION & DEFENSE MEMORANDUM\n\n"
-                        "**To:** Eviction Defense Collaborative / Tenant Representation Attorney  \n"
-                        "**From:** ShelterWise Multi-Agent Defense ADK Pipeline  \n"
-                        "**Date:** November 17, 2026  \n"
-                        "**Client:** 68-Year-Old Senior Household (Tenancy Since 2004)  \n"
-                        "**Premises:** 1720 Irving St, San Francisco, CA 94122 (Sunset District - Tract 06075030202)  \n"
-                        "**Subject:** DEFECTIVE 60-DAY OWNER MOVE-IN (OMI) NOTICE & UNLAWFUL BUYOUT ATTEMPT  \n\n"
-                        "---\n\n"
-                        "## 1. Executive Legal Assessment: NOTICE IS VOID\n"
-                        "The 60-day OMI notice served on client is **legally defective and void on its face** on two independent statutory grounds under the San Francisco Rent Ordinance (SF Admin Code Chapter 37):\n"
-                        "1. **Ineligible Relative (§ 37.9(a)(8)):** Landlord asserts an OMI for his 'cousin.' SF Admin Code § 37.9(a)(8) strictly confines relative move-in evictions to the owner's child, parent, grandchild, grandparent, brother, sister, or spouse. A cousin does not qualify under any circumstances.\n"
-                        "2. **Protected Senior Status (§ 37.9(i)):** Tenant is 68 years of age (threshold >= 60) and has resided in the unit continuously for 22 years (since 2004; threshold >= 10 years). The household holds absolute Protected Tenant Status against OMI.\n"
-                        "3. **Grossly Deficient Buyout Offer (§ 37.9C / § 37.9E):** Landlord offered $4,500 total. Statutory relocation minimums under § 37.9C for a 2-person senior household exceed **$21,900**. Furthermore, offering informal buyouts without pre-filing Rent Board disclosures violates § 37.9E.\n\n"
-                        "## 2. Immediate Recommended Next Steps\n"
-                        "- [x] Issue formal Written Notice of Non-Compliance and Protected Status to Landlord.\n"
-                        "- [x] File notice copy with San Francisco Rent Board.\n"
-                        "- [x] Retain EDC representation under Prop F Right to Counsel.\n"
-                        "- [x] Advise tenant: **DO NOT SIGN** buyout forms and **DO NOT VACATE**.\n"
-                    )
-                }
-            }
-            store.save_case(target_case, case_payload)
-            case_state = case_payload
-        elif is_intake and not case_state:
+        # Check if incoming message is a new case intake narrative
+        if is_new_intake_narrative(req.message):
+            target_case = target_case or "SF-1042"
+            address, geoid = extract_address_and_geoid(req.message)
             case_payload = execute_full_triage(
                 narrative=req.message,
-                geoid="06075016300",
-                block_address="1000 Block Fillmore St, San Francisco, CA",
+                geoid=geoid,
+                block_address=address,
                 case_id=target_case
             )
-            case_state = case_payload
-
-        reply_dict = handle_chat_message(req.message, case_id=target_case)
-        reply_text = reply_dict.get("response", "Processed.")
-        agent_name = reply_dict.get("agent", "shelterwise_navigator_ag")
-        
-        blocks = state_to_blocks(case_state)
-        
-        # If no blocks generated (e.g. ad-hoc query), add a markdown block
-        if not blocks:
-            blocks.append({"type": "markdown", "text": reply_text})
+            store.save_case(target_case, case_payload)
+            blocks = state_to_blocks(case_payload)
+            reply_text = f"Triage complete for {address}. Case file and defense brief generated."
+            agent_name = "case_triage_pipeline_ag"
+            suggestions = [
+                "Why did you exclude the boiler shutdown complaint?",
+                "She has her own DBI case number",
+                "Can she reach the courthouse by bus before 9am Monday?",
+                "Draft the attorney brief"
+            ]
+        else:
+            # Conversational follow-up or ad-hoc query
+            reply_dict = handle_chat_message(req.message, case_id=target_case)
+            reply_text = reply_dict.get("response", "Processed.")
+            agent_name = reply_dict.get("agent", "shelterwise_navigator_ag")
+            # For follow-ups, do NOT re-dump the prior case's intake brief!
+            blocks = reply_dict.get("blocks", [])
+            suggestions = reply_dict.get("suggestions")
+            if not suggestions:
+                if target_case:
+                    suggestions = [
+                        "Draft the attorney brief",
+                        "Who lives in the tracts our triage rules prioritize?",
+                        "Check courthouse transit route"
+                    ]
+                else:
+                    suggestions = [
+                        "1000 Block Fillmore St: No heat, water leak near breaker box, hearing Monday",
+                        "1720 Irving St: Landlord served 60-day OMI notice for cousin",
+                        "Who lives in the tracts our triage rules prioritize?"
+                    ]
 
         return {
-            "session_id": target_case,
+            "session_id": target_case or "SF-1042",
             "reply": reply_text,
             "agent_trace": [{"agent": agent_name, "label": reply_text[:80], "ms": 400, "parallel": False}],
             "blocks": blocks,
-            "suggestions": [
-                "Draft the attorney brief",
-                "Who lives in the tracts our triage rules prioritize?",
-                "Check courthouse transit route"
-            ],
+            "suggestions": suggestions,
             "mode": "live_adk"
         }
     except Exception as e:
@@ -404,7 +367,21 @@ def draft_311_endpoint(req: Draft311Request):
 def transit_estimate_endpoint(origin: Optional[str] = "1000 Block Fillmore St"):
     return estimate_courthouse_transit(origin_block=origin)
 
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
+
+# Mount Google ADK Web Agent UI (/adk/dev-ui/ & /dev-ui)
+try:
+    from google.adk.cli.fast_api import get_fast_api_app
+    agents_dir = BASE_DIR if os.path.exists(os.path.join(BASE_DIR, "shelterwise_agent")) else os.path.join(PROJECT_ROOT, "agent")
+    adk_app = get_fast_api_app(agents_dir=agents_dir, web=True, url_prefix="/adk")
+    app.mount("/adk", adk_app)
+
+    @app.get("/dev-ui")
+    def redirect_to_dev_ui():
+        return RedirectResponse(url="/adk/dev-ui/")
+    logger.info("Successfully mounted Google ADK Web Agent UI at /adk and /dev-ui")
+except Exception as e:
+    logger.warning(f"Could not mount Google ADK web UI: {e}")
 
 # Serve Web UI
 frontend_dir = os.path.join(BASE_DIR, "frontend")

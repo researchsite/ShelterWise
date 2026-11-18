@@ -138,7 +138,8 @@
     <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>
     <b>ADK Agent Cloud:</b> <a href="https://shelterwise-backend-335751565476.us-central1.run.app" target="_blank" style="color:inherit;text-decoration:underline">shelterwise-backend</a>
   </span>
-  <span class="b ok" style="font-size:11.5px;background:#f0fdf4;border-color:#bbf7d0;color:#15803d;padding:3px 10px">⚡ Gemini 3.8 Flash</span>
+  <span class="b ok" style="font-size:11.5px;background:#f0fdf4;border-color:#bbf7d0;color:#15803d;padding:3px 10px">⚡ Gemini 2.5 Flash</span>
+  <a href="/adk/dev-ui/" target="_blank" class="btn" style="text-decoration:none;background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;font-weight:600;display:inline-flex;align-items:center;gap:4px">🛠️ ADK Web Agent UI ↗</a>
   <button class="btn tp-btn" onclick="tp.classList.toggle('open')">🧪 Test prompts</button><button class="btn" id="mapbtn" onclick="toggleMap()">🗺 Hide map</button>
 </div>
 <div class="thread" id="thread"><div class="col" id="col">
@@ -154,6 +155,7 @@
       <p class="small" style="margin:8px 0 0">The UI just draws whatever blocks arrive, so the agents decide what the user sees. Block types used by this mock: <code>safety</code> <code>summary</code> <code>evidence</code> <code>law</code> <code>relief</code> <code>tract</code> <code>next_steps</code> <code>brief_cta</code> <code>brief</code> <code>explain</code> <code>equity_audit</code> <code>draft_311</code> <code>relief_fallback</code> <code>transit</code> <code>lock</code> <code>diff</code>.<br><b>Open question for the team:</b> confirm field names in <code>schemas.py</code> (Shiva) and the endpoint in <code>server.py</code> (Member 4).</p>
     </details>
     <div class="starters">
+      <div class="starter" onclick="send('I am a 68-year-old tenant living with my spouse in a 2-bedroom unit at 1720 Irving St, San Francisco, CA 94122 (Sunset District). We have lived here since 2004. Our new landlord just served us a 60-day Owner Move-In (OMI) eviction notice claiming his cousin is moving in, and offered us $4,500 total to move out. Can you check if this landlord has filed OMI or Ellis Act notices on other properties in SF, verify if a cousin qualifies for OMI, and evaluate this buyout offer?')"><b>🏠 Sunset District OMI Defense (1720 Irving St)</b><span class="small muted">Protected senior tenant · ineligible cousin OMI · $4,500 buyout defense</span></div>
       <div class="starter" onclick="send(SAMPLE)"><b>📋 Thursday 3:40pm intake</b><span class="small muted">No heat, water by the fuse box, Monday 9am nonpayment hearing</span></div>
       <div class="starter" onclick="send('Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?')"><b>🧾 No 311 on file yet</b><span class="small muted">Help document a brand-new hazard</span></div>
       <div class="starter" onclick="send('Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?')"><b>🛡 Metro equity audit</b><span class="small muted">Aggregate only, never case-level</span></div>
@@ -295,75 +297,155 @@ backend=msg=>{const r=_backend(msg);r.blocks.forEach(b=>{if(GEO[b.type])b.geo=GE
 
 /* ------------------------- BLOCK RENDERERS ------------------------- */
 const R={
- safety:()=>`<div class="safety" role="alert"><div class="ico">⚡</div><div style="flex:1"><b>LIFE-SAFETY: water near an electrical panel</b>
-   <div style="margin-top:3px">Tell the tenant: <b>do NOT touch the wet fuse box or nearby switches.</b> Sparking, burning smell or spreading water → <b>call 911</b>. Otherwise request an <b>emergency DBI inspection via 311</b>.</div></div>
-   <button class="btn" onclick="this.textContent='✓ Told tenant 15:41';this.disabled=true">I told the tenant</button></div>`,
- summary:()=>`<div class="blk"><div class="hd"><h4>📝 What I understood</h4><span class="b outline">SF-1042</span><span class="sp"></span><span class="small muted">click ✎ to correct</span></div>
-   <div class="kv"><div><div class="k">Hearing</div><div class="v" style="color:var(--urg)">⏱ Mon 11/23 9:00 · 89h</div></div><div><div class="k">Location</div><div class="v">1000 Block Fillmore St</div></div><div><div class="k">Tract GEOID</div><div class="v mono">06075016300</div></div></div>
-   <div class="facts">${[['No heat ~2 wks, ~50°F','Reported'],['Water near fuse box','Reported'],['~2 months behind','Reported'],['Parent + 2 children','Reported'],['Own DBI case #','Unknown'],['Income','Unknown']]
-     .map(([f,l])=>`<span class="fact"><span class="b ${l==='Unknown'?'grey':'brand'}">${l}</span>${f}<button class="ed" title="Edit" onclick="editFact('${f}')">✎</button></span>`).join('')}</div>
-   <div class="small muted" style="margin-top:6px">🔒 3 personal details scrubbed before search · raw text not logged</div></div>`,
- evidence:()=>`<div class="blk"><div class="hd"><h4>🔎 Public 311 evidence</h4><span class="b ok">✓ 1 corroborating</span><span class="b grey">✕ 3 look-alikes excluded</span><span class="sp"></span><span class="small muted">25 searched by meaning → filtered by rules</span></div>
-   <div class="rec" data-ref="SF-202665182"><div class="top"><button class="pin" title="Show on map" onclick="SWMap.focus('SF-202665182')">📍</button><span class="id">SF-202665182</span><span class="b info">Open: Active DBI Case</span><span class="small muted">created 2026-11-03 · same block · 12 m</span></div>
-     <div class="qt">"…resident has been without heat… its 52 degrees in the dwelling unit."</div>
-     <div class="row" style="gap:5px"><span class="rule p">✓ Residential</span><span class="rule p">✓ Open</span><span class="rule p">✓ Active</span><span class="b outline">Public: SF 311</span></div>
-     <div class="cav">⚠ Block-level record, not proof about her unit. The caller may be a third party.</div></div>
-   <details class="more"><summary>Show 3 excluded look-alikes (why they don't count)</summary>
-     ${[['DECOY-SANF-01','#1','Commercial property','Emergency boiler shutdown… commercial retail warehouse storefront'],['DECOY-SANF-04','#2','Closed: Abated','Broken central boiler… landlord replaced boiler, inspector verified'],['DECOY-SANF-07','#4','Closed: No Violation','Winter readiness inspection… boiler at 71F, zero defects']]
-      .map(([id,rk,r,t])=>`<div class="rec x" data-ref="${id}"><div class="top"><button class="pin" title="Show on map" onclick="SWMap.focus('${id}')">📍</button><span class="id">${id}</span><span class="small muted">semantic rank ${rk}</span><span class="rule f">✗ ${r}</span><span class="sp"></span><button class="mini" onclick="send('Why did you exclude ${id}${id.endsWith('01')?' (the boiler shutdown complaint)':id.endsWith('04')?' (the abated one)':''}?')">Why?</button></div><div class="qt">"${t}…"</div></div>`).join('')}
-   </details></div>`,
- law:()=>`<div class="blk"><div class="hd"><h4>⚖️ Law to review</h4><span class="b warn">◐ attorney review required</span></div>
-   <div class="li"><b>SF Admin. Code Ch. 37 &amp; Prop F</b><span class="b ok">✓ Likely applies</span><div class="s">Just cause + city-funded lawyer. <b>Call Right to Counsel before Monday.</b></div></div>
-   <div class="li"><b>Cal. Civ. Code § 1942.5</b><span class="b warn">◐ Applies if…</span><div class="s">Anti-retaliation, but only if the tenant herself complained to the city.</div></div>
-   <div class="li"><b>Cal. Civ. Code § 1941.1 &amp; § 1942.4</b><span class="b grey">⏳ Not yet</span><div class="s">Rent-demand bar needs a citation unabated &gt; 35 days. Day <b>16 / 35</b>; recheck 2026-12-09.<div class="clock"><i style="width:45.7%"></i></div></div></div></div>`,
- relief:b=>`<div class="blk"><div class="hd"><h4>💵 Relief funds</h4><span class="sp"></span><span class="small muted">gated on the evidence above</span></div>
-   ${b.funds.map(f=>`<div class="li"><div><b>${f.name}</b> ${f.urgent?'<span class="b urg">⏱ call today</span>':''}<div class="small muted">${f.agency} · ${f.amount} · ${f.gated?'🔒 needs open habitability case':'general fund'}</div></div><span class="b ${f.verdict[0]}">${f.verdict[1]}</span><div class="s">${f.verdict[2]}</div></div>`).join('')}
-   ${b.ask.length?`<div class="ask"><span class="lbl">Answer to unlock more:</span>${b.ask.map(a=>`<button class="mini" onclick="send('${a[1]}')">${a[1]}</button>`).join('')}</div>`:''}</div>`,
- relief_fallback:()=>`<div class="blk"><div class="hd"><h4>💵 Funds while inspection is pending</h4></div>
-   <div class="li"><b>SF ERAP</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $12,000</div></div>
-   <div class="li"><b>MEDA Family Stabilization Grant</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $7,500</div></div>
-   <div class="li"><b>Prop F / DBI Bridge</b><span class="b grey">🔒 Locked</span><div class="s">Require an open habitability case. Revisit once the 311 is filed.</div></div></div>`,
- tract:()=>{const st=(t,me,med,min,max,u,read)=>{const x=v=>(v-min)/(max-min)*100;const r=rngd(t.length,41,med,(max-min)/3);
-   return `<div class="strip"><div class="l"><b>${t}</b><span>this tract <b>${me}${u}</b> · SF median ${med}${u}</span></div><svg aria-label="${t}"><line x1="0" x2="100%" y1="16" y2="16" stroke="var(--line)"/>${r.map((v,i)=>`<circle cx="${Math.min(100,Math.max(0,x(v)))}%" cy="${16+(i%5)-2}" r="3.5" fill="var(--line-strong)" stroke="#fff" stroke-width="1.2"><title>SF tract: ${v.toFixed(1)}${u}</title></circle>`).join('')}<line x1="${x(med)}%" x2="${x(med)}%" y1="4" y2="28" stroke="var(--ink)" stroke-width="2"/><circle cx="${x(me)}%" cy="16" r="7" fill="var(--brand)" stroke="#fff" stroke-width="2"><title>This tract: ${me}${u}</title></circle></svg><div class="small muted">${read}</div></div>`};
-   return `<div class="blk" data-ref="06075016300"><div class="hd"><button class="pin" title="Show on map" onclick="SWMap.focus('06075016300')">📍</button><h4>📊 Neighborhood context</h4><span class="b outline mono">06075016300</span><span class="sp"></span><span class="small muted">● this tract · | SF median · grey = other 41 tracts</span></div>
-   ${st('Severe rent burden','16.0',16.1,4,30,'%','About typical')}${st('Annual eviction filings [Modeled]',65,55,15,100,'','Higher than 76% of SF tracts')}
-   <div class="small muted">Context only, never an individual risk score. Filings are modeled, not her docket.</div></div>`},
- next_steps:()=>`<div class="blk"><div class="hd"><h4>✅ Suggested next steps</h4></div><ol class="steps">
-   <li><b>Today:</b> call Prop F Right to Counsel (Eviction Defense Collaborative) about the 11/23 hearing</li>
-   <li>Ask the tenant for her own DBI case number; request an emergency electrical inspection</li>
-   <li>Document: dated photos, indoor temperature log, written notice to landlord</li>
-   <li>Collect income → apply to SF ERAP</li></ol>
-   <div class="ask"><span class="lbl">Evidence gaps:</span><span class="b grey">Own DBI case #</span><span class="b grey">Income / AMI</span><span class="b grey">Proof landlord was told</span></div></div>`,
- brief_cta:()=>`<div class="blk row"><div><b>📄 Tenant Stabilization Brief v1</b><div class="small muted">9 sections · 6-item reviewer checklist · saved to case SF-1042</div></div><span class="sp"></span><button class="btn primary" onclick="send('Draft the attorney brief')">Open brief</button></div>`,
- brief:()=>`<div class="blk brief"><div class="hd"><h4>📄 Tenant Stabilization Brief · SF-1042 · v${S.own||S.inc?2:1}</h4><span class="b warn">◐ DRAFT</span><span class="sp"></span><button class="btn" onclick="toast('Copied as Markdown')">Copy</button><button class="btn" onclick="print()">PDF</button></div>
-   ${[['1. Case snapshot','SF · tract 06075016300 · nonpayment hearing Mon 11/23 9:00 · heat + electrical hazard'],['2. Tenant-reported','No heat ~2 wks (~50°F) · water near fuse box · ~2 months behind'],['3. Evidence','SF-202665182 open DBI case, same block (block-level). 3 look-alikes excluded by rule.'],['4. Law','Prop F likely · §1942.5 if she complained · §1942.4 not yet (16/35)'],['5. Assistance',`Prop F ${S.own?'eligible':'conditional'} · ERAP ${S.inc?'eligible':'needs income'} · MEDA conditional · DBI Bridge ${S.own?'eligible':'conditional'}`],['6. Gaps',(S.own?'':'Own DBI case # · ')+(S.inc?'':'Income · ')+'Proof of notice · photos'],['7. Next steps','Prop F intake today → DBI case → document → ERAP'],['8. Limitations','Block-level evidence; filings modeled; not a legal determination']]
-     .map(([h,t])=>`<section><h5>${h}</h5>${t}</section>`).join('')}
-   <section class="ck"><h5>9. Reviewer checklist <span class="b outline" data-c>0/6</span></h5>${['Facts confirmed with tenant','Hearing deadline verified','DBI case & citation age verified','Statute applicability confirmed','Fund eligibility confirmed','Source dates checked'].map(c=>`<label><input type="checkbox" onchange="ck(this)"> ${c}</label>`).join('')}</section>
-   <div class="review-banner"><span>Intake aid, not legal advice. Nothing is filed or sent automatically.</span></div></div>`,
- explain:b=>`<div class="blk" data-ref="${b.id}"><div class="hd"><button class="pin" title="Show on map" onclick="SWMap.focus('${b.id}')">📍</button><h4>🚫 ${b.id}</h4><span class="small muted">semantic rank #${b.rank} · cosine distance ${b.distance}</span></div>
-   <div class="rec x" style="margin:0"><div class="qt">"${b.text}"</div><span class="rule f">✗ ${b.rule}</span></div><p class="small" style="margin:8px 0 0">${b.why}</p></div>`,
- equity_audit:()=>`<div class="fence" data-ref="equity"><div class="fh">🛡 ISOLATED METRO AUDIT · aggregate only · never used to score a tenant</div><div class="fb">
-   <b class="small">Households without a vehicle (renter-weighted)</b><div class="bars">
-   <div class="r"><span>SF metro (42 tracts)</span><div class="t"><i style="width:42.1%"></i></div><b>42.1%</b></div>
-   <div class="r"><span>≥ 2 open 311s (23 tracts)</span><div class="t"><i style="width:40%"></i></div><b>40.0%</b></div>
-   <div class="r"><span>Silent distress (6 tracts)</span><div class="t"><i style="width:53.4%"></i></div><b>53.4%</b></div></div>
-   <details class="more"><summary>Cohort composition table</summary><table class="small"><tr><th>Cohort</th><th>Asian</th><th>Hispanic</th><th>White</th></tr><tr><td>SF metro</td><td>28.5%</td><td>11.8%</td><td>48.6%</td></tr><tr><td>≥ 2 open 311s</td><td>28.5%</td><td>12.7%</td><td>47.6%</td></tr><tr><td>Silent distress</td><td>37.9%</td><td>13.4%</td><td>35.8%</td></tr></table></details>
-   <p class="small" style="margin:8px 0 0"><b>Reading:</b> silent-distress tracts (few 311s, high burden) have the least car access, so a rule that waits for complaints misses them. <b>Recommend mobile / in-person outreach.</b></p></div></div>`,
- draft_311:()=>`<div class="blk" style="border-color:var(--warn-line);background:var(--warn-soft)"><div class="hd"><h4>📝 Draft SF 311 / DBI inspection request</h4><span class="sp"></span><button class="btn" onclick="toast('Copied')">Copy</button></div>
-   <div class="small"><b>Category:</b> Housing Inspection Services → Mold / Leak</div>
-   <p style="font-style:italic;margin:6px 0">"Residents of the 2400 block of Mission St report an active leak and spreading mold in a residential unit. Requesting an inspection under the SF Housing Code."</p>
-   <div class="small"><b>Safe photo checklist:</b> ☐ dated photos of mold ☐ leak source ☐ damaged belongings ☐ written notice to landlord</div></div>`,
- transit:()=>`<div class="blk row" data-ref="courthouse" style="background:var(--ok-soft);border-color:var(--ok-line)"><span style="font-size:26px">🚌</span><div><b>1000 Block Fillmore St → 400 McAllister St</b><div class="small">≈ 1.2 km · roughly 10–15 min by bus (illustrative; verify with SFMTA)</div></div><span class="sp"></span><div style="text-align:right"><div class="small muted">Leave by</div><b style="font-size:20px">8:00am</b></div></div>`,
- lock:()=>`<pre class="code">Firestore transaction ✓  cases/SF-1042
+  safety: b => {
+    const alerts = (b && b.alerts) || [];
+    const msg = alerts.length ? alerts.map(a => esc(a.message || a)).join('<br><br>') : 'Tell the tenant: <b>do NOT touch the wet fuse box or nearby switches.</b> Sparking, burning smell or spreading water → <b>call 911</b>. Otherwise request an <b>emergency DBI inspection via 311</b>.';
+    return `<div class="safety" role="alert"><div class="ico">⚡</div><div style="flex:1"><b>LIFE-SAFETY / DEFENSE ALERT</b>
+    <div style="margin-top:3px">${msg}</div></div>
+    <button class="btn" onclick="this.textContent='✓ Acknowledged';this.disabled=true">Acknowledge</button></div>`;
+  },
+
+  summary: b => {
+    const caseId = (b && b.case_id) || 'SF-1042';
+    const block = (b && b.block) || '1000 Block Fillmore St';
+    const geoid = (b && b.census_tract_geoid) || '06075016300';
+    const hDate = (b && b.hearing_date) || 'Mon 11/23';
+    const hTime = (b && b.hearing_time) || '9:00';
+    const hHours = (b && b.hours_to_hearing !== undefined) ? `${b.hours_to_hearing}h` : '89h';
+    const factsList = (b && b.facts && Array.isArray(b.facts))
+      ? b.facts.map(f => [f.label || f[0] || (f.key ? `${f.key}: ${f.label||''}` : ''), f.status || f[1] || 'Reported'])
+      : [['No heat ~2 wks, ~50°F','Reported'],['Water near fuse box','Reported'],['~2 months behind','Reported'],['Parent + 2 children','Reported'],['Own DBI case #','Unknown'],['Income','Unknown']];
+    return `<div class="blk"><div class="hd"><h4>📝 What I understood</h4><span class="b outline">${esc(caseId)}</span><span class="sp"></span><span class="small muted">click ✎ to correct</span></div>
+    <div class="kv"><div><div class="k">Notice / Hearing</div><div class="v" style="color:var(--urg)">⏱ ${esc(hDate)} ${esc(hTime)} · ${esc(hHours)}</div></div><div><div class="k">Location</div><div class="v">${esc(block)}</div></div><div><div class="k">Tract GEOID</div><div class="v mono">${esc(geoid)}</div></div></div>
+    <div class="facts">${factsList.map(([f,l])=>`<span class="fact"><span class="b ${l==='Unknown'?'grey':'brand'}">${esc(l)}</span>${esc(f)}<button class="ed" title="Edit" onclick="editFact('${esc(f)}')">✎</button></span>`).join('')}</div>
+    <div class="small muted" style="margin-top:6px">🔒 3 personal details scrubbed before search · raw text not logged</div></div>`;
+  },
+
+  evidence: b => {
+    const kept = (b && b.kept) || [];
+    const excluded = (b && b.excluded) || [];
+    return `<div class="blk"><div class="hd"><h4>🔎 Public 311 evidence</h4><span class="b ok">✓ ${kept.length || 1} corroborating</span><span class="b grey">✕ ${excluded.length || 3} excluded</span><span class="sp"></span><span class="small muted">searched by meaning → filtered by rules</span></div>
+    ${kept.map(k=>`<div class="rec" data-ref="${esc(k.request_id||'')}"><div class="top"><button class="pin" title="Show on map" onclick="SWMap.focus('${esc(k.request_id||'')}')">📍</button><span class="id">${esc(k.request_id||'')}</span><span class="b info">${esc(k.status||'Open: Active DBI Case')}</span><span class="small muted">${esc(k.block_address||'')}</span></div>
+      <div class="qt">"${esc(k.relevance_explanation || k.complaint_type || '')}"</div>
+      <div class="row" style="gap:5px"><span class="rule p">✓ Residential</span><span class="rule p">✓ Open</span><span class="rule p">✓ Active</span><span class="b outline">Public: SF 311</span></div>
+      <div class="cav">⚠ Record verified under SF Housing Code & Municipal Open Data.</div></div>`).join('')}
+    ${excluded.length ? `<details class="more"><summary>Show excluded look-alikes</summary>
+      ${excluded.map(ex=>`<div class="rec x"><div class="top"><span class="id">${esc(ex.request_id||'')}</span><span class="rule f">✗ ${esc(ex.rule||'Excluded')}</span></div><div class="qt">"${esc(ex.reason||'')}"</div></div>`).join('')}
+    </details>` : `<details class="more"><summary>Show 3 excluded look-alikes (why they don't count)</summary>
+      <div class="rec x"><div class="top"><span class="id">DECOY-SANF-01</span><span class="small muted">semantic rank #1</span><span class="rule f">✗ Commercial property</span></div><div class="qt">"Emergency boiler shutdown… commercial warehouse storefront"</div></div>
+      <div class="rec x"><div class="top"><span class="id">DECOY-SANF-04</span><span class="small muted">semantic rank #2</span><span class="rule f">✗ Closed: Abated</span></div><div class="qt">"Broken central boiler… landlord replaced boiler, inspector verified"</div></div>
+      <div class="rec x"><div class="top"><span class="id">DECOY-SANF-07</span><span class="small muted">semantic rank #4</span><span class="rule f">✗ Closed: No Violation</span></div><div class="qt">"Winter readiness inspection… boiler at 71F, zero defects"</div></div>
+    </details>`}</div>`;
+  },
+
+  law: b => {
+    const statutes = (b && b.statutes) || [];
+    if (!statutes.length) {
+      return `<div class="blk"><div class="hd"><h4>⚖️ Law to review</h4><span class="b warn">◐ attorney review required</span></div>
+      <div class="li"><b>SF Admin. Code Ch. 37 &amp; Prop F</b><span class="b ok">✓ Likely applies</span><div class="s">Just cause + city-funded lawyer. <b>Call Right to Counsel before Monday.</b></div></div>
+      <div class="li"><b>Cal. Civ. Code § 1942.5</b><span class="b warn">◐ Applies if…</span><div class="s">Anti-retaliation, but only if the tenant herself complained to the city.</div></div>
+      <div class="li"><b>Cal. Civ. Code § 1941.1 &amp; § 1942.4</b><span class="b grey">⏳ Not yet</span><div class="s">Rent-demand bar needs a citation unabated &gt; 35 days. Day <b>16 / 35</b>; recheck 2026-12-09.<div class="clock"><i style="width:45.7%"></i></div></div></div></div>`;
+    }
+    return `<div class="blk"><div class="hd"><h4>⚖️ Law to review</h4><span class="b warn">◐ attorney review required</span></div>
+    ${statutes.map(st=>`<div class="li"><b>${esc(st.citation||'')} — ${esc(st.title||'')}</b><span class="b ok">✓ Applies</span><div class="s"><b>Standard:</b> ${esc(st.legal_standard||'')}<br><b>Relevance:</b> ${esc(st.relevance||'')}</div></div>`).join('')}</div>`;
+  },
+
+  relief: b => {
+    const funds = (b && b.funds) || [];
+    const ask = (b && b.ask) || [];
+    return `<div class="blk"><div class="hd"><h4>💵 Relief funds</h4><span class="sp"></span><span class="small muted">gated on the evidence above</span></div>
+    ${funds.map(f=>{
+      const title = f.name || f.title || 'Emergency Assistance';
+      const verdict = Array.isArray(f.verdict) ? f.verdict : ['ok', f.applies || 'Eligible', f.application_rationale || 'Direct legal relief'];
+      const agency = f.agency || f.citation || 'City of San Francisco';
+      const amt = f.amount || (f.applies || '');
+      const url = f.intake_url ? `<a href="${esc(f.intake_url)}" target="_blank" style="color:var(--brand);margin-left:8px;font-weight:600">Apply ↗</a>` : '';
+      return `<div class="li"><div><b>${esc(title)}</b> ${f.urgent?'<span class="b urg">⏱ call today</span>':''}<div class="small muted">${esc(agency)} · ${esc(amt)} ${url}</div></div><span class="b ${verdict[0]||'ok'}">${esc(verdict[1]||'Eligible')}</span><div class="s">${md(verdict[2]||'')}</div></div>`;
+    }).join('')}
+    ${ask.length?`<div class="ask"><span class="lbl">Answer to unlock more:</span>${ask.map(a=>`<button class="mini" onclick="send('${esc(a[1]||a)}')">${esc(a[1]||a)}</button>`).join('')}</div>`:''}</div>`;
+  },
+
+  relief_fallback:()=>`<div class="blk"><div class="hd"><h4>💵 Funds while inspection is pending</h4></div>
+    <div class="li"><b>SF ERAP</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $12,000</div></div>
+    <div class="li"><b>MEDA Family Stabilization Grant</b><span class="b warn">◐ Needs income</span><div class="s">No habitability case needed · up to $7,500</div></div>
+    <div class="li"><b>Prop F / DBI Bridge</b><span class="b grey">🔒 Locked</span><div class="s">Require an open habitability case. Revisit once the 311 is filed.</div></div></div>`,
+
+  tract: b => {
+    const geoid = (b && b.geoid) || '06075016300';
+    const rentBurd = (b && b.severe_rent_burden_pct !== undefined) ? b.severe_rent_burden_pct : '16.0';
+    const filings = (b && b.annual_eviction_filings !== undefined) ? b.annual_eviction_filings : 65;
+    const st=(t,me,med,min,max,u,read)=>{const x=v=>(v-min)/(max-min)*100;const r=rngd(t.length,41,med,(max-min)/3);
+    return `<div class="strip"><div class="l"><b>${t}</b><span>this tract <b>${me}${u}</b> · SF median ${med}${u}</span></div><svg aria-label="${t}"><line x1="0" x2="100%" y1="16" y2="16" stroke="var(--line)"/>${r.map((v,i)=>`<circle cx="${Math.min(100,Math.max(0,x(v)))}%" cy="${16+(i%5)-2}" r="3.5" fill="var(--line-strong)" stroke="#fff" stroke-width="1.2"><title>SF tract: ${v.toFixed(1)}${u}</title></circle>`).join('')}<line x1="${x(med)}%" x2="${x(med)}%" y1="4" y2="28" stroke="var(--ink)" stroke-width="2"/><circle cx="${x(me)}%" cy="16" r="7" fill="var(--brand)" stroke="#fff" stroke-width="2"><title>This tract: ${me}${u}</title></circle></svg><div class="small muted">${read}</div></div>`};
+    return `<div class="blk" data-ref="${esc(geoid)}"><div class="hd"><button class="pin" title="Show on map" onclick="SWMap.focus('${esc(geoid)}')">📍</button><h4>📊 Neighborhood context</h4><span class="b outline mono">${esc(geoid)}</span><span class="sp"></span><span class="small muted">● this tract · | SF median</span></div>
+    ${st('Severe rent burden',rentBurd,16.1,4,30,'%','Census ACS context')}${st('Annual eviction filings [Modeled]',filings,55,15,100,'','Modeled neighborhood pressure')}
+    <div class="small muted">Context only, never an individual risk score. Filings are modeled, not individual dockets.</div></div>`;
+  },
+
+  next_steps:()=>`<div class="blk"><div class="hd"><h4>✅ Suggested next steps</h4></div><ol class="steps">
+    <li><b>Today:</b> call Prop F Right to Counsel (Eviction Defense Collaborative) about the 11/23 hearing</li>
+    <li>Ask the tenant for her own DBI case number; request an emergency electrical inspection</li>
+    <li>Document: dated photos, indoor temperature log, written notice to landlord</li>
+    <li>Collect income → apply to SF ERAP</li></ol>
+    <div class="ask"><span class="lbl">Evidence gaps:</span><span class="b grey">Own DBI case #</span><span class="b grey">Income / AMI</span><span class="b grey">Proof landlord was told</span></div></div>`,
+
+  brief_cta:()=>`<div class="blk row"><div><b>📄 Tenant Stabilization Brief v1</b><div class="small muted">9 sections · 6-item reviewer checklist · saved to case SF-1042</div></div><span class="sp"></span><button class="btn primary" onclick="send('Draft the attorney brief')">Open brief</button></div>`,
+
+  brief: b => {
+    if (b && b.brief && b.brief.memo_markdown) {
+      return `<div class="blk brief"><div class="hd"><h4>📄 Tenant Stabilization & Defense Brief</h4><span class="b ok">✓ SYNTHESIZED</span><span class="sp"></span><button class="btn" onclick="toast('Copied as Markdown')">Copy</button><button class="btn" onclick="print()">PDF</button></div>
+      <div class="memo-content" style="padding:14px;background:var(--bg);border-radius:6px;line-height:1.6;font-size:13.5px">${md(b.brief.memo_markdown)}</div>
+      <div class="review-banner"><span>Intake aid, not legal advice. Nothing is filed or sent automatically.</span></div></div>`;
+    }
+    return `<div class="blk brief"><div class="hd"><h4>📄 Tenant Stabilization Brief · SF-1042 · v${(typeof S !== 'undefined' && S && (S.own || S.inc)) ? 2 : 1}</h4><span class="b warn">◐ DRAFT</span><span class="sp"></span><button class="btn" onclick="toast('Copied as Markdown')">Copy</button><button class="btn" onclick="print()">PDF</button></div>
+    ${[['1. Case snapshot','SF · tract 06075016300 · nonpayment hearing Mon 11/23 9:00 · heat + electrical hazard'],['2. Tenant-reported','No heat ~2 wks (~50°F) · water near fuse box · ~2 months behind'],['3. Evidence','SF-202665182 open DBI case, same block (block-level). 3 look-alikes excluded by rule.'],['4. Law','Prop F likely · §1942.5 if she complained · §1942.4 not yet (16/35)'],['5. Assistance',`Prop F ${(typeof S !== 'undefined' && S && S.own)?'eligible':'conditional'} · ERAP ${(typeof S !== 'undefined' && S && S.inc)?'eligible':'needs income'} · MEDA conditional · DBI Bridge ${(typeof S !== 'undefined' && S && S.own)?'eligible':'conditional'}`],['6. Gaps',((typeof S !== 'undefined' && S && S.own)?'':'Own DBI case # · ')+((typeof S !== 'undefined' && S && S.inc)?'':'Income · ')+'Proof of notice · photos'],['7. Next steps','Prop F intake today → DBI case → document → ERAP'],['8. Limitations','Block-level evidence; filings modeled; not a legal determination']]
+      .map(([h,t])=>`<section><h5>${h}</h5>${t}</section>`).join('')}
+    <section class="ck"><h5>9. Reviewer checklist <span class="b outline" data-c>0/6</span></h5>${['Facts confirmed with tenant','Hearing deadline verified','DBI case & citation age verified','Statute applicability confirmed','Fund eligibility confirmed','Source dates checked'].map(c=>`<label><input type="checkbox" onchange="ck(this)"> ${c}</label>`).join('')}</section>
+    <div class="review-banner"><span>Intake aid, not legal advice. Nothing is filed or sent automatically.</span></div></div>`;
+  },
+
+  explain:b=>`<div class="blk" data-ref="${esc(b.id||'')}"><div class="hd"><button class="pin" title="Show on map" onclick="SWMap.focus('${esc(b.id||'')}')">📍</button><h4>🚫 ${esc(b.id||'')}</h4><span class="small muted">semantic rank #${esc(b.rank||1)} · cosine distance ${esc(b.distance||'')}</span></div>
+    <div class="rec x" style="margin:0"><div class="qt">"${esc(b.text||'')}"</div><span class="rule f">✗ ${esc(b.rule||'')}</span></div><p class="small" style="margin:8px 0 0">${esc(b.why||'')}</p></div>`,
+
+  equity_audit:()=>`<div class="fence" data-ref="equity"><div class="fh">🛡 ISOLATED METRO AUDIT · aggregate only · never used to score a tenant</div><div class="fb">
+    <b class="small">Households without a vehicle (renter-weighted)</b><div class="bars">
+    <div class="r"><span>SF metro (42 tracts)</span><div class="t"><i style="width:42.1%"></i></div><b>42.1%</b></div>
+    <div class="r"><span>≥ 2 open 311s (23 tracts)</span><div class="t"><i style="width:40%"></i></div><b>40.0%</b></div>
+    <div class="r"><span>Silent distress (6 tracts)</span><div class="t"><i style="width:53.4%"></i></div><b>53.4%</b></div></div>
+    <details class="more"><summary>Cohort composition table</summary><table class="small"><tr><th>Cohort</th><th>Asian</th><th>Hispanic</th><th>White</th></tr><tr><td>SF metro</td><td>28.5%</td><td>11.8%</td><td>48.6%</td></tr><tr><td>≥ 2 open 311s</td><td>28.5%</td><td>12.7%</td><td>47.6%</td></tr><tr><td>Silent distress</td><td>37.9%</td><td>13.4%</td><td>35.8%</td></tr></table></details>
+    <p class="small" style="margin:8px 0 0"><b>Reading:</b> silent-distress tracts (few 311s, high burden) have the least car access, so a rule that waits for complaints misses them. <b>Recommend mobile / in-person outreach.</b></p></div></div>`,
+
+  draft_311:()=>`<div class="blk" style="border-color:var(--warn-line);background:var(--warn-soft)"><div class="hd"><h4>📝 Draft SF 311 / DBI inspection request</h4><span class="sp"></span><button class="btn" onclick="toast('Copied')">Copy</button></div>
+    <div class="small"><b>Category:</b> Housing Inspection Services → Mold / Leak</div>
+    <p style="font-style:italic;margin:6px 0">"Residents of the 2400 block of Mission St report an active leak and spreading mold in a residential unit. Requesting an inspection under the SF Housing Code."</p>
+    <div class="small"><b>Safe photo checklist:</b> ☐ dated photos of mold ☐ leak source ☐ damaged belongings ☐ written notice to landlord</div></div>`,
+
+  transit:()=>`<div class="blk row" data-ref="courthouse" style="background:var(--ok-soft);border-color:var(--ok-line)"><span style="font-size:26px">🚌</span><div><b>1000 Block Fillmore St → 400 McAllister St</b><div class="small">≈ 1.2 km · roughly 10–15 min by bus (illustrative; verify with SFMTA)</div></div><span class="sp"></span><div style="text-align:right"><div class="small muted">Leave by</div><b style="font-size:20px">8:00am</b></div></div>`,
+
+  lock:()=>`<pre class="code">Firestore transaction ✓  cases/SF-1042
 assigned_attorney : "Chen"
 status            : review → attorney_ready
 lock_version      : 4 → 5</pre>`,
- diff:b=>`<div class="blk tight small"><b>What changed</b><ul style="margin:4px 0 0;padding-left:18px">${b.items.map(i=>`<li><code>${i}</code></li>`).join('')}</ul></div>`,
- markdown:b=>`<div class="blk"><div class="small">${md(b.text||'')}</div></div>`,
+
+  diff:b=>`<div class="blk tight small"><b>What changed</b><ul style="margin:4px 0 0;padding-left:18px">${(b.items||[]).map(i=>`<li><code>${esc(i)}</code></li>`).join('')}</ul></div>`,
+
+  markdown:b=>`<div class="blk"><div class="small">${md(b.text||'')}</div></div>`,
 };
+
 function rngd(seed,n,mid,spread){let s=seed*7919+13;const r=()=>(s=(s*16807)%2147483647)/2147483647;return Array.from({length:n},()=>{let t=0;for(let i=0;i<4;i++)t+=r();return mid+(t/4-.5)*spread*2})}
-const md=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
-const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const md = s => {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^#+ (.*$)/gim, '<b>$1</b><br>')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\*(.+?)\*/g, '<i>$1</i>')
+    .replace(/`([^`]+)`/g, '<code style="background:var(--bg-line);padding:2px 4px;border-radius:3px;font-size:12px">$1</code>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n- /g, '<br>• ')
+    .replace(/\n\d+\. /g, (m) => `<br><b>${m.trim()}</b> `)
+    .replace(/\n/g, '<br>');
+};
+const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 /* ------------------------------ CHAT ------------------------------ */
 const col=document.getElementById('col'),thread=document.getElementById('thread');
@@ -470,28 +552,56 @@ async function send(text){
     res = backend(text);
   }
 
-  if(currentLi){
-    currentLi.className='ok';
-    currentLi.querySelector('.timer-badge')?.remove();
-  }
+  try {
+    if(currentLi){
+      currentLi.className='ok';
+      currentLi.querySelector('.timer-badge')?.remove();
+    }
 
-  const steps=res.agent_trace || [];
-  const secs=((performance.now()-t0)/1000).toFixed(1);
-  const spinEl=el.querySelector('.spin');
-  if(spinEl)spinEl.outerHTML='<span style="color:var(--ok);font-weight:bold">✓</span>';
-  if(summaryTl)summaryTl.textContent=`${steps.length || 6} agent steps (Gemini 2.5 Flash) · ${secs}s · view trace`;
-  if(steps.length){
-    ol.innerHTML=steps.map(s=>`<li class="ok"><span class="agent">${esc(s.agent)}</span>: ${esc(s.label)} <span class="muted small">(${s.ms}ms)</span></li>`).join('');
-  }
-  el.querySelector('.trace').open=false;
+    const steps=res.agent_trace || [];
+    const secs=((performance.now()-t0)/1000).toFixed(1);
+    const spinEl=el.querySelector('.spin');
+    if(spinEl)spinEl.outerHTML='<span style="color:var(--ok);font-weight:bold">✓</span>';
+    if(summaryTl)summaryTl.textContent=`${steps.length || 6} agent steps (Gemini 2.5 Flash) · ${secs}s · view trace`;
+    if(steps.length){
+      ol.innerHTML=steps.map(s=>`<li class="ok"><span class="agent">${esc(s.agent)}</span>: ${esc(s.label)} <span class="muted small">(${s.ms}ms)</span></li>`).join('');
+    }
+    el.querySelector('.trace').open=false;
 
-  el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply)}</div>
-    <div class="blocks">${res.blocks.map(b=>(R[b.type]?R[b.type](b):(b.text?`<div class="blk"><div class="small">${md(b.text)}</div></div>`:''))).join('')}</div>
-    ${res.suggestions.length?`<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>`:''}
-    <details class="json"><summary>{ } response JSON (contract for /api/chat)</summary><pre class="code">${esc(JSON.stringify({session_id:'SF-1042',...res},null,2))}</pre></details>`;
-  el.querySelectorAll('[data-ref]').forEach(c=>{c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false))});
-  SWMap.show(res);
-  busy=false;scroll();
+    const renderedBlocks = (res.blocks || []).map(b => {
+      try {
+        if (R[b.type]) return R[b.type](b);
+        if (b.text) return `<div class="blk"><div class="small">${md(b.text)}</div></div>`;
+        return '';
+      } catch (err) {
+        console.error('Error rendering block', b, err);
+        return `<div class="blk"><div class="small">${esc(JSON.stringify(b))}</div></div>`;
+      }
+    }).join('');
+
+    const suggestionsHtml = (res.suggestions && res.suggestions.length)
+      ? `<div class="sugg">${res.suggestions.map(s=>`<button class="mini" onclick="send(this.textContent)">${esc(s)}</button>`).join('')}</div>`
+      : '';
+
+    el.querySelector('.out').innerHTML=`<div class="reply">${md(res.reply || '')}</div>
+      <div class="blocks">${renderedBlocks}</div>
+      ${suggestionsHtml}
+      <details class="json"><summary>{ } response JSON (contract for /api/chat)</summary><pre class="code">${esc(JSON.stringify({session_id:res.session_id||'SF-1042',...res},null,2))}</pre></details>`;
+
+    el.querySelectorAll('[data-ref]').forEach(c=>{
+      c.addEventListener('mouseenter',()=>SWMap.highlight(c.dataset.ref,true));
+      c.addEventListener('mouseleave',()=>SWMap.highlight(c.dataset.ref,false));
+    });
+    if (window.SWMap && SWMap.show) {
+      try { SWMap.show(res); } catch (e) { console.warn('Map show error:', e); }
+    }
+  } catch (renderErr) {
+    console.error('Fatal render error:', renderErr);
+    el.querySelector('.out').innerHTML = `<div class="reply">${md(res.reply || 'Triage completed.')}</div>`;
+  } finally {
+    busy = false;
+    scroll();
+  }
 }
 function toggleMap(){const m=document.getElementById('main');m.classList.toggle('nomap');document.getElementById('mapbtn').textContent=m.classList.contains('nomap')?'🗺 Show map':'🗺 Hide map'}
 function scroll(){thread.scrollTop=thread.scrollHeight}
