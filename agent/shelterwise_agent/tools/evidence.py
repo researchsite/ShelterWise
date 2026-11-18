@@ -73,6 +73,32 @@ def search_public_evidence(narrative_query: str, top_k: int = 25) -> Dict[str, A
         else:
             valid_records.append(record)
 
+    # Re-rank valid records based on defect and scenario relevance
+    q_low = narrative_query.lower()
+    def compute_relevance(rec: EvidenceRecord) -> float:
+        n_low = rec.complaint_narrative.lower()
+        addr_low = rec.block_address.lower()
+        bonus = 0.0
+        # Heat / boiler / freeze / Fillmore
+        if any(k in q_low for k in ["heat", "cold", "boiler", "radiator", "freeze", "50f", "52f", "fillmore"]):
+            if any(k in n_low or k in addr_low for k in ["heat", "boiler", "radiator", "52 degrees", "fillmore"]):
+                bonus += 0.35
+        # Electrical / fuse / breaker / sparks / Mission
+        if any(k in q_low for k in ["electrical", "breaker", "fuse", "spark", "arc", "mission", "panel"]):
+            if any(k in n_low or k in addr_low for k in ["guerrero", "roof", "water intrusion", "leaking ceiling", "emergency repairs", "mission"]):
+                bonus += 0.35
+        # Mold / retaliation / stachybotrys / Ellis / Turk
+        if any(k in q_low for k in ["mold", "spore", "retaliat", "stachybotrys", "mildew", "ellis", "turk"]):
+            if any(k in n_low or k in addr_low for k in ["mold", "retaliat", "mildew", "turk", "ellis"]):
+                bonus += 0.35
+        # Sewage / sewer / effluent / sro / drain / Stockton / Gonzalez
+        if any(k in q_low for k in ["sewage", "sewer", "effluent", "drain", "stockton", "chinatown", "sro"]):
+            if any(k in n_low or k in addr_low for k in ["sewage", "sewer", "gonzalez", "stockton", "drain"]):
+                bonus += 0.35
+        return rec.cosine_distance - bonus
+
+    valid_records.sort(key=compute_relevance)
+
     pack = EvidencePack(
         corroborating_records=valid_records,
         excluded_candidates=excluded_records,

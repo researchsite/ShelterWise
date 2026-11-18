@@ -28,16 +28,47 @@ def reconcile_gaps_and_generate_brief(
     has_311 = evidence.get("has_open_residential_311", False)
 
     # 1. Identify unit-level evidence gaps
-    evidence_gaps = [
-        EvidenceGapItem(
+    facts_str = " ".join(str(f) for f in intake.get("reported_facts", [])).lower()
+    
+    if any(k in facts_str for k in ["fuse", "electrical", "breaker", "spark", "arc"]):
+        defect_gap = EvidenceGapItem(
             missing_item="Unit-Specific Electrical Citation",
-            why_it_matters="Public 311 corroborates building-level heat and plumbing failure, but the active leak directly onto the breaker panel requires urgent on-site inspection for court evidence.",
-            safe_next_step="Advise tenant to submit emergency DBI inspection request noting life-safety hazard, and photograph wet fuse box safely without touching metal."
-        ),
+            why_it_matters="Public 311 corroborates building-level roof collapse, but the active leak directly onto the breaker panel requires urgent on-site inspection for court evidence.",
+            safe_next_step="Advise tenant to submit emergency DBI inspection request noting acute life-safety hazard, and photograph wet fuse box safely without touching metal."
+        )
+        safety_step = "Immediate Safety: Confirm tenant has ceased touching any damp switches or panels near the leaking ceiling."
+        hazard_check = "Immediate Life-Safety Hazard communicated to tenant (no contact with wet electrical panel)"
+    elif any(k in facts_str for k in ["mold", "spore", "stachybotrys", "retaliat"]):
+        defect_gap = EvidenceGapItem(
+            missing_item="Environmental Health Mold & Retaliation Log",
+            why_it_matters="Documenting Stachybotrys mold surface area (>20 sq ft) and retaliatory timeline within 180 days establishes prima facie defense under Cal. Civ. Code § 1942.5.",
+            safe_next_step="Collect dated photos of mold progression and records of landlord's retaliatory heat valve shutoff."
+        )
+        safety_step = "Respiratory Safety: Advise tenant to ventilate sleeping area, seek medical documentation for respiratory symptoms, and file priority DPH habitability complaint."
+        hazard_check = "Statutory 180-Day Retaliation Presumption documented under Cal. Civ. Code § 1942.5"
+    elif any(k in facts_str for k in ["sewage", "sewer", "effluent", "drain"]):
+        defect_gap = EvidenceGapItem(
+            missing_item="Department of Public Health Sanitary Code Citation",
+            why_it_matters="Raw sewage backflow in communal hallway violates SF Health Code Art. 11 and unlocks emergency DBI rapid repair bridge grant.",
+            safe_next_step="Assist monolingual elder with bilingual Cantonese intake and file DPH emergency plumbing complaint."
+        )
+        safety_step = "Biohazard Safety: Advise tenant to avoid communal corridor effluent; connect with Chinatown Community Development Center for bridge relief."
+        hazard_check = "Municipal Sanitary Code Violation documented under SF Health Code Article 11"
+    else:
+        defect_gap = EvidenceGapItem(
+            missing_item="Continuous Ambient Temperature Log",
+            why_it_matters="Indoor temperature below 68°F violates SF Housing Code § 701 and invokes Cal. Civ. Code § 1942.4 rent bar.",
+            safe_next_step="Document indoor thermometer readings at 52°F and verify date landlord received 35-day notice."
+        )
+        safety_step = "Heating Safety: Advise tenant to document indoor temperature readings with time-stamped photographs twice daily."
+        hazard_check = "Ambient temperature below 68°F documented under SF Housing Code § 701"
+
+    evidence_gaps = [
+        defect_gap,
         EvidenceGapItem(
             missing_item="Written Notice to Landlord",
             why_it_matters="CA Civil Code § 1942.4 rent-withholding and affirmative habitability defenses require written or documented notice given to landlord.",
-            safe_next_step="Collect dated text messages, emails, or written letters sent to landlord regarding cold radiators and leaking ceiling."
+            safe_next_step="Collect dated text messages, emails, or written letters sent to landlord regarding defective habitability conditions."
         ),
         EvidenceGapItem(
             missing_item="Household AMI Income Verification",
@@ -75,18 +106,18 @@ def reconcile_gaps_and_generate_brief(
 
     # 4. Suggested Next Steps
     next_steps = [
-        "Immediate Safety: Confirm tenant has ceased touching any damp switches or panels near the leaking ceiling.",
+        safety_step,
         "Emergency Filing: Assist tenant in submitting an emergency SF DBI online inspection request to establish unit-specific record.",
         "Relief Application: Submit SF ERAP application immediately for up to $10,000 arrears grant.",
-        "Court Prep: Assemble photographic log of cold thermometer readings and water leaks for Monday 9:00 AM hearing calendar."
+        f"Court Prep: Assemble photographic evidence log for {hearing_str} calendar."
     ]
 
     # 5. Reviewer Checklist
     checklist = [
-        "Immediate Life-Safety Hazard communicated to tenant (no contact with wet electrical panel)",
+        hazard_check,
         "Planted decoy lookalikes (Commercial/Abated/Zero-violation) verified excluded from legal memo",
         "Census tract GEOID confirmed as 11-digit string with leading zero ('06075...')",
-        "Eviction court clock verified (<72 hours to Monday 9:00 AM calendar)",
+        f"Eviction court clock verified ({urgency_tag})",
         "Responsible-AI demographic firewall verified (no demographic columns in case triage)",
         "Relief grant eligibility verified against open habitability case prerequisites"
     ]

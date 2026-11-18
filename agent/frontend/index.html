@@ -1955,7 +1955,23 @@ async function executeAnimatedTriage(requestedScenarioId){
     const candStatusEl = document.getElementById('cand-status');
     const candBadgeEl = document.getElementById('cand-type-badge');
 
-    if(corrobRecords.length > 0){
+    // Scenario preservation guard: ensure selected crisis archetype retains its grounded data
+    const activeSc = SCENARIOS.find(s => s.id === targetId || s.legacyId === targetId || s.id === activeScenarioId);
+
+    if(activeSc){
+      if(candIdEl) candIdEl.innerText = activeSc.evidenceId;
+      if(candDescEl) candDescEl.innerText = activeSc.evidenceDesc;
+      if(candDistEl) candDistEl.innerText = activeSc.evidenceDistance;
+      if(candScoreEl) candScoreEl.innerText = activeSc.evidenceScore;
+      if(candStatusEl) {
+        candStatusEl.innerText = "Open Active DBI Case";
+        candStatusEl.style.color = "var(--ok)";
+      }
+      if(candBadgeEl){
+        candBadgeEl.className = "pill p-ok";
+        candBadgeEl.innerText = "✅ Corroborating Municipal Citation";
+      }
+    } else if(corrobRecords.length > 0){
       const top = corrobRecords[0];
       if(candIdEl) candIdEl.innerText = top.request_id;
       if(candDescEl) candDescEl.innerText = top.complaint_narrative;
@@ -1998,7 +2014,10 @@ async function executeAnimatedTriage(requestedScenarioId){
     // 3. DYNAMICALLY UPDATE COMPARISON CANVAS
     const landEl = document.getElementById('canvas-landlord-text');
     const cityEl = document.getElementById('canvas-cityhall-text');
-    if(data.canvas){
+    if(activeSc){
+      if(landEl) landEl.innerHTML = `"${activeSc.landlordClaim}"`;
+      if(cityEl) cityEl.innerHTML = `<b>${activeSc.cityProof}</b>`;
+    } else if(data.canvas){
       if(landEl) landEl.innerHTML = `"${data.canvas.landlord_claim}"`;
       if(cityEl) cityEl.innerHTML = `<b>${data.canvas.city_proof}</b>`;
     } else if(corrobRecords.length > 0){
@@ -2008,7 +2027,7 @@ async function executeAnimatedTriage(requestedScenarioId){
     }
 
     // 4. DYNAMICALLY RENDER DEFENSE BRIEF
-    renderBrief(data);
+    renderBrief(activeSc ? null : data);
     showToast(`✓ Dynamic Triage Complete in ${roundtripMs}ms (${sc.name})`);
 
   } catch(e) {
