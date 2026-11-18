@@ -33,6 +33,9 @@
 > 📖 **Comprehensive System Reference**:  
 > For the complete registry of all 11 Google ADK agents, exact source code paths, Google Cloud services, and CLI commands, see **[`docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md`](docs/SYSTEM_ARCHITECTURE_AND_SERVICES.md)**.
 > 
+> 🎙️ **Demo Script & Feature Walkthrough**:  
+> For the complete presenter-ready script, timing breakdowns (3-min pitch, 5-min tech deep dive), and judge Q&A cheat sheet, see **[`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md)**.
+> 
 > 🎨 **Google Stitch Design System & Plain-English Technical Guide**:  
 > For the complete specification of the Stitch-Civic design system, 24 component taxonomy, and plain-English guides, see **[`docs/STITCH_DESIGN_SYSTEM.md`](docs/STITCH_DESIGN_SYSTEM.md)**.
 
