@@ -32,3 +32,4 @@ hualin/.agent_runtime_id
 # Local libraries
 .libs/
 
+monitor_history.log
