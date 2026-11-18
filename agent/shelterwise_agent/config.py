@@ -17,24 +17,6 @@ except ImportError:
         state: dict[str, Any] = field(default_factory=dict)
 
 
-# Global constants
-PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID") or "qwiklabs-gcp-04-99fa355171e1"
-DATASET = os.environ.get("A4I_DATASET", "a4i_housing")
-LOCATION = os.environ.get("A4I_LOCATION", "US")
-METRO = os.environ.get("A4I_METRO", "San Francisco")
-STATE_CODE = "CA"
-STATE_FIPS = "06"
-VERTEX_CONNECTION = "us.a4i-vertex"
-EMBEDDING_ENDPOINT = "gemini-embedding-2"
-FIRESTORE_DATABASE = "(default)"
-
-# Courthouse coordinates (San Francisco Superior Court, 400 McAllister St)
-COURTHOUSE_NAME = "San Francisco Superior Court (Civic Center Courthouse)"
-COURTHOUSE_ADDRESS = "400 McAllister St, San Francisco, CA 94102"
-COURTHOUSE_LAT = 37.78090
-COURTHOUSE_LON = -122.41940
-
-
 # Official 6-metro registry from A4I2026-challenge-housing:
 # metro_name -> (state_code, state_fips_2char, metro_slug, default_courthouse_name, ch_lat, ch_lon)
 OFFICIAL_METROS: dict[str, tuple[str, str, str, str, float, float]] = {
@@ -205,7 +187,11 @@ def get_metro_metadata(raw_metro: str | None) -> dict[str, Any]:
 
 
 def normalize_geoid_11(raw_geoid: str | int | None) -> str:
-    """Preserve 11-character string census tract GEOIDs (including SF '06' leading zero)."""
+    """Preserve 11-character string census tract GEOIDs (including SF '06' leading zero).
+
+    Returns empty string if raw_geoid is None or blank.
+    Raises ValueError if non-empty input is non-numeric or exceeds 11 digits.
+    """
     if raw_geoid is None:
         return ""
     s = str(raw_geoid).strip()
