@@ -20,6 +20,13 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.adk.tools import FunctionTool
 
+# Support both package names 'shelterwise_agent' and 'shelterwise'
+pkg_base = __name__.split(".")[0]
+if "shelterwise_agent" not in sys.modules and pkg_base in sys.modules:
+    sys.modules["shelterwise_agent"] = sys.modules[pkg_base]
+if "shelterwise" not in sys.modules and pkg_base in sys.modules:
+    sys.modules["shelterwise"] = sys.modules[pkg_base]
+
 from shelterwise_agent.config import PROJECT_ID, METRO, ToolContext, get_settings
 from shelterwise_agent.db.bigquery_client import BQClient
 from shelterwise_agent.db.firestore_store import FirestoreStore
@@ -62,7 +69,7 @@ def _optional_bq_mcp_tools() -> list[Any]:
 # and state['stabilization_brief']. Agent output_keys use distinct *_summary
 # names so LLM text responses never overwrite those structured tool dicts.
 intake_structurer_agent = LlmAgent(
-    name="intake_structurer_agent",
+    name="intake_structurer_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `structure_intake` first with the user's crisis narrative and any known "
@@ -78,7 +85,7 @@ intake_structurer_agent = LlmAgent(
 
 # --- 2. Parallel Corroboration Fan-out Specialists ---
 habitability_vector_agent = LlmAgent(
-    name="habitability_vector_agent",
+    name="habitability_vector_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `search_public_evidence` to perform BigQuery vector search on municipal 311 "
@@ -94,7 +101,7 @@ habitability_vector_agent = LlmAgent(
 )
 
 statute_and_bulletin_agent = LlmAgent(
-    name="statute_and_bulletin_agent",
+    name="statute_and_bulletin_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `fetch_statutes_and_bulletins` (reads `intake_facts` from session state) "
@@ -108,7 +115,7 @@ statute_and_bulletin_agent = LlmAgent(
 )
 
 tract_displacement_agent = LlmAgent(
-    name="tract_displacement_agent",
+    name="tract_displacement_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `get_tract_displacement_baseline` (reads `intake_facts` from session state) "
@@ -123,7 +130,7 @@ tract_displacement_agent = LlmAgent(
 
 # Parallel Fan-Out Agent (Corroboration)
 corroboration_fanout_ag = ParallelAgent(
-    name="corroboration_fanout_agent",
+    name="corroboration_fanout_ag",
     sub_agents=[
         habitability_vector_agent,
         statute_and_bulletin_agent,
@@ -133,7 +140,7 @@ corroboration_fanout_ag = ParallelAgent(
 
 # --- 3. Brief Generation Agent ---
 eligibility_and_brief_agent = LlmAgent(
-    name="eligibility_and_brief_agent",
+    name="eligibility_and_brief_ag",
     model=WORKER_MODEL,
     instruction=(
         "Always call `reconcile_gaps_and_generate_brief` to deterministically cross-check relief "
@@ -149,7 +156,7 @@ eligibility_and_brief_agent = LlmAgent(
 
 # --- The Core Sequential Triage Pipeline Agent ---
 case_triage_pipeline_ag = SequentialAgent(
-    name="case_triage_pipeline_agent",
+    name="case_triage_pipeline_ag",
     sub_agents=[
         intake_structurer_agent,
         corroboration_fanout_ag,
@@ -198,7 +205,7 @@ def explain_excluded_evidence(
 
 
 evidence_explainer_agent = LlmAgent(
-    name="evidence_explainer_agent",
+    name="evidence_explainer_ag",
     model=WORKER_MODEL,
     instruction=(
         "You explain to paralegals and attorneys why specific 311 complaint candidates were excluded. "
@@ -219,7 +226,7 @@ def run_equity_audit_query(metro: str = "San Francisco") -> Dict[str, Any]:
 
 
 equity_audit_agent = LlmAgent(
-    name="equity_audit_agent",
+    name="equity_audit_ag",
     model=WORKER_MODEL,
     instruction=(
         "You perform post-output Responsible AI and Equity Audits at the metro level. "
@@ -261,7 +268,7 @@ def draft_311_complaint(
 
 
 hazard_311_drafter_agent = LlmAgent(
-    name="hazard_311_drafter_agent",
+    name="hazard_311_drafter_ag",
     model=WORKER_MODEL,
     instruction=(
         "You assist tenants and paralegals when zero 311 complaints exist on their block. "
@@ -276,7 +283,7 @@ hazard_311_drafter_agent = LlmAgent(
 
 # --- Root Coordinator ---
 shelterwise_navigator = LlmAgent(
-    name="shelterwise_navigator_agent",
+    name="shelterwise_navigator_ag",
     model=COORDINATOR_MODEL,
     instruction=(
         "You are ShelterWise, an AI housing crisis stabilization and eviction-prevention assistant "
@@ -380,7 +387,7 @@ def handle_chat_message(
     # 1. Decoy exclusion inquiry -> evidence_explainer_ag
     if any(k in q_lower for k in ["why did you drop", "warehouse", "boiler", "decoy", "exclude", "drop the"]):
         return {
-            "agent": "evidence_explainer_agent",
+            "agent": "evidence_explainer_ag",
             "response": (
                 "Candidate `DECOY-SANF-01` (100 Block Example Teaching Way) was excluded because it is a "
                 "**Commercial property** (retail warehouse storefront with zero residential tenants). "
@@ -392,7 +399,7 @@ def handle_chat_message(
     # 2. Responsible AI Demographic Firewall query -> ethical guardrail response
     if any(k in q_lower for k in ["black", "race", "hispanic", "demographic", "raise priority"]):
         return {
-            "agent": "equity_audit_agent",
+            "agent": "equity_audit_ag",
             "response": (
                 "🛡️ **Responsible-AI Guardrail Notice:** "
                 "Case-level prioritization is strictly based on objective legal urgency (hearing within 72h) "
@@ -431,7 +438,7 @@ def handle_chat_message(
             ]
             store.save_case(case_id, case)
         return {
-            "agent": "eligibility_and_brief_agent",
+            "agent": "eligibility_and_brief_ag",
             "response": (
                 "Updated case! Registering the tenant's official DBI service request unlocks **two habitability-contingent programs**:\n\n"
                 "1. **SF DBI Rapid Habitability Repair Grant:** Now **Eligible** (up to $5,000 for emergency heating/electrical repairs).\n"
@@ -443,7 +450,7 @@ def handle_chat_message(
     # 4. Income / AMI inquiry
     if any(k in q_lower for k in ["income", "ami", "45k", "45,000", "2-person"]):
         return {
-            "agent": "statute_and_bulletin_agent",
+            "agent": "statute_and_bulletin_ag",
             "response": (
                 "Verified AMI calculation: In San Francisco, a 2-person household earning $45,000/year sits at approximately **38% AMI** "
                 "(well below the 80% AMI threshold of $114,350). This firmly qualifies the tenant as **Extremely Low Income (ELI)**, "
@@ -455,7 +462,7 @@ def handle_chat_message(
     if any(k in q_lower for k in ["transit", "bus", "reach the courthouse", "mcallister", "before 9am"]):
         est = estimate_courthouse_transit()
         return {
-            "agent": "shelterwise_navigator_agent",
+            "agent": "shelterwise_navigator_ag",
             "response": (
                 f"🚍 **Courthouse Transit Analysis:**\n"
                 f"- **Destination:** {est['destination']}\n"
@@ -471,7 +478,7 @@ def handle_chat_message(
     # 6. BigQuery ad-hoc count inquiry
     if any(k in q_lower for k in ["how many open heat", "open heat complaints", "count in this tract"]):
         return {
-            "agent": "shelterwise_navigator_agent",
+            "agent": "shelterwise_navigator_ag",
             "response": (
                 "📊 **BigQuery SQL Query Result:**\n"
                 "`SELECT COUNT(*) FROM a4i_housing.municipal_311_housing_complaints WHERE census_tract_geoid = '06075016300' AND closed_date IS NULL`\n\n"
@@ -485,7 +492,7 @@ def handle_chat_message(
         target_case = case_id or "SF-CASE-ACTIVE"
         lock_res = claim_or_update_case_task(target_case, "Attorney Chen", new_status="attorney_locked")
         return {
-            "agent": "shelterwise_navigator_agent",
+            "agent": "shelterwise_navigator_ag",
             "response": (
                 f"🔒 **Cloud Firestore Transactional Lock Acquired:**\n"
                 f"- **Case Reference:** `{target_case}`\n"
@@ -500,7 +507,7 @@ def handle_chat_message(
     if any(k in q_lower for k in ["equity", "silent distress", "bias", "under-reporting", "who lives"]):
         audit = run_metro_equity_audit()
         return {
-            "agent": "equity_audit_agent",
+            "agent": "equity_audit_ag",
             "response": (
                 "📈 **Metro Equity Audit Analysis (Responsible AI Aggregates):**\n\n"
                 "Our query of `v_metro_equity_audit` reveals an empirical under-reporting disparity:\n"
@@ -514,7 +521,7 @@ def handle_chat_message(
 
     # Default general assistance
     return {
-        "agent": "shelterwise_navigator_agent",
+        "agent": "shelterwise_navigator_ag",
         "response": (
             f"Understood. For case '{case_id or 'SF-DEMO'}', I am tracking the immediate life-safety hazard "
             "(water near breaker box), the cold radiators under SF Housing Code § 701, and the Monday 9:00 AM hearing. "

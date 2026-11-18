@@ -1,4 +1,13 @@
 """ShelterWise ADK Agent Tree Package."""
+import sys
+
+# Ensure package is resolvable under both 'shelterwise_agent' and 'shelterwise'
+_pkg = sys.modules.get(__name__)
+if _pkg:
+    if "shelterwise_agent" not in sys.modules:
+        sys.modules["shelterwise_agent"] = _pkg
+    if "shelterwise" not in sys.modules:
+        sys.modules["shelterwise"] = _pkg
 
 from .agent import (
     APP_NAME,
