@@ -284,7 +284,10 @@ def execute_full_triage(
     narrative: str,
     geoid: str = "06075016300",
     block_address: str = "1000 Block Fillmore St, San Francisco, CA",
-    case_id: Optional[str] = None
+    case_id: Optional[str] = None,
+    household_size: int = 2,
+    annual_income: float = 45000.0,
+    hearing_date: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Executes the full triage pipeline across intake_structurer_ag,
@@ -294,15 +297,39 @@ def execute_full_triage(
     logger.info(f"Starting triage for narrative: {narrative[:60]}... GEOID: {geoid}")
 
     # Step 1: Intake Structuring
-    intake = structure_intake(narrative, geoid=geoid, block_address=block_address)
+    intake = structure_intake(narrative, geoid=geoid, block_address=block_address, hearing_date=hearing_date)
 
     # Step 2: Parallel Corroboration Fan-out
-    evidence = search_public_evidence(intake.get("semantic_search_query", "no heat ceiling leak"))
+    search_q = intake.get("semantic_search_query", "residential habitability defect")
+    evidence = search_public_evidence(search_q)
     policy = fetch_statutes_and_bulletins(METRO)
     tract = get_tract_displacement_baseline(intake.get("census_tract_geoid_11", "06075016300"))
 
     # Step 3: Brief Generation
     brief = reconcile_gaps_and_generate_brief(intake, evidence, policy, tract, case_id=case_id)
+
+    # Build dynamic comparison canvas
+    arrears_est = f"${int(annual_income * 0.08):,}" if annual_income else "$3,600"
+    hearing_disp = hearing_date or intake.get("hearing_datetime_str", "Upcoming Court Hearing")
+    landlord_claim = (
+        f"Tenant owes back rent ({arrears_est} claimed). Landlord served notice to pay or quit. "
+        f"Claims habitability complaints are frivolous and demands eviction possession at {hearing_disp}."
+    )
+
+    top_corrob = evidence.get("corroborating_records", [])
+    if top_corrob:
+        top_rec = top_corrob[0]
+        status_disp = top_rec.get("inspection_status", "Open Violation")
+        city_proof = (
+            f"Active Municipal 311 Citation #{top_rec.get('request_id')} ({status_disp}) at {top_rec.get('block_address')}. "
+            f"Official findings: {top_rec.get('complaint_narrative')[:130]}... "
+            f"Corroborates tenant's statutory habitability defense under California law."
+        )
+    else:
+        city_proof = (
+            f"Census Tract {tract.get('census_tract_geoid', geoid)} demonstrates severe rent burden ({tract.get('severe_rent_burden_pct', 16.0)}%) "
+            f"with silent distress under-reporting. Recommend immediate emergency SF DBI priority inspection."
+        )
 
     # Save to Firestore
     store = FirestoreStore()
@@ -313,6 +340,10 @@ def execute_full_triage(
         "policy": policy,
         "tract": tract,
         "brief": brief,
+        "canvas": {
+            "landlord_claim": landlord_claim,
+            "city_proof": city_proof
+        },
         "assigned_paralegal": "Intake Desk",
         "lock_version": 1,
         "status": "triage_completed"
@@ -469,13 +500,27 @@ def handle_chat_message(
             )
         }
 
-    # Default general assistance
+    # Default general assistance - dynamically grounded in the active case
+    if case:
+        c_intake = case.get("intake", {})
+        c_addr = c_intake.get("block_address", "the subject property")
+        c_cats = ", ".join(c_intake.get("normalized_issue_categories", ["Habitability defect"]))
+        c_ev = case.get("evidence", {}).get("corroborating_records", [])
+        c_top = f"citing 311 record #{c_ev[0]['request_id']}" if c_ev else "tracking DBI priority inspection filing"
+        return {
+            "agent": "shelterwise_navigator_ag",
+            "response": (
+                f"Understood. For case `{case_id}`, I am tracking the reported conditions at {c_addr} ({c_cats}), "
+                f"{c_top}, and court calendar deadlines. How can I assist you further with defense arguments, "
+                f"relief grant applications, or court transit?"
+            )
+        }
+
     return {
         "agent": "shelterwise_navigator_ag",
         "response": (
-            f"Understood. For case '{case_id or 'SF-DEMO'}', I am tracking the immediate life-safety hazard "
-            "(water near breaker box), the cold radiators under SF Housing Code § 701, and the Monday 9:00 AM hearing. "
-            "How can I assist you further with evidence corroboration, relief fund applications, or court transit?"
+            f"Understood. I am tracking your housing crisis case and municipal 311 public records. "
+            f"How can I assist you further with evidence corroboration, relief fund applications, or court transit?"
         )
     }
 

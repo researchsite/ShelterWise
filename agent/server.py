@@ -135,7 +135,10 @@ def run_triage(req: TriageRequest):
             narrative=req.narrative,
             geoid=req.geoid or "06075016300",
             block_address=req.block_address or "1000 Block Fillmore St, San Francisco, CA",
-            case_id=req.case_id
+            case_id=req.case_id,
+            household_size=req.household_size or 2,
+            annual_income=req.annual_income or 45000.0,
+            hearing_date=req.hearing_date
         )
         # Attach security & calculation metadata
         result["recaptcha_verified"] = recaptcha_ok

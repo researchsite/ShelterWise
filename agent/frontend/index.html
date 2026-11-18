@@ -863,23 +863,23 @@ footer.modern-footer {
       <div>
         <div style="border:1px solid #a8dab5;background:#f4fbf6;border-radius:var(--radius-lg);padding:16px;margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span class="pill p-ok">✅ Corroborating Municipal Citation</span>
+            <span class="pill p-ok" id="cand-type-badge">✅ Corroborating Municipal Citation</span>
             <span style="font-size:12px;font-weight:700;color:var(--ok)" id="cand-distance">12m away · Same Block</span>
           </div>
           <div style="font-size:14.5px;font-weight:700;margin:6px 0 2px" id="cand-id">REQ-311-2026-9941</div>
           <div style="font-size:13px;color:#1e3a1e;line-height:1.4" id="cand-desc">Defective central boiler and inoperative steam radiator valves; measured ambient room temp 52°F.</div>
           <div style="margin-top:10px;font-size:12px;color:var(--mute);display:flex;gap:12px">
             <span>Cosine Distance: <b id="cand-score">0.2104</b></span>
-            <span>Status: <b style="color:var(--ok)">Open Violation</b></span>
+            <span>Status: <b id="cand-status" style="color:var(--ok)">Open Violation</b></span>
           </div>
         </div>
 
         <!-- DECOY REJECTION EXPLAINER -->
         <div style="border:1px solid #f6aea9;background:#fff8f8;border-radius:var(--radius-lg);padding:14px">
           <div style="font-size:12.5px;font-weight:700;color:#c5221f;display:flex;align-items:center;gap:6px">
-            <span>❌ 3 Decoy Lookalikes Rejected by Agent:</span>
+            <span id="decoy-count-badge">❌ 3 Decoy Lookalikes Rejected by Agent:</span>
           </div>
-          <ul style="margin:8px 0 0;padding-left:18px;font-size:12.5px;color:#7f1d1d;line-height:1.5">
+          <ul id="decoy-list-container" style="margin:8px 0 0;padding-left:18px;font-size:12.5px;color:#7f1d1d;line-height:1.5">
             <li><b>DECOY-SANF-01</b>: Commercial warehouse boiler failure (SF Housing Code applies strictly to dwellings).</li>
             <li><b>DECOY-SANF-04</b>: Abated violation repaired in 2024 (Resolved complaints cannot corroborate active defense).</li>
             <li><b>DECOY-SANF-07</b>: Inspection found zero violation (71°F indoor temp would undermine tenant's claim).</li>
@@ -1727,23 +1727,28 @@ function selectScenario(id){
 
 function updateNarrative(val){
   S.customNarrative = val;
+  S.liveTriageData = null;
   renderBrief();
 }
 function updateAddress(val){
   S.customAddress = val;
+  S.liveTriageData = null;
   renderBrief();
 }
 function updateHearing(val){
   S.customHearing = val;
+  S.liveTriageData = null;
   renderBrief();
 }
 function updateHh(val){
   S.hhSize = parseInt(val) || 1;
+  S.liveTriageData = null;
   updateAmiBadge(S.hhSize, S.annualInc);
   renderBrief();
 }
 function updateIncome(val){
   S.annualInc = parseInt(val) || 0;
+  S.liveTriageData = null;
   updateAmiBadge(S.hhSize, S.annualInc);
   renderBrief();
 }
@@ -1854,8 +1859,79 @@ async function executeAnimatedTriage(){
     }
 
     if(data.case_id) S.caseId = data.case_id;
-    renderBrief();
-    showToast(`✓ Triage Complete in ${roundtripMs}ms (Case: ${S.caseId})`);
+    S.liveTriageData = data;
+
+    // 1. DYNAMICALLY BIND 311 CORROBORATING EVIDENCE FROM BIGQUERY
+    const corrobRecords = (data.evidence && data.evidence.corroborating_records) || [];
+    const excludedRecords = (data.evidence && data.evidence.excluded_candidates) || [];
+
+    const hitCountEl = document.getElementById('radar-hit-count');
+    if(hitCountEl){
+      hitCountEl.innerText = `${corrobRecords.length} Grounded Match${corrobRecords.length === 1 ? '' : 'es'} Found · ${excludedRecords.length} Decoys Filtered`;
+    }
+
+    const candIdEl = document.getElementById('cand-id');
+    const candDescEl = document.getElementById('cand-desc');
+    const candDistEl = document.getElementById('cand-distance');
+    const candScoreEl = document.getElementById('cand-score');
+    const candStatusEl = document.getElementById('cand-status');
+    const candBadgeEl = document.getElementById('cand-type-badge');
+
+    if(corrobRecords.length > 0){
+      const top = corrobRecords[0];
+      if(candIdEl) candIdEl.innerText = top.request_id;
+      if(candDescEl) candDescEl.innerText = top.complaint_narrative;
+      if(candDistEl) candDistEl.innerText = `${top.block_address} · ${top.match_strength || 'Corroborating'} Match`;
+      if(candScoreEl) candScoreEl.innerText = `${top.cosine_distance} Cosine Dist`;
+      if(candStatusEl) {
+        candStatusEl.innerText = top.inspection_status || "Open Active DBI Case";
+        candStatusEl.style.color = "var(--ok)";
+      }
+      if(candBadgeEl){
+        candBadgeEl.className = "pill p-ok";
+        candBadgeEl.innerText = "✅ Corroborating Municipal Citation";
+      }
+    } else {
+      if(candIdEl) candIdEl.innerText = "Zero Municipal 311 Records (Silent Distress)";
+      if(candDescEl) candDescEl.innerText = "No open residential 311 violations on file for this property. Typical in high rent-burden tracts where tenants face reporting friction.";
+      if(candDistEl) candDistEl.innerText = `Census Tract ${data.tract?.census_tract_geoid || S.customGeoid}`;
+      if(candScoreEl) candScoreEl.innerText = "N/A - Unreported";
+      if(candStatusEl) {
+        candStatusEl.innerText = "Priority Inspection Required";
+        candStatusEl.style.color = "#d97706";
+      }
+      if(candBadgeEl){
+        candBadgeEl.className = "pill p-warn";
+        candBadgeEl.innerText = "⚠️ Silent Distress Candidate";
+      }
+    }
+
+    // 2. DYNAMICALLY UPDATE DECOY REJECTION LIST
+    const decoyBadge = document.getElementById('decoy-count-badge');
+    if(decoyBadge) decoyBadge.innerText = `❌ ${excludedRecords.length} Decoy Lookalikes Rejected by Agent:`;
+
+    const decoyUl = document.getElementById('decoy-list-container');
+    if(decoyUl && excludedRecords.length > 0){
+      decoyUl.innerHTML = excludedRecords.slice(0, 4).map(dec => `
+        <li><b>${dec.request_id}</b> (${dec.property_type || 'Decoy'}): ${dec.exclusion_reason}</li>
+      `).join('');
+    }
+
+    // 3. DYNAMICALLY UPDATE COMPARISON CANVAS
+    const landEl = document.getElementById('canvas-landlord-text');
+    const cityEl = document.getElementById('canvas-cityhall-text');
+    if(data.canvas){
+      if(landEl) landEl.innerHTML = `"${data.canvas.landlord_claim}"`;
+      if(cityEl) cityEl.innerHTML = `<b>${data.canvas.city_proof}</b>`;
+    } else if(corrobRecords.length > 0){
+      const top = corrobRecords[0];
+      if(landEl) landEl.innerHTML = `"Tenant is behind on rent ($${Math.round(S.annualInc * 0.08).toLocaleString()} claimed). Landlord demands eviction possession before ${S.customHearing}."`;
+      if(cityEl) cityEl.innerHTML = `<b>Active Notice of Violation #${top.request_id}</b> (${top.inspection_status}) at ${top.block_address}. Verified finding: ${top.complaint_narrative.slice(0, 110)}... Corroborates habitability defense under Cal. Civ. Code § 1942.4.`;
+    }
+
+    // 4. DYNAMICALLY RENDER DEFENSE BRIEF
+    renderBrief(data);
+    showToast(`✓ Dynamic Triage Complete in ${roundtripMs}ms (Case: ${S.caseId})`);
 
   } catch(e) {
     // Resilient fallback timing simulation if network offline
@@ -1877,7 +1953,16 @@ async function executeAnimatedTriage(){
 }
 
 // Defense Brief & Court Paper Renderers
-function renderBrief(){
+function renderBrief(triageData){
+  const data = triageData || S.liveTriageData;
+  if(data && data.brief && data.brief.brief_markdown){
+    const b = document.getElementById('brief-container');
+    if(b) b.innerText = data.brief.brief_markdown;
+    const cb = document.getElementById('court-brief-paper');
+    if(cb) cb.innerText = data.brief.brief_markdown;
+    return;
+  }
+
   const sc = SCENARIOS.find(s => s.id === activeScenarioId) || SCENARIOS[0];
   const briefText = `TENANT STABILIZATION & HABITABILITY DEFENSE BRIEF
 Prepared by ShelterWise Multi-Agent System (Google ADK)
@@ -1886,7 +1971,7 @@ San Francisco Superior Court · Department 501
 CASE IDENTIFIER: ${S.caseId}
 HEARING DATE:    ${S.customHearing}
 PROPERTY:        ${S.customAddress} (Census Tract GEOID: ${S.customGeoid})
-TENANT HOUSEHOLD: ${S.hhSize} Person(s) · Annual Income: ${S.annualInc.toLocaleString()}
+TENANT HOUSEHOLD: ${S.hhSize} Person(s) · Annual Income: $${Number(S.annualInc).toLocaleString()}
 
 1. STATEMENT OF OCCUPANCY & JURISDICTION
 Tenant resides at the subject property within San Francisco municipal jurisdiction.
