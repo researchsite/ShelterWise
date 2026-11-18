@@ -123,33 +123,33 @@ Every agent in ShelterWise is built with the **Google Agent Development Kit (ADK
 
 ```mermaid
 graph TD
-    User([Paralegal / Housing Advocate]) -->|Intake Narrative| NAV[shelterwise_navigator_ag<br/><i>Root Coordinator</i>]
+    User(["Paralegal / Housing Advocate"]) -->|Intake Narrative| NAV["shelterwise_navigator_ag<br/><i>Root Coordinator</i>"]
     NAV -->|Emergency Life-Safety Check| NAV
-    NAV -->|Delegates Case Triage| SEQ[case_triage_pipeline_ag<br/><i>SequentialAgent</i>]
+    NAV -->|Delegates Case Triage| SEQ["case_triage_pipeline_ag<br/><i>SequentialAgent</i>"]
     
     subgraph Step 1: Understand
-        SEQ --> INT[intake_structurer_ag<br/><i>Extract facts, 11-digit GEOID, search query</i>]
+        SEQ --> INT["intake_structurer_ag<br/><i>Extract facts, 11-digit GEOID, search query</i>"]
     end
 
     subgraph Step 2: Gather Corroboration
-        INT --> FAN[corroboration_fanout_ag<br/><i>ParallelAgent</i>]
-        FAN --> VEC[habitability_vector_ag<br/><i>BigQuery AI.EMBED + VECTOR_SEARCH</i>]
-        FAN --> POL[statute_and_bulletin_ag<br/><i>Housing Code & Relief Bulletins</i>]
-        FAN --> TRC[tract_displacement_ag<br/><i>v_tract_stability_context & Court Baseline</i>]
+        INT --> FAN["corroboration_fanout_ag<br/><i>ParallelAgent</i>"]
+        FAN --> VEC["habitability_vector_ag<br/><i>BigQuery AI.EMBED + VECTOR_SEARCH</i>"]
+        FAN --> POL["statute_and_bulletin_ag<br/><i>Housing Code & Relief Bulletins</i>"]
+        FAN --> TRC["tract_displacement_ag<br/><i>v_tract_stability_context & Court Baseline</i>"]
     end
 
     subgraph Step 3: Synthesize & Verify
-        VEC --> BRF[eligibility_and_brief_ag<br/><i>Reconciles Evidence Gaps & Generates 9-Section Brief</i>]
+        VEC --> BRF["eligibility_and_brief_ag<br/><i>Reconciles Evidence Gaps & Generates 9-Section Brief</i>"]
         POL --> BRF
         TRC --> BRF
     end
 
-    BRF --> FS[(Cloud Firestore<br/><i>cases/{case_id} & locks</i>)]
+    BRF --> FS[("Cloud Firestore<br/><i>cases/{case_id} &amp; locks</i>")]
     
     subgraph Specialist Support Agents
-        NAV --> EXP[evidence_explainer_ag<br/><i>Explains Decoy Filter Rationale</i>]
-        NAV --> AUD[equity_audit_ag<br/><i>Responsible AI Silent Distress Audit</i>]
-        NAV --> DRF[hazard_311_drafter_ag<br/><i>Emergency 311 Inspection Drafter</i>]
+        NAV --> EXP["evidence_explainer_ag<br/><i>Explains Decoy Filter Rationale</i>"]
+        NAV --> AUD["equity_audit_ag<br/><i>Responsible AI Silent Distress Audit</i>"]
+        NAV --> DRF["hazard_311_drafter_ag<br/><i>Emergency 311 Inspection Drafter</i>"]
     end
 ```
 

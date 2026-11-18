@@ -81,11 +81,11 @@ sequenceDiagram
     participant BQ as BigQuery (Vector + Views)
     participant FS as Cloud Firestore
 
-    P->>R: "Mother of 2, 400 block SF, cold radiators 2 wks, water dripping near kitchen fuse box, Monday 9am hearing."
-    R->>P: Immediate Safety Banner (Do NOT touch wet fuse panel; SF DBI / 911 emergency guidance)
-    R->>Pipe: Run Sequential -> Parallel Triage
+    P->>R: Mother of 2, 400 block SF, cold radiators 2 wks, water dripping near kitchen fuse box, Monday 9am hearing.
+    R->>P: Immediate Safety Banner (Do NOT touch wet fuse panel, SF DBI or 911 emergency guidance)
+    R->>Pipe: Run Sequential to Parallel Triage
     par Parallel Corroboration (~3-4s)
-        Pipe->>BQ: AI.EMBED + VECTOR_SEARCH (top_k=25) -> split valid vs DECOY-*
+        Pipe->>BQ: AI.EMBED + VECTOR_SEARCH (top_k=25) to split valid vs DECOY-*
     and
         Pipe->>BQ: Fetch 3 CA/SF Statutes + 4 SF Relief Bulletins
     and
@@ -94,18 +94,18 @@ sequenceDiagram
     Pipe->>FS: Save Case #SF-1042 + Draft Tenant Stabilization Brief (v1)
     Pipe-->>P: Structured Case Workspace + Corroborated Brief
 
-    P->>R: "Why did you exclude that severe boiler shutdown complaint on the next block?"
-    R->>Spec: evidence_explainer_agent reads state['evidence_pack']['excluded_candidates']
-    Spec-->>P: "Excluded despite semantic rank #1 (cosine distance 0.19): property_type='Commercial' (or Closed - Abated)."
+    P->>R: Why did you exclude that severe boiler shutdown complaint on the next block?
+    R->>Spec: evidence_explainer_agent reads state.evidence_pack.excluded_candidates
+    Spec-->>P: Excluded despite semantic rank #1 (cosine distance 0.19): Commercial or Closed - Abated.
 
-    P->>R: "Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?"
+    P->>R: Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?
     R->>Spec: Transfer to isolated equity_audit_agent
     Spec->>BQ: Cohort SQL joining prioritized vs silent-distress tracts (<=1 open 311) to audit_* & no_vehicle_rate
     Spec-->>P: Metro baseline vs Silent Distress breakdown + mobile outreach recommendation
 
-    P->>R: "No open 311 on a neighbor's block — help document a brand-new hazard & lock task for Attorney Chen."
+    P->>R: No open 311 on a neighbor block — help document a brand-new hazard & lock task for Attorney Chen.
     R->>Spec: hazard_311_drafter_agent + claim_or_update_case_task
-    Spec->>FS: @firestore.transactional lock + save SF 311 inspection draft & route to general arrears funds
+    Spec->>FS: Firestore transactional lock + save SF 311 inspection draft & route to general arrears funds
     Spec-->>P: Ready-to-file SF 311 checklist + updated brief locked for Attorney Chen
 ```
 
