@@ -25,13 +25,48 @@ ShelterWise does **not** attempt to replace attorneys or build a generic chatbot
 
 | Format | Duration | Audience | Focus |
 | :--- | :--- | :--- | :--- |
-| **Option A: Hackathon Pitch** | **3 Minutes** | Hackathon Judges & General Public | Problem ➔ Archetype Selection ➔ Live Multi-Agent Execution ➔ Comparison Canvas ➔ 28-Line Brief |
+| **Option 0: Judge Lightning Pitch** | **< 90 Seconds** | Hackathon Judges | 3-Min Eviction Problem ➔ 1-Click Story ➔ 1-Sec City Hall Proof ➔ Home Saved |
+| **Option A: Hackathon Pitch** | **3 Minutes** | General Judges & Attendees | Problem ➔ Archetype Selection ➔ Live Multi-Agent Execution ➔ Comparison Canvas ➔ 28-Line Brief |
 | **Option B: Technical Deep Dive** | **5 Minutes** | Google ADK & Cloud Evaluators | Multi-Agent Orchestration Flow ➔ BigQuery Vectors ➔ Firestore Concurrency ➔ Decoy Engine ➔ Live Timings |
 | **Option C: Clinic Walkthrough** | **10 Minutes** | Legal Aid Advocates & Housing Clinicians | Full Intake ➔ Checklist ➔ GIS Map ➔ Codex ➔ Co-Pilot Chat ➔ Demographic Firewall Audit |
 
 ---
 
-## 3. Presenter-Ready Demo Script (Option A: 3-Minute Walkthrough)
+## 3. Option 0: The Under-90-Second Plain English Judge Pitch (196 Words · ~85s)
+
+> **Judge Takeaway**: In eviction court, a tenant's word against a landlord's lawyer loses in 3 minutes. ShelterWise uses Google Cloud AI to turn a tenant's lived story into certified City Hall 311 proof, an official court defense brief, and $12,000 in emergency rent relief in under one second.
+
+### ⏱️ Act 1: The Unfair Courtroom Reality (0:00 – 0:20 · 49 words)
+* **On Screen**: App homepage showing the top distress banner and crisis archetypes ([shelterwise-redesign](https://shelterwise-redesign-335751565476.us-central1.run.app)).
+* **Spoken**:
+  > *"In San Francisco eviction court, a family has less than three minutes to defend their home.*
+  > *When a mother tells the judge, 'Our heat was broken all winter and my baby got sick,' the landlord’s lawyer hands over an unpaid rent ledger. Without certified third-party proof, the judge must order an eviction."*
+
+### ⏱️ Act 2: The Tenant's Story in One Click (0:20 – 0:40 · 47 words)
+* **Action**: Click `Case 1 · Western Addition Winter Freeze`.
+* **On Screen**: Inputs populate with Maria's Fillmore St narrative, hearing date, and income ($45k).
+* **Spoken**:
+  > *"Meet Maria. She lives on Fillmore Street. Her building's boiler broke, her indoor temperature fell to 50 degrees, and she fell behind on rent.*
+  > *On ShelterWise, Maria or her legal aid worker clicks one button: 'Winter Freeze'. Her story, address, and court date instantly load."*
+
+### ⏱️ Act 3: The One-Second Evidence Engine (0:40 – 1:00 · 44 words)
+* **Action**: Click the blue button: **`Corroborate 311 Records & Protect Home`**.
+* **On Screen**: Live multi-agent execution drawer slides open and finishes in ~840ms.
+* **Spoken**:
+  > *"Now, we click 'Corroborate 311 Records'.*
+  > *In under one second, our Google AI pipeline searches City Hall's public inspection database. It ignores commercial buildings and old resolved complaints, and finds the exact municipal citation: an open city violation confirming her radiators were freezing."*
+
+### ⏱️ Act 4: The Result — Proof, Brief & Home Saved (1:00 – 1:25 · 56 words)
+* **On Screen**: Scroll down to the Comparison Canvas, 311 Evidence card, and 28-Line Court Brief.
+* **Spoken**:
+  > *"Look at the screen:*
+  > *On the left, what the landlord claims. On the right, what City Hall proved.*
+  > *ShelterWise immediately generates a certified 28-line legal brief for court, and unlocks $12,000 in emergency city rental relief to pay off the back rent.*
+  > *We don’t replace lawyers. We give vulnerable families the proof they need to stay housed."*
+
+---
+
+## 4. Presenter-Ready Demo Script (Option A: 3-Minute Walkthrough)
 
 ### ACT 1: The Problem & Archetype Selection (0:00 – 0:40)
 
