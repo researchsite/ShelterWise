@@ -527,7 +527,7 @@ def handle_chat_message(
 # Helper functions & Aliases for test compatibility
 # ==============================================================================
 
-# Backward-compatibility aliases
+# Backward-compatibility aliases (map both *_ag and *_agent)
 shelterwise_navigator_ag = shelterwise_navigator
 case_triage_pipeline = case_triage_pipeline_ag
 intake_structurer_ag = intake_structurer_agent
