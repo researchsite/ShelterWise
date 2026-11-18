@@ -329,7 +329,11 @@ def build_grounded_fallback_response(message: str, session_id: str, user_id: str
         }
 
     # 7. Draft 311 complaint
-    if any(k in lower_msg for k in ["311", "inspection", "complaint", "file"]):
+    is_draft_311 = (
+        any(k in lower_msg for k in ["draft 311", "file 311", "dbi complaint", "inspection request", "draft inspection", "submit 311"]) or
+        (("311" in lower_msg or "inspection" in lower_msg) and any(w in lower_msg for w in ["draft", "file a", "submit a", "request an"]))
+    )
+    if is_draft_311 and not any(k in lower_msg for k in ["hearing", "court", "behind", "nonpayment", "arrears", "fuse", "radiator"]):
         return {
             "session_id": session_id,
             "reply": (
@@ -349,7 +353,18 @@ def build_grounded_fallback_response(message: str, session_id: str, user_id: str
         }
 
     # 8. General inquiry / Greeting
-    if any(k in lower_msg for k in ["hello", "hi", "help with", "can you help", "eviction notice", "what can you do"]):
+    case_facts = [
+        "hearing", "leak", "heat", "block", "water", "rent", "arrears", "mold",
+        "tract", "court", "mcallister", "fillmore", "mission", "habitability",
+        "behind", "nonpayment", "breaker", "fuse", "radiator", "311 filed"
+    ]
+    has_case_facts = any(w in lower_msg for w in case_facts)
+    import re
+    is_greeting = (
+        bool(re.search(r'\b(hello|hi|hey|howdy|greetings)\b', lower_msg)) or
+        any(k in lower_msg for k in ["what can you do", "can you help", "how does this work"])
+    )
+    if is_greeting and not has_case_facts:
         return {
             "session_id": session_id,
             "reply": (
@@ -367,7 +382,7 @@ def build_grounded_fallback_response(message: str, session_id: str, user_id: str
             "blocks": [],
             "is_followup": False,
             "suggestions": [
-                "No heat for 2 weeks and water leaking near fuse box, Monday 9am hearing",
+                "Mother of 2 on the 1000 block of Fillmore St: no heat, water leak by fuse box, Monday 9am hearing",
                 "Can the tenant reach McAllister courthouse by bus before 9am Monday?",
                 "Who lives in the silent distress tracts?"
             ],

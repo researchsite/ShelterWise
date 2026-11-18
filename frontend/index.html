@@ -160,6 +160,24 @@
       <span>•</span>
       <span>✓ ERAP / RADCO Relief</span>
     </div>
+    <div class="starters">
+      <div class="starter" onclick="send('Mother of 2 on the 1000 block of Fillmore St. Radiators stone cold for 2 weeks, about 50 degrees inside. Water is dripping near the kitchen fuse box. Behind about two months on rent. Nonpayment hearing Monday 9am. What do we have?')">
+        <b>📋 1000 Block Fillmore St Intake</b>
+        <span class="small muted">No heat, water by fuse box, Monday 9am court hearing</span>
+      </div>
+      <div class="starter" onclick="send('Tenant on 2400 block Mission St, mold and leak, no 311 filed yet, owner move-in notice. What can we do?')">
+        <b>🧾 2400 Block Mission St (Draft 311)</b>
+        <span class="small muted">Help document a brand-new habitability hazard</span>
+      </div>
+      <div class="starter" onclick="send('Can the tenant reach McAllister courthouse by bus before 9am Monday?')">
+        <b>🚌 Courthouse Transit Route</b>
+        <span class="small muted">Muni route from Fillmore to 400 McAllister St</span>
+      </div>
+      <div class="starter" onclick="send('Who lives in the tracts our triage rules prioritize, and where might 311 under-reporting blind us?')">
+        <b>🛡 Metro Equity Audit</b>
+        <span class="small muted">Identify silent distress tracts with high rent burden</span>
+      </div>
+    </div>
   </div>
 </div></div>
 
@@ -199,14 +217,37 @@ const FC=f=>({type:'FeatureCollection',features:f.filter(Boolean)});
 const PT=(lng,lat,props)=>({type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:props});
 const TENANT=PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:'1000 Block Fillmore St (tenant\'s main address)'});
 const COURT=PT(-122.41795,37.78075,{role:'courthouse',ref:'courthouse',label:'400 McAllister St (SF Superior Court)'});
+function getTenantPoint(b){
+  const block=(b&&(b.block||b.block_address))||'';
+  if(block.includes('Mission')){
+    return PT(-122.41866,37.75855,{role:'tenant_block',ref:'tenant',label:block||'2400 Block Mission St (tenant\'s 100-block)'});
+  }
+  return PT(-122.43185,37.77907,{role:'tenant_block',ref:'tenant',label:block||'1000 Block Fillmore St (tenant\'s main address)'});
+}
 function distM(a,b){const R=6371000,t=x=>x*Math.PI/180,[l1,p1]=a,[l2,p2]=b;const d=Math.sin(t(p2-p1)/2)**2+Math.cos(t(p1))*Math.cos(t(p2))*Math.sin(t(l2-l1)/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(d)))}
 function REC(id,role,reason){const f=(window.SF_311?.features||[]).find(x=>x.properties.request_id===id);if(!f)return null;
   return {...f,properties:{...f.properties,role,ref:id,reason:reason||'',distance_m:distM(f.geometry.coordinates,TENANT.geometry.coordinates)}}}
 function TRACT(geoid,role){const f=(window.SF_TRACTS?.features||[]).find(x=>x.properties.geoid===geoid);return f&&{...f,properties:{...f.properties,role,ref:geoid}}}
 const GEO={
-  evidence:b=>FC([TENANT,...(b.kept||[]).map(r=>REC(r.id||r.request_id,'corroborating')),(b.kept?.length?null:REC('SF-202665182','corroborating'))]),
-  tract:b=>FC([TRACT(b.tract?.geoid||b.census_tract_geoid||'06075016300','tract_focus'),TENANT]),
-  explain:b=>FC([TENANT,REC(b.id,'excluded',b.rule)]),
+  summary:b=>FC([
+    getTenantPoint(b),
+    COURT,
+    PT(getTenantPoint(b).geometry.coordinates[0],getTenantPoint(b).geometry.coordinates[1],{role:'search_radius',radius_m:400}),
+    TRACT(b.census_tract_geoid||'06075016300','tract_focus'),
+    {type:'Feature',geometry:{type:'LineString',coordinates:[getTenantPoint(b).geometry.coordinates,COURT.geometry.coordinates]},properties:{role:'route',ref:'courthouse'}}
+  ]),
+  evidence:b=>FC([
+    getTenantPoint(b),
+    ...(b.kept||[]).map(r=>REC(r.service_request_id||r.request_id||r.id,'corroborating')),
+    ...(b.excluded||[]).map(r=>REC(r.service_request_id||r.request_id||r.id,'excluded',r.why_excluded||r.exclusion_rule)),
+    REC('SF-202665182','corroborating'),
+    REC('SF-202665107','corroborating')
+  ]),
+  tract:b=>FC([
+    TRACT(b.tract?.census_tract_geoid||b.tract?.geoid||b.census_tract_geoid||'06075016300','tract_focus'),
+    getTenantPoint(b)
+  ]),
+  explain:b=>FC([getTenantPoint(b),REC(b.id,'excluded',b.rule)]),
   transit:()=>FC([TENANT,COURT,{type:'Feature',geometry:{type:'LineString',coordinates:[TENANT.geometry.coordinates,COURT.geometry.coordinates]},properties:{role:'route',ref:'courthouse'}}]),
   equity_audit:()=>FC((window.SF_TRACTS?.features||[]).filter(f=>f.properties.silent_distress).map(f=>({...f,properties:{...f.properties,role:'silent_distress',ref:'equity'}}))),
   draft_311:()=>FC([PT(-122.41866,37.75855,{role:'tenant_block',ref:'tenant',label:'2400 Block Mission St (tenant\'s 100-block)'}),PT(-122.41866,37.75855,{role:'search_radius',radius_m:400})]),
@@ -434,18 +475,11 @@ async function send(text){
   el.querySelector('.tl').textContent=`${steps.length} agent step${steps.length>1?'s':''} · ${secs}s · view trace`;
   el.querySelector('.trace').open=false;
 
-  const isFollowup = Boolean(res.is_followup || intakeComplete);
-  intakeComplete = true;
-
-  // Suppress locations on followup calls (only initial intake triage attaches geo and updates map)
-  if (!isFollowup) {
-    (res.blocks || []).forEach(b => {
-      if (!b.geo && GEO[b.type]) b.geo = GEO[b.type](b);
-    });
-    SWMap.show(res);
-  } else {
-    (res.blocks || []).forEach(b => { delete b.geo; });
-  }
+  // Attach geo to all blocks that support it and update map
+  (res.blocks || []).forEach(b => {
+    if (!b.geo && GEO[b.type]) b.geo = GEO[b.type](b);
+  });
+  SWMap.show(res);
 
   const renderedBlocks = (res.blocks || []).map(b => (R[b.type] ? R[b.type](b) : '')).join('');
 

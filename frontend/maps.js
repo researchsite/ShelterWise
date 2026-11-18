@@ -14,7 +14,7 @@
 const SWMap = (() => {
   let map, info, base, all311, overlay, circles = [], dirRenderer, ready = false, pending = null, lastRoute = null;
   const SF = { lat: 37.7605, lng: -122.4425 };
-  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const css = (n, fallback = '') => (getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fallback);
   const BURDEN_STEPS = [[10, '#e8eef6'], [15, '#c5d4e8'], [20, '#94b0d4'], [25, '#5f86b8'], [999, '#2f5a92']]; // one hue, light→dark
   const burdenColor = v => BURDEN_STEPS.find(([t]) => v < t)[1];
   const layerState = { shade: false, pts: false };
@@ -103,13 +103,50 @@ const SWMap = (() => {
 
     ready = true;
     if (pending) { show(pending); pending = null; }
+    else { showDefault(); }
+  }
+
+  function showDefault() {
+    const defaultFeatures = [
+      {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [-122.43185, 37.77907] },
+        properties: { role: 'tenant_block', ref: 'tenant', label: '1000 Block Fillmore St (tenant\'s main address)' }
+      },
+      {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [-122.4182, 37.7816] },
+        properties: { role: 'courthouse', ref: 'courthouse', label: 'SF Superior Court (400 McAllister St)' }
+      },
+      {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [-122.43185, 37.77907] },
+        properties: { role: 'search_radius', radius_m: 400 }
+      },
+      {
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: [[-122.43185, 37.77907], [-122.4182, 37.7816]] },
+        properties: { role: 'route', ref: 'courthouse' }
+      }
+    ];
+    const tr = (window.SF_TRACTS?.features || []).find(x => x.properties.geoid === '06075016300');
+    if (tr) {
+      defaultFeatures.push({ ...tr, properties: { ...tr.properties, role: 'tract_focus', ref: '06075016300' } });
+    }
+    ['SF-202665182', 'SF-202665107'].forEach(id => {
+      const rec = (window.SF_311?.features || []).find(x => x.properties.request_id === id);
+      if (rec) {
+        defaultFeatures.push({ ...rec, properties: { ...rec.properties, role: 'corroborating', ref: id } });
+      }
+    });
+    show({ blocks: [{ geo: { type: 'FeatureCollection', features: defaultFeatures } }] });
   }
 
   function styleBase() {
     base.setStyle(f => ({
-      fillColor: layerState.shade ? burdenColor(f.getProperty('severe_burden_pct')) : '#000',
-      fillOpacity: layerState.shade ? .55 : 0,
-      strokeColor: '#6b7a8c', strokeOpacity: .45, strokeWeight: 1, zIndex: 1,
+      fillColor: layerState.shade ? burdenColor(f.getProperty('severe_burden_pct')) : '#334155',
+      fillOpacity: layerState.shade ? .55 : .02,
+      strokeColor: '#64748b', strokeOpacity: .65, strokeWeight: 1.2, zIndex: 1,
     }));
   }
 
@@ -135,12 +172,12 @@ const SWMap = (() => {
         title: f.getProperty('label') || 'Tenant Main Address',
         zIndex: hi ? 99 : 50
       };
-      case 'corroborating': return pt(css('--ok'), 8, google.maps.SymbolPath.CIRCLE, 25);
+      case 'corroborating': return pt(css('--ok', '#1e6b46'), 8, google.maps.SymbolPath.CIRCLE, 25);
       case 'excluded': return pt('#7b828c', 8, DIAMOND, 12);
-      case 'courthouse': return pt(css('--accent'), 9, google.maps.SymbolPath.BACKWARD_CLOSED_ARROW, 18);
-      case 'route': return { strokeColor: css('--brand'), strokeWeight: 4, strokeOpacity: .85, zIndex: 5 };
-      case 'tract_focus': return { fillColor: css('--accent'), fillOpacity: .08, strokeColor: css('--accent'), strokeWeight: 3, zIndex: 3, clickable: true };
-      case 'silent_distress': return { fillColor: css('--audit'), fillOpacity: hi ? .45 : .28, strokeColor: css('--audit'), strokeWeight: 2, zIndex: 3 };
+      case 'courthouse': return pt(css('--accent', '#a2782c'), 9, google.maps.SymbolPath.BACKWARD_CLOSED_ARROW, 18);
+      case 'route': return { strokeColor: css('--brand', '#1f3a5f'), strokeWeight: 4, strokeOpacity: .85, zIndex: 5 };
+      case 'tract_focus': return { fillColor: css('--accent', '#a2782c'), fillOpacity: hi ? .35 : .20, strokeColor: css('--accent', '#a2782c'), strokeWeight: 3.5, zIndex: 3, clickable: true };
+      case 'silent_distress': return { fillColor: css('--audit', '#5340a8'), fillOpacity: hi ? .45 : .28, strokeColor: css('--audit', '#5340a8'), strokeWeight: 2, zIndex: 3 };
       case 'search_radius': return { visible: false }; // drawn as google.maps.Circle
       default: return {};
     }
@@ -258,5 +295,5 @@ const SWMap = (() => {
     legend(feats);
   }
 
-  return { load, show, highlight, focus, toggle, saveKey, dismissKey, toggleKeyPrompt };
+  return { load, show, showDefault, highlight, focus, toggle, saveKey, dismissKey, toggleKeyPrompt };
 })();
