@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HN Radar — System Architecture Explorer</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --card-hover: #374151;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.4);
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --cyan: #06b6d4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    header { background: #0f172a; border-bottom: 1px solid var(--card-border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 50; }
+    .logo-group h1 { font-size: 1.35rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    .logo-group h1 span { color: var(--accent); }
+    .logo-group p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    
+    .nav-tabs { display: flex; gap: 0.5rem; background: #1e293b; padding: 0.25rem; border-radius: 0.5rem; }
+    .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: var(--accent); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .tab-btn:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
+
+    .main-container { display: flex; flex: 1; position: relative; height: calc(100vh - 75px); overflow: hidden; }
+    .canvas-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    
+    .toolbar { display: flex; gap: 0.6rem; padding: 0.65rem 1.5rem; background: #0f172a; border-bottom: 1px solid var(--card-border); align-items: center; flex-wrap: wrap; font-size: 0.85rem; }
+    .filter-btn { background: #1e293b; border: 1px solid var(--card-border); color: var(--text-muted); padding: 0.35rem 0.75rem; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s; font-size: 0.8rem; }
+    .filter-btn.active { background: rgba(59, 130, 246, 0.2); border-color: var(--accent); color: #60a5fa; }
+    .search-box { margin-left: auto; position: relative; }
+    .search-box input { background: #1e293b; border: 1px solid var(--card-border); color: #fff; padding: 0.35rem 0.75rem; border-radius: 0.375rem; font-size: 0.8rem; width: 220px; outline: none; }
+    .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+    .viewport { flex: 1; overflow: auto; padding: 1.5rem; display: flex; justify-content: center; align-items: flex-start; background: radial-gradient(circle at 50% 50%, #111827 0%, #0b0f19 100%); }
+    
+    svg.arch-svg { max-width: 1150px; width: 100%; height: auto; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5)); }
+    .svg-node { cursor: pointer; transition: all 0.2s; }
+    .svg-node:hover rect { stroke-width: 2.5; stroke: #60a5fa !important; filter: drop-shadow(0 0 8px var(--accent-glow)); }
+    .svg-node.active rect { stroke-width: 3; stroke: #3b82f6 !important; fill: #1e3a8a !important; filter: drop-shadow(0 0 12px var(--accent-glow)); }
+    
+    /* Side detail drawer */
+    .drawer { width: 500px; background: #0f172a; border-left: 1px solid var(--card-border); display: flex; flex-direction: column; overflow-y: auto; transition: transform 0.3s ease; position: relative; z-index: 40; }
+    .drawer.closed { display: none; }
+    .drawer-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: flex-start; background: #111e38; }
+    .drawer-title { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .drawer-meta { display: flex; gap: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap; }
+    .close-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0 0.5rem; line-height: 1; }
+    .close-btn:hover { color: #fff; }
+    
+    .drawer-nav { display: flex; border-bottom: 1px solid var(--card-border); background: #0f172a; }
+    .d-tab { flex: 1; text-align: center; padding: 0.65rem 0.5rem; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
+    .d-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(59,130,246,0.05); }
+    
+    .drawer-content { padding: 1.5rem; flex: 1; font-size: 0.9rem; line-height: 1.6; color: #d1d5db; }
+    .drawer-content h4 { color: #fff; margin: 1rem 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
+    .drawer-content p { margin-bottom: 0.75rem; }
+    .drawer-content ul, .drawer-content ol { margin-left: 1.25rem; margin-bottom: 0.75rem; }
+    .drawer-content li { margin-bottom: 0.35rem; }
+    .drawer-content code { background: #1e293b; color: #93c5fd; padding: 0.15rem 0.35rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.85em; }
+    .drawer-content pre { background: #0b0f19; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.75rem 0; border: 1px solid var(--card-border); }
+    
+    .mermaid-box { background: #0b0f19; border: 1px solid var(--card-border); border-radius: 0.5rem; padding: 1rem; margin: 1rem 0; overflow-x: auto; }
+    
+    /* Timeline view */
+    .timeline-view { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; overflow-y: auto; height: 100%; }
+    .timeline-item { display: flex; gap: 1.5rem; margin-bottom: 2rem; position: relative; }
+    .timeline-item::before { content: ""; position: absolute; left: 19px; top: 32px; bottom: -32px; width: 2px; background: var(--card-border); }
+    .timeline-item:last-child::before { display: none; }
+    .tl-icon { width: 40px; height: 40px; border-radius: 50%; background: #1e293b; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 0.8rem; z-index: 2; flex-shrink: 0; }
+    .tl-content { flex: 1; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 0.75rem; padding: 1.25rem 1.5rem; }
+    .tl-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+    .tl-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .tl-desc { font-size: 0.9rem; color: #d1d5db; margin-bottom: 1rem; }
+    
+    /* Subsystems View */
+    .subsystems-view { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; overflow-y: auto; height: 100%; }
+    .subsystem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem; }
+    .subsystem-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 0.75rem; padding: 1.5rem; transition: transform 0.2s, border-color 0.2s; }
+    .subsystem-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .subsystem-card h3 { color: #fff; font-size: 1.15rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .subsystem-card p { font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    
+    /* Governance Matrix View */
+    .governance-view { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; overflow-y: auto; height: 100%; }
+    .rule-table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: var(--card-bg); border-radius: 0.5rem; overflow: hidden; }
+    .rule-table th, .rule-table td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--card-border); font-size: 0.88rem; }
+    .rule-table th { background: #1e293b; color: #fff; font-weight: 600; }
+    .rule-table tr:hover td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-group">
+      <h1><span>HN Radar</span> Architecture & Qodo Review Explorer</h1>
+      <p>Interactive System Architecture synthesized from 23 Closed Pull Requests & Qodo Code Reviews</p>
+    </div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchView('canvas')">Architecture Canvas</button>
+      <button class="tab-btn" onclick="switchView('timeline')">PR Evolution Timeline (23 PRs)</button>
+      <button class="tab-btn" onclick="switchView('subsystems')">Subsystems</button>
+      <button class="tab-btn" onclick="switchView('governance')">AGENTS.md Governance</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    
+    <!-- Left: Canvas / Content -->
+    <div class="canvas-panel">
+      <div class="toolbar" id="canvas-toolbar">
+        <span style="color:var(--text-muted); font-weight:600;">Filter:</span>
+        <button class="filter-btn active" onclick="filterCategory('all', this)">All Layers</button>
+        <button class="filter-btn" onclick="filterCategory('CLI Layer', this)">CLI Layer</button>
+        <button class="filter-btn" onclick="filterCategory('Parsing & Extraction', this)">Parsing & Ingestion</button>
+        <button class="filter-btn" onclick="filterCategory('Source Adapters', this)">Source Adapters</button>
+        <button class="filter-btn" onclick="filterCategory('Scoring & Matching', this)">Scoring & Matching</button>
+        <button class="filter-btn" onclick="filterCategory('Intelligence & LLM', this)">Pulse & LLM</button>
+        <button class="filter-btn" onclick="filterCategory('Autonomous Factory', this)">Autonomous Factory</button>
+        
+        <div class="search-box">
+          <input type="text" id="component-search" placeholder="Search component or rule..." oninput="searchComponents(this.value)">
+        </div>
+      </div>
+
+      <!-- VIEW 1: Interactive SVG Canvas -->
+      <div class="viewport" id="canvas-view">
+        <svg class="arch-svg" viewBox="0 0 1120 950" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
+            </marker>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8" />
+            </marker>
+          </defs>
+
+          <!-- Connectors -->
+          <!-- HN Flow -->
+          <path d="M 150 90 L 150 140" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 150 200 L 150 240" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 150 285 L 150 330" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 150 385 L 150 425" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 240 357 L 260 357" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 210 452 L 260 452" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 150 480 L 150 625" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow-blue)"/>
+
+          <!-- GitHub Flow -->
+          <path d="M 510 90 L 510 140" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 510 200 L 510 240" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 510 285 L 530 330" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 575 385 L 575 425" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 350 625 L 350 452 L 480 525" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow-blue)"/>
+
+          <!-- Matching Flow -->
+          <path d="M 350 480 L 450 525" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 575 480 L 500 525" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 480 585 L 520 625" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+          <!-- Show HN Flow -->
+          <path d="M 240 170 C 400 170, 750 200, 780 330" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+          <path d="M 750 625 L 750 385" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow-blue)"/>
+
+          <!-- Pulse Flow -->
+          <path d="M 870 90 L 870 140" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 870 200 L 870 425" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 870 480 L 870 525" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 950 625 L 950 580" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow-blue)"/>
+
+          <!-- Factory Pipeline Flow -->
+          <path d="M 240 827 L 260 827" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 440 827 L 460 827" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 660 827 L 680 827" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M 870 827 L 890 827" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Render all SVG Nodes -->
+          
+          <g class="svg-node" id="node_ext_hn" data-comp="source_hn" onclick="selectComponent('source_hn')">
+            <rect x="60" y="40" width="180" height="50" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="57.0" font-weight="bold" fill="#ffffff" font-size="12">HN Algolia API</tspan><tspan x="150.0" y="73.0" font-weight="normal" fill="#cbd5e1" font-size="10.5">(Public REST API)</tspan></text>
+          </g>
+          <g class="svg-node" id="node_ext_gh" data-comp="source_github" onclick="selectComponent('source_github')">
+            <rect x="420" y="40" width="180" height="50" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="510.0" y="57.0" font-weight="bold" fill="#ffffff" font-size="12">GitHub REST API</tspan><tspan x="510.0" y="73.0" font-weight="normal" fill="#cbd5e1" font-size="10.5">(Public /users/repos)</tspan></text>
+          </g>
+          <g class="svg-node" id="node_ext_ollama" data-comp="source_ollama" onclick="selectComponent('source_ollama')">
+            <rect x="780" y="40" width="180" height="50" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="870.0" y="57.0" font-weight="bold" fill="#ffffff" font-size="12">Local Ollama</tspan><tspan x="870.0" y="73.0" font-weight="normal" fill="#cbd5e1" font-size="10.5">(http://localhost:11434)</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_source_hn" data-comp="source_hn" onclick="selectComponent('source_hn')">
+            <rect x="60" y="140" width="180" height="60" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="162.0" font-weight="bold" fill="#ffffff" font-size="12">sources/hn.py</tspan><tspan x="150.0" y="178.0" font-weight="normal" fill="#93c5fd" font-size="10.5">[Algolia Client &amp; Cache]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_source_gh" data-comp="source_github" onclick="selectComponent('source_github')">
+            <rect x="420" y="140" width="180" height="60" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="510.0" y="162.0" font-weight="bold" fill="#ffffff" font-size="12">sources/github.py</tspan><tspan x="510.0" y="178.0" font-weight="normal" fill="#93c5fd" font-size="10.5">[Repo Fetcher &amp; Cache]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_source_ollama" data-comp="source_ollama" onclick="selectComponent('source_ollama')">
+            <rect x="780" y="140" width="180" height="60" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="870.0" y="162.0" font-weight="bold" fill="#ffffff" font-size="12">sources/ollama.py</tspan><tspan x="870.0" y="178.0" font-weight="normal" fill="#93c5fd" font-size="10.5">[OllamaClient Client]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cache_hn" data-comp="source_hn" onclick="selectComponent('source_hn')">
+            <rect x="60" y="240" width="180" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="254.5" font-weight="bold" fill="#ffffff" font-size="12">data/cache/hn_*.json</tspan><tspan x="150.0" y="270.5" font-weight="normal" fill="#6ee7b7" font-size="10.5">(Atomic mkstemp+replace)</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cache_gh" data-comp="source_github" onclick="selectComponent('source_github')">
+            <rect x="420" y="240" width="180" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="510.0" y="254.5" font-weight="bold" fill="#ffffff" font-size="12">data/cache/github_*.json</tspan><tspan x="510.0" y="270.5" font-weight="normal" fill="#6ee7b7" font-size="10.5">(TTL: 3600s)</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_parse_comment" data-comp="parse_job" onclick="selectComponent('parse_job')">
+            <rect x="60" y="330" width="180" height="55" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="349.5" font-weight="bold" fill="#ffffff" font-size="12">parse_comment()</tspan><tspan x="150.0" y="365.5" font-weight="normal" fill="#c7d2fe" font-size="10.5">[Pipe header &amp; stack regex]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_candidate_filter" data-comp="parse_candidate_filter" onclick="selectComponent('parse_candidate_filter')">
+            <rect x="260" y="330" width="180" height="55" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="350.0" y="349.5" font-weight="bold" fill="#ffffff" font-size="12">is_candidate_profile()</tspan><tspan x="350.0" y="365.5" font-weight="normal" fill="#c7d2fe" font-size="10.5">[Skip job seekers (PR #46)]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_closed_detector" data-comp="closed_detector" onclick="selectComponent('closed_detector')">
+            <rect x="60" y="425" width="180" height="55" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="444.5" font-weight="bold" fill="#ffffff" font-size="12">closing_reply_id()</tspan><tspan x="150.0" y="460.5" font-weight="normal" fill="#c7d2fe" font-size="10.5">[Poster reply scanner (PR #30)]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_jobs_json" data-comp="cli_fetch_hiring" onclick="selectComponent('cli_fetch_hiring')">
+            <rect x="260" y="425" width="180" height="55" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="350.0" y="444.5" font-weight="bold" fill="#ffffff" font-size="12">data/jobs.json</tspan><tspan x="350.0" y="460.5" font-weight="normal" fill="#6ee7b7" font-size="10.5">[Tracked Structured Jobs]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_fingerprint_builder" data-comp="fingerprint_synthesizer" onclick="selectComponent('fingerprint_synthesizer')">
+            <rect x="480" y="330" width="190" height="55" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="575.0" y="349.5" font-weight="bold" fill="#ffffff" font-size="12">build_profile()</tspan><tspan x="575.0" y="365.5" font-weight="normal" fill="#c7d2fe" font-size="10.5">[Top 5 lang, 10 topics, 5 repos]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_profile_json" data-comp="cli_fingerprint" onclick="selectComponent('cli_fingerprint')">
+            <rect x="480" y="425" width="190" height="55" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="575.0" y="444.5" font-weight="bold" fill="#ffffff" font-size="12">data/profiles/&lt;user&gt;.json</tspan><tspan x="575.0" y="460.5" font-weight="normal" fill="#6ee7b7" font-size="10.5">[Pydantic Profile]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_match_scorer" data-comp="matching_engine" onclick="selectComponent('matching_engine')">
+            <rect x="370" y="525" width="220" height="60" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="480.0" y="547.0" font-weight="bold" fill="#ffffff" font-size="12">score_job() &amp; top_matches()</tspan><tspan x="480.0" y="563.0" font-weight="normal" fill="#c7d2fe" font-size="10.5">[20pt lang, 10pt topic, 5pt remote]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_showhn_ranker" data-comp="showhn_ranker" onclick="selectComponent('showhn_ranker')">
+            <rect x="700" y="330" width="190" height="55" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="795.0" y="349.5" font-weight="bold" fill="#ffffff" font-size="12">showhn.py / search_show_hn</tspan><tspan x="795.0" y="365.5" font-weight="normal" fill="#c7d2fe" font-size="10.5">[Domain query &amp; Ranker]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_pulse_clusterer" data-comp="pulse_clusterer" onclick="selectComponent('pulse_clusterer')">
+            <rect x="780" y="425" width="180" height="55" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="870.0" y="444.5" font-weight="bold" fill="#ffffff" font-size="12">pulse/cluster.py</tspan><tspan x="870.0" y="460.5" font-weight="normal" fill="#c7d2fe" font-size="10.5">[Comment selector &amp; 2-try retry]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_pulse_json" data-comp="cli_pulse" onclick="selectComponent('cli_pulse')">
+            <rect x="780" y="525" width="180" height="55" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="870.0" y="544.5" font-weight="bold" fill="#ffffff" font-size="12">data/pulse/&lt;story_id&gt;.json</tspan><tspan x="870.0" y="560.5" font-weight="normal" fill="#6ee7b7" font-size="10.5">[Pydantic PulseResult]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cli_fetch" data-comp="cli_fetch_hiring" onclick="selectComponent('cli_fetch_hiring')">
+            <rect x="60" y="625" width="180" height="55" rx="8" fill="#0c4a6e" stroke="#0284c7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="644.5" font-weight="bold" fill="#ffffff" font-size="12">hnradar fetch-hiring</tspan><tspan x="150.0" y="660.5" font-weight="normal" fill="#7dd3fc" font-size="10.5">[--limit, --out, --json]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cli_fingerprint" data-comp="cli_fingerprint" onclick="selectComponent('cli_fingerprint')">
+            <rect x="260" y="625" width="180" height="55" rx="8" fill="#0c4a6e" stroke="#0284c7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="350.0" y="644.5" font-weight="bold" fill="#ffffff" font-size="12">hnradar fingerprint</tspan><tspan x="350.0" y="660.5" font-weight="normal" fill="#7dd3fc" font-size="10.5">[&lt;username&gt; --out-dir]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cli_match" data-comp="cli_match" onclick="selectComponent('cli_match')">
+            <rect x="460" y="625" width="180" height="55" rx="8" fill="#0c4a6e" stroke="#0284c7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="550.0" y="644.5" font-weight="bold" fill="#ffffff" font-size="12">hnradar match</tspan><tspan x="550.0" y="660.5" font-weight="normal" fill="#7dd3fc" font-size="10.5">[&lt;username&gt; --jobs --json]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cli_showhn" data-comp="cli_showhn" onclick="selectComponent('cli_showhn')">
+            <rect x="660" y="625" width="180" height="55" rx="8" fill="#0c4a6e" stroke="#0284c7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="750.0" y="644.5" font-weight="bold" fill="#ffffff" font-size="12">hnradar showhn</tspan><tspan x="750.0" y="660.5" font-weight="normal" fill="#7dd3fc" font-size="10.5">[&lt;company&gt; --domain --json]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_cli_pulse" data-comp="cli_pulse" onclick="selectComponent('cli_pulse')">
+            <rect x="860" y="625" width="180" height="55" rx="8" fill="#0c4a6e" stroke="#0284c7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="950.0" y="644.5" font-weight="bold" fill="#ffffff" font-size="12">hnradar pulse</tspan><tspan x="950.0" y="660.5" font-weight="normal" fill="#7dd3fc" font-size="10.5">[&lt;story_id&gt; --model --out]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_sanitizer" data-comp="terminal_sanitizer" onclick="selectComponent('terminal_sanitizer')">
+            <rect x="160" y="715" width="780" height="40" rx="8" fill="#78350f" stroke="#f59e0b" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="550.0" y="727.0" font-weight="bold" fill="#ffffff" font-size="12">Terminal Sanitizer (_terminal_safe) [Rule 8]</tspan><tspan x="550.0" y="743.0" font-weight="normal" fill="#fde68a" font-size="10.5">Strips Cc control chars (ESC, BEL) &amp; Cf format chars (bidi U+202E)</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_poller" data-comp="agent_poller" onclick="selectComponent('agent_poller')">
+            <rect x="60" y="800" width="180" height="55" rx="8" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="150.0" y="819.5" font-weight="bold" fill="#ffffff" font-size="12">agent-poll.ps1</tspan><tspan x="150.0" y="835.5" font-weight="normal" fill="#e9d5ff" font-size="10.5">[OS Named Mutex Guard]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_worktree" data-comp="ticket_worker" onclick="selectComponent('ticket_worker')">
+            <rect x="260" y="800" width="180" height="55" rx="8" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="350.0" y="819.5" font-weight="bold" fill="#ffffff" font-size="12">Git Worktrees</tspan><tspan x="350.0" y="835.5" font-weight="normal" fill="#e9d5ff" font-size="10.5">[../hn-radar-worktrees/]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_goose" data-comp="ticket_worker" onclick="selectComponent('ticket_worker')">
+            <rect x="460" y="800" width="200" height="55" rx="8" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="560.0" y="819.5" font-weight="bold" fill="#ffffff" font-size="12">Goose Ticket Worker</tspan><tspan x="560.0" y="835.5" font-weight="normal" fill="#e9d5ff" font-size="10.5">[.goose/recipes/ticket-worker.yaml]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_qodo" data-comp="qodo_reviewer" onclick="selectComponent('qodo_reviewer')">
+            <rect x="680" y="800" width="190" height="55" rx="8" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="775.0" y="819.5" font-weight="bold" fill="#ffffff" font-size="12">Qodo Code Review Bot</tspan><tspan x="775.0" y="835.5" font-weight="normal" fill="#e9d5ff" font-size="10.5">[Mermaid diagrams &amp; severity triage]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_verify_skill" data-comp="verify_skill" onclick="selectComponent('verify_skill')">
+            <rect x="890" y="800" width="180" height="55" rx="8" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="980.0" y="819.5" font-weight="bold" fill="#ffffff" font-size="12">verify-jobs-parse Skill</tspan><tspan x="980.0" y="835.5" font-weight="normal" fill="#e9d5ff" font-size="10.5">[Real-data regression verify]</tspan></text>
+          </g>
+          <g class="svg-node" id="node_node_governance" data-comp="agents_md_governance" onclick="selectComponent('agents_md_governance')">
+            <rect x="60" y="885" width="1010" height="45" rx="8" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+            <text text-anchor="middle"><tspan x="565.0" y="899.5" font-weight="bold" fill="#ffffff" font-size="12">AGENTS.md Governance</tspan><tspan x="565.0" y="915.5" font-weight="normal" fill="#e9d5ff" font-size="10.5">[Rules 1-10, Quality Gate (DoD), Pre-Review Checklist]</tspan></text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- VIEW 2: PR Evolution Timeline -->
+      <div class="timeline-view" id="timeline-view">
+        <h2 style="color:#fff; margin-bottom:0.5rem;">Pull Request Architecture Evolution</h2>
+        <p style="color:var(--text-muted); margin-bottom:2rem;">Browse all 23 closed PRs with their synthesized Qodo code review Mermaid architecture diagrams.</p>
+        <div id="timeline-container">
+          
+          <div class="timeline-item" id="pr-card-1">
+            <div class="tl-icon">#1</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #1: feat: add hnradar fetch-hiring command</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Initial foundation PR. Added fetch-hiring command and core parser. (Qodo automated review errored on first run; diagram synthesized from PR code).</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  HN["HN Algolia API"] --> Fetch["fetch-hiring CLI"] --> Parser["Job Parser"] --> Jobs[("data/jobs.json")]
+  Fetch --> Table["CLI Table Output"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-2">
+            <div class="tl-icon">#2</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #2: docs: AGENTS.md factory rules</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Codified the initial 5 AGENTS.md factory rules governing citation, schema validation, network isolation, sandboxing, and minimal personal data.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  A["Coding agents"] --> B["AGENTS.md"] --> C["Setup and checks"]
+  B --> D["Development rules"] --> E["Target modules"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-6">
+            <div class="tl-icon">#6</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #6: feat: add hnradar fingerprint command (#3)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added GitHub user fingerprinting, analyzing up to 2000 public repos (excluding forks) to extract top 5 languages, top 10 topics, and top 5 notable repos.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  CLI["Fingerprint CLI"] --> Source["GitHub source"] --> API["GitHub REST API"]
+  Source --> Cache[("Response cache")]
+  CLI --> Builder["Profile builder"] --> Model["Pydantic Profile"] --> Output[("Profile JSON")]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-7">
+            <div class="tl-icon">#7</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #7: docs: add AGENTS.md rules 6 and 7 (limits fail loudly, edge-case tests)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Introduced Rule 6 (limits fail loudly, no truncated silent outputs) and Rule 7 (every PR must ship edge-case tests for empty, limit, over-limit, and upstream errors).</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  F["Review findings"] --> A["AGENTS.md rules"] --> C["Future changes"]
+  C --> L["Loud failures"]
+  C --> T["Edge-case tests"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-8">
+            <div class="tl-icon">#8</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #8: feat: add Goose ticket-worker recipe and agent poller</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Created autonomous engineering pipeline: PowerShell poller with OS named mutex single-instance guard and Goose ticket-worker recipe operating in isolated worktrees.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  A["PowerShell poller"] --> B{"Ready issue?"} -->|yes| C["Goose runner"] --> D["Ticket recipe"] --> E["Git and tests"] -->|passes| F["GitHub PR"]
+  B -->|none| G["Quiet exit"]
+  E -->|blocked| H["Needs human"]
+  C -->|run fails| H</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-9">
+            <div class="tl-icon">#9</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #9: feat: add --json option to fetch-hiring (#5)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added --json option and clean terminal table default for fetch-hiring, allowing composable piping into downstream tools.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  CLI["fetch-hiring CLI"] --> HN["HN source"] --> Parser["Job parser"] --> Mode{"JSON flag?"} -->|yes| Stdout["JSON stdout"]
+  Mode -->|no| File["Jobs file"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-10">
+            <div class="tl-icon">#10</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #10: fix: cloud model and stricter tool rules for the ticket worker</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Upgraded worker to gpt-oss:20b-cloud, added strict directives forbidding deleting existing code and requiring full file writes.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  P["Issue poller"] --> G["Goose run"] --> M["Cloud model"] --> T["Shell and write tools"] --> F["Worktree files"]
+  R["Worker recipe"] --> G
+  R --> M</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-11">
+            <div class="tl-icon">#11</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #11: feat: rule 8 - clean untrusted post text before printing</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added Rule 8: untrusted text from HN/GitHub must be cleaned before printing (strips Cc control characters, Cf bidi overrides; ensure_ascii=True on stdout JSON).</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  A["HN posts"] --> B["Comment parser"] --> C["Job records"] --> D["Terminal cleaner"] --> E["CLI table"]
+  C --> F["JSON output"]
+  A --> D</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-21">
+            <div class="tl-icon">#21</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #21: feat: hnradar showhn - find a company&#x27;s Show HN story</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Introduced showhn command to discover Show HN posts via Algolia, ranking by domain match, points, and recency with atomic cache writes.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">sequenceDiagram
+    actor User
+    participant CLI
+    participant HNSource as HN Source
+    participant Cache
+    participant Algolia
+    participant Ranker
+    User->>CLI: showhn company and domain
+    CLI->>CLI: Validate input
+    CLI->>HNSource: Search Show HN
+    HNSource->>Cache: Read cached response
+    alt Valid cached response
+        Cache-->>HNSource: Validated hits
+    else Cache miss or invalid entry
+        HNSource->>Algolia: Relevance search
+        Algolia-->>HNSource: Hits and total count
+        HNSource->>HNSource: Validate response
+        HNSource->>Cache: Atomic cache write
+    end
+    HNSource-->>CLI: Mapped hits and total count
+    CLI->>Ranker: Rank against domain
+    Ranker-->>CLI: Top five and confidence
+    CLI-->>User: Table or JSON</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-22">
+            <div class="tl-icon">#22</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #22: docs: add quality gate (definition of done) to AGENTS.md and the ticket-worker recipe</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Formalized Definition of Done: High and Medium findings must be fixed with tests, Low findings reported, disagreements require code citations, latest commit covered.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  Gate["Quality gate"] --> Worker["Ticket worker"] --> Findings["Review findings"] --> Fixes["Finding fixes"] --> Checks["Tests and smoke"] --> PR["Open PR"] --> Poller["Issue poller"] --> Human["Human review"]
+  PR --> Findings
+  Gate --> Human</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-24">
+            <div class="tl-icon">#24</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #24: feat: hnradar match - top 3 jobs for a user (#12)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Introduced match command: deterministic scoring (20 pts language, 10 pts topic, 5 pts remote bonus, max 100), alias normalization, and cited reason generation.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  CLI["Match CLI"] --> Profile[("Saved profile")] --> Scorer["Job scorer"] --> Result["Match result"] --> Output["Table or JSON"]
+  CLI --> Jobs[("Saved jobs")] --> Scorer</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-28">
+            <div class="tl-icon">#28</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #28: docs: pre-review checklist in AGENTS.md</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added 9-point pre-review checklist addressing recurring defect patterns (ticket line-by-line, clean input failures, ambiguity rejection, identity checking).</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  A["PR changes"] --> B["Pre-review checklist"] --> C{"Ready for review?"} -->|Yes| D["Request review"] --> E["Quality gate"]
+  C -->|No| A</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-29">
+            <div class="tl-icon">#29</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #29: docs: README with setup and how to run every command</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added full repository README with setup, uv invocation patterns, and command documentation for fetch-hiring, showhn, fingerprint, and match.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  HN["HN API"] --> Fetch["fetch-hiring"] --> Jobs[("jobs.json")] --> Match["match"]
+  GitHub["GitHub API"] --> Fingerprint["fingerprint"] --> Profiles[("profile JSON")] --> Match
+  HN --> ShowHN["showhn"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-30">
+            <div class="tl-icon">#30</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #30: feat: flag closed jobs from the poster&#x27;s own replies (#25)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added closed.py parser: analyzes author&#x27;s child replies to detect closing notices with natural language clause parsing and bisect positioning.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  HN["HN thread"] --> Fetch["Fetch hiring"] --> Parse["Parse comment"] --> Jobs["Job JSON"]
+  Fetch --> Scan["Poster reply scan"] --> Check{"Closing notice?"} --> Jobs</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-33">
+            <div class="tl-icon">#33</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #33: feat: showhn URL-restricted domain query (#20)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added secondary Algolia search with restrictSearchableAttributes=url when --domain is provided, deduplicating IDs and aggregating total counts.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">sequenceDiagram
+    actor User
+    participant CLI as showhn CLI
+    participant Search as HN search
+    participant Cache as Response cache
+    participant API as Algolia API
+    participant Rank as Result ranking
+    User->>CLI: company and optional domain
+    CLI->>Search: search_show_hn
+    Search->>Cache: look up name query
+    opt cache miss
+        Search->>API: name search
+        API-->>Search: name hits
+        Search->>Cache: save validated response
+    end
+    opt domain provided
+        Search->>Cache: look up URL query
+        opt cache miss
+            Search->>API: URL-restricted search
+            API-->>Search: URL hits
+            Search->>Cache: save validated response
+        end
+        Note over Search: Deduplicate IDs and compute total
+    end
+    Search-->>CLI: hits and total or error
+    CLI->>Rank: build_result
+    Rank-->>CLI: domain-first top five
+    CLI-->>User: candidates or error</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-34">
+            <div class="tl-icon">#34</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #34: experiment: showhn fallback and labels (Day 11, do not merge)</span>
+                <span class="badge badge-amber">Experiment (Closed)</span>
+              </div>
+              <div class="tl-desc">Experimental run evaluating fallback behaviors and label cues when URL search fails or domain is absent.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  CLI["showhn CLI"] --> Name["Name search"] --> Domain{"Domain provided?"} -->|yes| URL["URL search"] -->|available| Merge["Deduplicate hits"] --> Rank["Rank candidates"] --> Out["Table or JSON"]
+  Domain -->|no| Rank
+  URL -->|unavailable| Rank</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-35">
+            <div class="tl-icon">#35</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #35: docs: AGENTS.md rule 9, a domain match is never company ownership</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added Rule 9: a domain match means a story links to that domain, never that the company owns it or posted it (protects against multi-tenant platforms like notion.so).</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  A["AGENTS.md rule 9"] --> B["Qodo re-import"] --> C["Future reviews"] --> D["Show HN wording"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-36">
+            <div class="tl-icon">#36</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #36: experiment: showhn domain search (Day 11 run B, do not merge)</span>
+                <span class="badge badge-amber">Experiment (Closed)</span>
+              </div>
+              <div class="tl-desc">Second experiment testing unified search coordinator structure for name and URL search.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  CLI["showhn CLI"] --> Search["Search coordinator"] --> Name["Name search"] --> Merge["Deduplicate hits"] --> Rank["Rank candidates"] --> Output["Table or JSON"]
+  Search -->|"if domain"| URL["URL search"] --> Merge</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-39">
+            <div class="tl-icon">#39</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #39: docs: AGENTS.md rule 10, a failed upstream request is never returned as complete</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added Rule 10: any failed request to Algolia, GitHub, or Ollama must raise an error and exit 1; never swallow failures into partial results.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  U["Upstream services"] --> S["Source adapters"] --> C["CLI commands"] --> O["Visible outcome"]
+  R["Rule 10"] -. governs .-> S
+  R -. governs .-> C</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-43">
+            <div class="tl-icon">#43</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #43: feat: careers-only full-text search with its own Pagefind index (#40)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Integrated Pagefind static indexing over jobs.json for full-text careers search with field-level fallback.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  Jobs[("Jobs JSON")] --> Builder["Index builder"] --> CLI["Pagefind CLI"] --> Index[("Careers index")] --> Helper["HN search"] --> Explorer["Job explorer"]
+  Jobs --> Explorer
+  Helper -->|"Index unavailable"| Fallback["Field fallback"] --> Explorer</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-46">
+            <div class="tl-icon">#46</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #46: feat: skip candidate profiles in fetch-hiring and report the count (#45)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added is_candidate_profile() to filter out self-promotional job seekers from fetch-hiring, keeping data/jobs.json strictly hiring companies.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  A["HN comments"] --> B["Limit slice"] --> C["Parse comment"] --> D{"Candidate profile?"}
+  D -->|No| E["Kept jobs"] --> F["Jobs output"]
+  D -->|Yes| G["Skip count"] --> H["CLI note"]</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-48">
+            <div class="tl-icon">#48</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #48: feat: verify-jobs-parse skill, a real-data check for parser changes</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Added Claude skill and compare_jobs.py to verify parser changes against live HN threads, validating must-keep/must-exclude IDs and baseline stability.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  Skill["Verification skill"] --> Preflight["Tests and hash"] --> Fetch["Fetch hiring"] --> Scratch[("Scratch jobs")] --> Compare["Compare IDs"] --> Report[("JSON report")]
+  Baseline[("Baseline jobs")] --> Compare
+  Fetch --> Thread[("Cached thread")]
+  Thread --> Compare</pre>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item" id="pr-card-49">
+            <div class="tl-icon">#49</div>
+            <div class="tl-content">
+              <div class="tl-header">
+                <span class="tl-title">PR #49: feat: hnradar pulse STORY_ID groups Show HN comments into pros, bugs and asks (#13)</span>
+                <span class="badge badge-green">Merged</span>
+              </div>
+              <div class="tl-desc">Introduced pulse command: leverages local Ollama LLM (qwen2.5:7b) to cluster comments into pros, bugs, and asks with mandatory comment ID citation.</div>
+              <div style="font-weight:600; font-size:0.8rem; color:#93c5fd; margin-bottom:0.4rem;">QODO MERMAID DIAGRAM:</div>
+              <div class="mermaid-box">
+                <pre class="mermaid">graph TD
+  CLI["Pulse CLI"] --> HN["Cached HN source"] --> Cluster["Comment selection"] --> Ollama["Ollama client"] --> Validate["Reply validation"] --> Output[("Pulse JSON")]
+  CLI --> Output</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: Subsystems View -->
+      <div class="subsystems-view" id="subsystems-view">
+        <h2 style="color:#fff; margin-bottom:0.5rem;">Architectural Subsystems</h2>
+        <p style="color:var(--text-muted); margin-bottom:2rem;">Component breakdown by functional boundary and responsibility layer.</p>
+        <div class="subsystem-grid" id="subsystem-grid"></div>
+      </div>
+
+      <!-- VIEW 4: AGENTS.md Governance Matrix -->
+      <div class="governance-view" id="governance-view">
+        <h2 style="color:#fff; margin-bottom:0.5rem;">AGENTS.md Factory Rules & Quality Gate</h2>
+        <p style="color:var(--text-muted); margin-bottom:1.5rem;">The 10 foundational rules and verification checks governing automated agent runs and human reviews.</p>
+        <table class="rule-table">
+          <thead>
+            <tr>
+              <th style="width:10%;">Rule #</th>
+              <th style="width:25%;">Rule Name</th>
+              <th style="width:40%;">Description & Rationale</th>
+              <th style="width:25%;">Enforcing Components</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-blue">Rule 1</span></td>
+              <td><b>Every claim is cited</b></td>
+              <td>Any pulse item or outreach reason stating what users said must carry the comment ID. Why: "Arrive with the fix" requires 100% trust; zero invented feedback.</td>
+              <td><code>pulse/cluster.py</code>, <code>match.py</code>, <code>closed.py</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 2</span></td>
+              <td><b>LLM output schema-validated</b></td>
+              <td>Parse model responses only through Pydantic models; never regex free text. Small models drift in format; validation surfaces errors immediately.</td>
+              <td><code>pulse/schema.py</code>, <code>sources/ollama.py</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 3</span></td>
+              <td><b>Network in sources/</b></td>
+              <td>All HTTP calls to Algolia and GitHub live in <code>src/hnradar/sources/</code> with disk caching. Tests never hit real network.</td>
+              <td><code>sources/hn.py</code>, <code>sources/github.py</code>, <code>sources/ollama.py</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 4</span></td>
+              <td><b>Untrusted URLs in sandbox</b></td>
+              <td>Never fetch URLs taken from an HN post, comment, or profile outside the sandbox layer.</td>
+              <td><code>showhn.py</code> (host_matches only parses, never fetches)</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 5</span></td>
+              <td><b>Minimal personal data</b></td>
+              <td>Store only public GitHub usernames and derived repo stats. Never scrape LinkedIn or store resumes.</td>
+              <td><code>fingerprint.py</code>, <code>sources/github.py</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 6</span></td>
+              <td><b>Limits fail loudly</b></td>
+              <td>Loops, page caps (2,000 repos), retry caps, and timeouts must raise an error; never return a partial result disguised as complete.</td>
+              <td><code>sources/github.py</code>, <code>sources/hn.py</code>, <code>pulse/cluster.py</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 7</span></td>
+              <td><b>Edge-case tests for every PR</b></td>
+              <td>Every change ships tests for empty input, at-the-limit, over-the-limit, upstream errors, and concurrent cache writers.</td>
+              <td><code>tests/</code>, <code>AGENTS.md</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 8</span></td>
+              <td><b>Clean untrusted post text</b></td>
+              <td>Strip Unicode control chars (Cc) and bidi overrides (Cf) before terminal printing; ensure_ascii=True for JSON stdout.</td>
+              <td><code>cli.py (_terminal_safe)</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 9</span></td>
+              <td><b>Domain match != ownership</b></td>
+              <td>A domain match means a story links to that domain, never that the company posted or owns it.</td>
+              <td><code>showhn.py</code>, <code>models.py</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-blue">Rule 10</span></td>
+              <td><b>Upstream errors never complete</b></td>
+              <td>Failed Algolia, GitHub, or Ollama requests must exit 1 with an error message; never swallow errors into empty results.</td>
+              <td><code>sources/hn.py</code>, <code>sources/github.py</code>, <code>cli.py</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Right: Component Details Drawer -->
+    <div class="drawer" id="component-drawer">
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-title" id="d-title">Component Name</div>
+          <div class="drawer-meta" id="d-meta"></div>
+        </div>
+        <button class="close-btn" onclick="closeDrawer()">&times;</button>
+      </div>
+
+      <div class="drawer-nav">
+        <div class="d-tab active" onclick="switchDrawerTab('overview', this)">Overview</div>
+        <div class="d-tab" onclick="switchDrawerTab('diagram', this)">Qodo PR Diagram</div>
+        <div class="d-tab" onclick="switchDrawerTab('rules', this)">Rules & Specs</div>
+      </div>
+
+      <div class="drawer-content" id="d-tab-overview">
+        <h4>Functionality</h4>
+        <div id="d-details"></div>
+        <h4>Inputs & Outputs</h4>
+        <p><b>Inputs:</b> <span id="d-inputs"></span></p>
+        <p><b>Outputs:</b> <span id="d-outputs"></span></p>
+      </div>
+
+      <div class="drawer-content" id="d-tab-diagram" style="display:none;">
+        <h4 id="d-qodo-title">Qodo Review Diagram</h4>
+        <div class="mermaid-box" id="d-mermaid-container">
+          <pre class="mermaid" id="d-mermaid"></pre>
+        </div>
+        <div id="d-diagram-desc" style="color:var(--text-muted); font-size:0.85rem; margin-top:0.75rem;"></div>
+      </div>
+
+      <div class="drawer-content" id="d-tab-rules" style="display:none;">
+        <h4>Governing AGENTS.md Rules</h4>
+        <ul id="d-rules"></ul>
+        <h4>Source File</h4>
+        <p><code id="d-file"></code></p>
+        <h4>Relevant Pull Requests</h4>
+        <div id="d-prs" style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.5rem;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const componentsData = {"cli_fetch_hiring": {"id": "cli_fetch_hiring", "name": "fetch-hiring CLI", "category": "CLI Layer", "file": "src/hnradar/cli.py", "prs": ["#1", "#9", "#11", "#30", "#46"], "summary": "Fetches monthly 'Ask HN: Who is hiring?' thread, parses jobs, strips candidate posts, detects closed positions, and outputs formatted table or JSON.", "details": "The <code>fetch-hiring</code> CLI command orchestrates the entire monthly job ingestion pipeline.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Story Discovery:</b> Queries HN Algolia via <code>hn.find_latest_hiring_story()</code> for the newest official thread posted by <code>whoishiring</code>.</li>\n  <li><b>Comment Retrieval:</b> Fetches all direct child comments, ignoring deleted or empty posts.</li>\n  <li><b>Job Parsing:</b> Runs each comment through <code>parse_comment()</code> to extract company, role, location, remote status, stack, and application URLs.</li>\n  <li><b>Candidate Profile Filtering (PR #46):</b> Identifies and skips self-promotional posts ('Who wants to be hired?') using <code>is_candidate_profile()</code>, reporting the skipped count to stderr/stdout.</li>\n  <li><b>Closed Job Detection (PR #30):</b> Checks the thread's replies from the original poster using <code>closing_reply_id()</code>. If the poster announced the role is closed, flags <code>job.closed = True</code> and records <code>closed_comment_id</code>.</li>\n  <li><b>Dual Output Modes (PR #9):</b> By default, prints an ASCII terminal table and writes <code>data/jobs.json</code>. With <code>--json</code>, emits clean JSON to stdout.</li>\n  <li><b>Terminal Sanitization (PR #11):</b> Strips control characters (ANSI, BEL, CR) and bidi overrides before printing to the terminal (AGENTS.md Rule 8).</li>\n</ul>", "inputs": "Options: <code>--limit N</code> (max comments to process), <code>--out PATH</code> (custom destination), <code>--json</code> (stdout JSON).", "outputs": "Writes <code>data/jobs.json</code> (or custom path) and prints a sanitized terminal table or JSON stream.", "rules": ["Rule 3: Network via sources/", "Rule 6: Limits fail loudly", "Rule 8: Terminal-safe text", "Rule 10: No swallowed upstream errors"], "qodo_pr": "9"}, "cli_showhn": {"id": "cli_showhn", "name": "showhn CLI", "category": "CLI Layer", "file": "src/hnradar/cli.py", "prs": ["#21", "#33", "#35", "#39"], "summary": "Finds candidate Show HN stories for a company to provide context for outreach, prioritizing domain-matched URLs.", "details": "The <code>showhn</code> CLI command discovers Hacker News 'Show HN' posts published about or by a target company.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Target Lookup:</b> Takes a company name argument and an optional <code>--domain</code> flag.</li>\n  <li><b>Domain Query Expansion (PR #33):</b> When <code>--domain</code> is provided, executes a secondary URL-restricted query against Algolia (<code>restrictSearchableAttributes=url</code>) to catch products with generic names.</li>\n  <li><b>Result Ranking:</b> Prioritizes candidates whose linked URLs match the target domain, followed by point count and recency.</li>\n  <li><b>Domain Match Semantics (PR #35 / Rule 9):</b> Strictly reports that a story 'links to' the domain rather than claiming the company posted or owns it.</li>\n  <li><b>Confidence Cues:</b> Warns the user when results have low confidence (no domain match found) or when results were truncated.</li>\n</ul>", "inputs": "Argument: <code>company</code> (required). Options: <code>--domain DOMAIN</code>, <code>--json</code>.", "outputs": "Console table of candidate stories (ID, Points, Comments, Domain Match, Title, URL) or JSON object.", "rules": ["Rule 3: Network via sources/", "Rule 9: Domain match is never company ownership", "Rule 10: No swallowed upstream failures"], "qodo_pr": "33"}, "cli_fingerprint": {"id": "cli_fingerprint", "name": "fingerprint CLI", "category": "CLI Layer", "file": "src/hnradar/cli.py", "prs": ["#6", "#7"], "summary": "Analyzes a public GitHub profile to extract top languages, topics, and notable repositories for deterministic matching.", "details": "The <code>fingerprint</code> command inspects a developer's public GitHub footprint to construct a portable developer profile.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Repository Collection:</b> Paginates through public repositories owned by the user (up to 2,000 repos).</li>\n  <li><b>Fork Exclusion:</b> Strictly excludes forked repositories to ensure the profile only reflects the developer's original code.</li>\n  <li><b>Language Aggregation:</b> Computes language prevalence by aggregate byte size across all non-fork repos, retaining the top 5.</li>\n  <li><b>Topic Synthesis:</b> Counts GitHub repository topics and extracts the top 10 most frequent tags.</li>\n  <li><b>Notable Repositories:</b> Selects the top 5 original repos ranked by GitHub star count.</li>\n  <li><b>File Output:</b> Persists a structured <code>Profile</code> model to <code>data/profiles/&lt;user&gt;.json</code>.</li>\n</ul>", "inputs": "Argument: <code>username</code>. Option: <code>--out-dir PATH</code> (default <code>data/profiles/</code>).", "outputs": "JSON profile at <code>data/profiles/&lt;username&gt;.json</code>.", "rules": ["Rule 3: Network via sources/", "Rule 5: Minimal personal data (public repos only)", "Rule 6: Fail loudly on >2000 repos"], "qodo_pr": "6"}, "cli_match": {"id": "cli_match", "name": "match CLI", "category": "CLI Layer", "file": "src/hnradar/cli.py", "prs": ["#24", "#29"], "summary": "Deterministically scores parsed jobs against a GitHub user profile, returning the top 3 jobs with cited reasons.", "details": "The <code>match</code> command matches a developer's GitHub profile against the current month's parsed jobs.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Profile & Jobs Loading:</b> Validates profile existence and schema. Handles username casing differences gracefully while rejecting ambiguous duplicates.</li>\n  <li><b>Deterministic Scoring:</b> Applies an exact point system: 20 pts per language match, 10 pts per topic match, 5 pts remote bonus (only if stack overlap exists), capped at 100 points.</li>\n  <li><b>Evidence Generation (Rule 1):</b> Generates structured <code>MatchReason</code> items citing the specific language, topic, or notable repository that justified the match.</li>\n  <li><b>Top 3 Selection:</b> Returns the top 3 scored jobs using a min-heap (<code>heapq.nlargest</code>). Breaks ties in favor of newer posts (higher comment ID).</li>\n  <li><b>No Filler Output:</b> If zero jobs match, reports 'no strong matches' rather than arbitrary recommendations.</li>\n</ul>", "inputs": "Argument: <code>username</code>. Options: <code>--jobs PATH</code> (default <code>data/jobs.json</code>), <code>--profiles-dir PATH</code>, <code>--json</code>.", "outputs": "Console table of top 3 matched jobs with cited evidence and scores, or structured JSON.", "rules": ["Rule 1: Every claim is cited", "Rule 6: Limits fail loudly", "Rule 8: Terminal-safe text"], "qodo_pr": "24"}, "cli_pulse": {"id": "cli_pulse", "name": "pulse CLI", "category": "CLI Layer", "file": "src/hnradar/cli.py", "prs": ["#49"], "summary": "Uses a local LLM via Ollama to cluster a Show HN story's comments into pros, bugs, and asks with strict comment ID citations.", "details": "The <code>pulse</code> command performs AI-assisted qualitative intelligence on Hacker News feedback for a target company's Show HN story.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Comment Harvesting:</b> Fetches the complete Show HN story tree from Algolia cache and extracts top-level comments.</li>\n  <li><b>Prompt Engineering & Signal Filtering:</b> Sorts comments by length (longest first) to maximize signal, caps at 60 comments, and truncates individual comments at 1,500 characters.</li>\n  <li><b>Schema Constrained Completion:</b> Requests structured JSON matching Pydantic's <code>ModelReply</code> schema from a local Ollama instance (default <code>qwen2.5:7b</code>).</li>\n  <li><b>Citation Verification (Rule 1):</b> Verifies that every single generated insight cites legitimate, existing comment IDs from the story.</li>\n  <li><b>Output Persistence:</b> Atomically writes <code>data/pulse/&lt;story_id&gt;.json</code>.</li>\n</ul>", "inputs": "Argument: <code>story_id</code> (Show HN story ID). Options: <code>--model MODEL</code> (default <code>qwen2.5:7b</code>), <code>--out PATH</code>.", "outputs": "Atomically saved JSON file at <code>data/pulse/&lt;story_id&gt;.json</code> and terminal summary table.", "rules": ["Rule 1: Every claim is cited", "Rule 2: LLM output is schema-validated", "Rule 6: Limits fail loudly", "Rule 10: No swallowed upstream errors"], "qodo_pr": "49"}, "source_hn": {"id": "source_hn", "name": "HN Algolia Source", "category": "Source Adapters", "file": "src/hnradar/sources/hn.py", "prs": ["#1", "#21", "#33", "#39"], "summary": "Low-level client for the Hacker News Algolia REST API with on-disk caching, shape validation, and atomic writes.", "details": "The <code>sources/hn.py</code> module encapsulates all HTTP communication with Hacker News via the Algolia API.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>API Endpoints:</b> Wraps <code>search_by_date</code>, <code>search</code>, and <code>items/{id}</code>.</li>\n  <li><b>On-Disk Response Cache:</b> Caches HTTP responses in <code>data/cache/</code> keyed by SHA-256 of the path and sorted parameters. Cache TTLs: Search 1 hour, Items 6 hours, Show HN 1 hour.</li>\n  <li><b>Strict Shape Validation:</b> Validates that <code>nbHits</code> is present, non-negative, and at least as large as returned hits. Validates all hit IDs and attributes.</li>\n  <li><b>Atomic File Writes:</b> Writes data to a unique temporary file (<code>mkstemp</code>) in the cache directory before renaming (<code>os.replace</code>), preventing partial cache files or race conditions.</li>\n  <li><b>Fail-Loud Semantics (Rule 10):</b> Any HTTP failure, timeout, or malformed JSON raises <code>HNError</code>, terminating the CLI with code 1 instead of returning partial results.</li>\n</ul>", "inputs": "Query parameters, item IDs, cache control flags.", "outputs": "Validated JSON response dictionaries.", "rules": ["Rule 3: Network goes through sources/", "Rule 6: Limits fail loudly", "Rule 10: Failed upstream request never returned as complete"], "qodo_pr": "21"}, "source_github": {"id": "source_github", "name": "GitHub API Source", "category": "Source Adapters", "file": "src/hnradar/sources/github.py", "prs": ["#6", "#7", "#39"], "summary": "Communicates with GitHub's public REST API to retrieve repository metadata with rate-limit monitoring and caching.", "details": "The <code>sources/github.py</code> module handles all communication with GitHub's public API.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Repository Pagination:</b> Queries <code>users/{username}/repos</code> in batches of 100 (sorted by pushed date), fetching up to 20 pages (2,000 repos).</li>\n  <li><b>Fail-Loud Limit Enforcement:</b> If a user has more than 2,000 repositories, deliberately fails with <code>GitHubError</code> rather than silently returning a truncated profile (Rule 6).</li>\n  <li><b>Authentication & Rate Limits:</b> Supports optional <code>GITHUB_TOKEN</code> to raise the rate limit from 60 to 5,000 req/hr. Detects HTTP 403/429 with <code>x-ratelimit-remaining == 0</code> and raises clear diagnostic messages.</li>\n  <li><b>Disk Cache:</b> Stores repository lists in <code>data/cache/</code> with a 1-hour TTL.</li>\n</ul>", "inputs": "GitHub username string, optional token via <code>GITHUB_TOKEN</code> environment variable.", "outputs": "List of raw repository JSON dictionaries.", "rules": ["Rule 3: Network in sources/", "Rule 5: Minimal personal data", "Rule 6: Limits fail loudly", "Rule 10: Upstream failures fail loudly"], "qodo_pr": "6"}, "source_ollama": {"id": "source_ollama", "name": "Ollama LLM Source", "category": "Source Adapters", "file": "src/hnradar/sources/ollama.py", "prs": ["#49"], "summary": "Local client for Ollama LLM chat completion with JSON schema constraints, bounded tokens, and timeout safeguards.", "details": "The <code>sources/ollama.py</code> module provides isolated network access to a local or remote Ollama model server.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Deterministic Execution:</b> Enforces <code>temperature: 0</code> for reproducible clustering.</li>\n  <li><b>Schema Constrained Decoding:</b> Supplies the Pydantic JSON schema to Ollama's <code>format</code> parameter to guarantee valid JSON formatting at generation time.</li>\n  <li><b>Bounded Output:</b> Sets <code>num_predict: 2048</code> to prevent small local models from entering infinite generation loops.</li>\n  <li><b>Defensive Error Handling:</b> Distinguishes between connection failures (Ollama not running), timeout exceptions (CPU latency), HTTP errors, and model errors.</li>\n</ul>", "inputs": "System prompt, user prompt, and JSON schema dictionary.", "outputs": "Raw completion string containing schema-conforming JSON.", "rules": ["Rule 2: LLM output is schema-validated", "Rule 3: Network in sources/", "Rule 6: Limits fail loudly", "Rule 10: Failed upstream request fails cleanly"], "qodo_pr": "49"}, "parse_job": {"id": "parse_job", "name": "Job Comment Parser", "category": "Parsing & Extraction", "file": "src/hnradar/parse.py", "prs": ["#1", "#11", "#24", "#46"], "summary": "Converts raw HTML HN comments into structured Job models, extracting company, role, location, remote status, stack, and URLs.", "details": "The <code>parse_comment()</code> function transforms unstructured HTML from 'Who is hiring?' threads into validated <code>Job</code> records.<br/><br/>\n<b>Key Heuristics:</b>\n<ul>\n  <li><b>HTML Sanitation:</b> Converts HTML breaks and paragraphs into clean newlines while stripping remaining tags.</li>\n  <li><b>Pipe-Separated Header Parsing:</b> Parses standard HN hiring headers into company, role, and location.</li>\n  <li><b>Company Name Extraction:</b> Uses <code>_guess_company()</code> with regular expressions to strip leading filler while retaining legal entity suffixes ('Inc', 'LLC', 'GmbH').</li>\n  <li><b>Tech Stack Recognition:</b> Matches against 40+ canonical technologies. Includes regex context matching for 'Go' to prevent false positives like 'ready to go'.</li>\n  <li><b>Remote Detection:</b> Disambiguates explicit remote positions from negative phrases like 'no remote', 'not remote', or 'onsite only'.</li>\n  <li><b>URL Discovery:</b> Extracts external company job/career links while filtering out internal Hacker News URLs.</li>\n</ul>", "inputs": "Comment ID integer and raw HTML text string.", "outputs": "Pydantic <code>Job</code> instance.", "rules": ["Rule 4: Untrusted URLs only in sandbox", "Rule 7: Edge-case tests"], "qodo_pr": "11"}, "parse_candidate_filter": {"id": "parse_candidate_filter", "name": "Candidate Profile Filter", "category": "Parsing & Extraction", "file": "src/hnradar/parse.py", "prs": ["#46"], "summary": "Classifies and discards job-seeker posts ('Who wants to be hired?') so only hiring companies remain in data/jobs.json.", "details": "The <code>is_candidate_profile()</code> function detects and removes posts where candidates are pitching themselves rather than companies advertising vacancies.<br/><br/>\n<b>Detection Logic:</b>\n<ul>\n  <li><b>Intro Style:</b> Identifies posts beginning with first-person intros within the first two lines, combined with the absence of hiring cues.</li>\n  <li><b>Resume Style:</b> Identifies traditional candidate format containing <i>'Willing to relocate:'</i> plus two or more resume headers (<i>'Location:'</i>, <i>'Technologies:'</i>, etc.).</li>\n  <li><b>Conservative Architecture:</b> Intentionally designed to favor precision over recall: missing a candidate pitch is acceptable, but falsely discarding a genuine job posting is forbidden.</li>\n</ul>", "inputs": "Plain text comment string.", "outputs": "Boolean indicating whether the comment is a candidate profile.", "rules": ["Rule 7: Edge-case tests for candidate classification"], "qodo_pr": "46"}, "closed_detector": {"id": "closed_detector", "name": "Closed Job Detector", "category": "Parsing & Extraction", "file": "src/hnradar/closed.py", "prs": ["#30"], "summary": "Scans replies by the original poster to identify when a position has been filled or closed, citing the closing reply ID.", "details": "The <code>closed.py</code> module inspects the conversation tree underneath each job comment to detect if the position has expired.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Poster-Only Authority:</b> Only replies written by the exact original poster are evaluated. Third party replies are ignored.</li>\n  <li><b>Non-Recursive Traversal:</b> Uses an explicit stack to traverse nested comment trees, avoiding recursion limits on deep discussion threads.</li>\n  <li><b>Linguistic Closure Verification:</b> Evaluates clauses for closure phrases (<i>'no longer hiring'</i>, <i>'position filled'</i>, <i>'applications closed'</i>).</li>\n  <li><b>Syntactic Boundary Checks:</b> Uses binary search (<code>bisect</code>) over sentence indices to verify that closing phrases are not negated or qualified.</li>\n  <li><b>Citation (Rule 1):</b> Records the exact comment ID where the poster declared the closure in <code>job.closed_comment_id</code>.</li>\n</ul>", "inputs": "Comment JSON object with child reply nodes.", "outputs": "Optional closing comment ID integer, or <code>None</code> if no evidence exists.", "rules": ["Rule 1: Every claim is cited", "Rule 7: Edge-case tests"], "qodo_pr": "30"}, "fingerprint_synthesizer": {"id": "fingerprint_synthesizer", "name": "Profile Synthesizer", "category": "Scoring & Matching", "file": "src/hnradar/fingerprint.py", "prs": ["#6"], "summary": "Distills a developer's repository history into a concise, deterministic Profile model without storing private data.", "details": "The <code>build_profile()</code> function converts a list of GitHub repository payloads into a standardized <code>Profile</code>.<br/><br/>\n<b>Processing Steps:</b>\n<ul>\n  <li><b>Fork Filtering:</b> Strips all forked repositories so metrics reflect only personal, authored work.</li>\n  <li><b>Language Profiling:</b> Aggregates codebase byte sizes per language across own repos, selecting the top 5 languages.</li>\n  <li><b>Topic Synthesis:</b> Counts repository topic occurrences, ranking the top 10 tags.</li>\n  <li><b>Notable Repositories:</b> Selects the top 5 repositories by stargazers count, capturing name, description, stars, and primary language.</li>\n</ul>", "inputs": "Username string and list of repository dictionaries.", "outputs": "Pydantic <code>Profile</code> instance.", "rules": ["Rule 5: Minimal personal data (public stats only, no scraping)"], "qodo_pr": "6"}, "matching_engine": {"id": "matching_engine", "name": "Deterministic Job Scorer", "category": "Scoring & Matching", "file": "src/hnradar/match.py", "prs": ["#24"], "summary": "Scores jobs against a user's profile using transparent points and normalizes aliases across tech terminology.", "details": "The <code>match.py</code> module implements the deterministic job recommendation algorithm.<br/><br/>\n<b>Algorithm Rules:</b>\n<ul>\n  <li><b>Alias Normalization:</b> Canonicalizes terminology variations (e.g. <code>k8s</code> \u2194 <code>kubernetes</code>, <code>golang</code> \u2194 <code>go</code>, <code>postgres</code> \u2194 <code>postgresql</code>).</li>\n  <li><b>Point Allocation:</b> 20 points per overlapping programming language, 10 points per overlapping topic/tool, and a 5-point bonus if the job allows remote work (only granted if a stack match already exists). Capped at 100 points maximum.</li>\n  <li><b>Evidence Generation (Rule 1):</b> Every match includes human-readable reasons that cite exact languages, repos, or topics from the profile.</li>\n  <li><b>Ranking:</b> Sorts by score descending, breaking ties with comment recency (higher comment ID).</li>\n</ul>", "inputs": "<code>Profile</code> instance and list of <code>Job</code> instances.", "outputs": "List of top 3 <code>Match</code> instances containing scores and cited reasons.", "rules": ["Rule 1: Every claim is cited", "Rule 7: Edge-case tests"], "qodo_pr": "24"}, "showhn_ranker": {"id": "showhn_ranker", "name": "Show HN Ranker & Domain Validator", "category": "Company Radar", "file": "src/hnradar/showhn.py", "prs": ["#21", "#33", "#35"], "summary": "Validates domain boundaries, checks URLs against hosts, and ranks candidate Show HN stories for outreach context.", "details": "The <code>showhn.py</code> module ranks and filters Show HN stories retrieved for a company.<br/><br/>\n<b>Security & Ranking Rules:</b>\n<ul>\n  <li><b>Domain Normalization:</b> Enforces strict hostname format (<code>normalize_domain</code>), stripping <code>www.</code> and rejecting paths, schemes, or ports.</li>\n  <li><b>Host Match Security:</b> Rejects backslashes (<code>\\\\</code>) to prevent browser/parser host confusion attacks. Enforces exact host or subdomain match.</li>\n  <li><b>Ranking Priority:</b> Stories linking to the verified domain rank first, followed by story point scores, then newest story ID. Returns top 5 candidates.</li>\n  <li><b>Rule 9 Compliance:</b> Labels stories as 'linking to domain', never asserting official ownership.</li>\n</ul>", "inputs": "Company name, optional domain string, hits list, and total count.", "outputs": "Pydantic <code>ShowHNResult</code> with top 5 candidates and confidence flags.", "rules": ["Rule 4: Untrusted URLs in sandbox", "Rule 9: Domain match is never company ownership"], "qodo_pr": "35"}, "pulse_clusterer": {"id": "pulse_clusterer", "name": "Pulse Comment Clusterer", "category": "Intelligence & LLM", "file": "src/hnradar/pulse/cluster.py", "prs": ["#49"], "summary": "Coordinates Ollama LLM prompting, enforces Pydantic schemas, and verifies comment ID citations across pros, bugs, and asks.", "details": "The <code>pulse/cluster.py</code> module manages the AI-powered comment clustering workflow.<br/><br/>\n<b>Pipeline Architecture:</b>\n<ul>\n  <li><b>Signal Slicing:</b> Filters comments with text, sorts by length to maximize informative content, selects at most 60 comments, and preserves thread order for prompt caching stability.</li>\n  <li><b>Injection Defense:</b> Passes comments as structured data inside a JSON array and explicitly instructs the model to ignore any embedded directives.</li>\n  <li><b>Model Completion:</b> Submits the prompt to Ollama with constrained JSON schema enforcement.</li>\n  <li><b>Validation & Retry:</b> Validates the output through <code>ModelReply</code>. If pydantic validation fails, feeds the exact error message back to the LLM for a second attempt (2 attempts maximum).</li>\n  <li><b>Citation Verification:</b> Confirms that every cited comment ID in the model's output corresponds to an actual comment in the story.</li>\n</ul>", "inputs": "Story ID, title, comment list, and Ollama client instance.", "outputs": "Pydantic <code>PulseResult</code> with pros, bugs, and asks.", "rules": ["Rule 1: Every claim cited", "Rule 2: LLM output schema-validated", "Rule 6: Limits fail loudly"], "qodo_pr": "49"}, "terminal_sanitizer": {"id": "terminal_sanitizer", "name": "Terminal Sanitizer (Rule 8)", "category": "Security & Sanitization", "file": "src/hnradar/cli.py", "prs": ["#11"], "summary": "Sanitizes untrusted post text before terminal rendering, stripping ANSI escape sequences, control codes, and bidi overrides.", "details": "The <code>_terminal_safe()</code> function defends the developer's terminal against malicious or accidental control sequences embedded in Hacker News posts or GitHub profiles.<br/><br/>\n<b>Defenses Applied:</b>\n<ul>\n  <li><b>Control Character Removal:</b> Replaces Unicode category <code>Cc</code> (other, control) characters\u2014including ESC (<code>\\\\x1b</code>), BEL, and C1 controls\u2014with spaces.</li>\n  <li><b>Bi-Directional Override Stripping:</b> Drops Unicode category <code>Cf</code> (formatting) characters such as right-to-left overrides (U+202E) and zero-width spaces that could reverse terminal text or disguise malicious commands.</li>\n  <li><b>JSON Escaping:</b> Ensures JSON emitted to stdout uses <code>ensure_ascii=True</code>, escaping non-ASCII and C1 control characters while allowing UTF-8 files on disk.</li>\n</ul>", "inputs": "Untrusted text string from HN posts or GitHub metadata.", "outputs": "Terminal-safe string sanitized for direct printing.", "rules": ["Rule 8: Untrusted post text cleaned before printing"], "qodo_pr": "11"}, "ticket_worker": {"id": "ticket_worker", "name": "Goose Ticket Worker Recipe", "category": "Autonomous Factory", "file": ".goose/recipes/ticket-worker.yaml", "prs": ["#8", "#10", "#22"], "summary": "Autonomous AI agent recipe that implements GitHub issues in dedicated git worktrees and opens pull requests.", "details": "The <code>ticket-worker.yaml</code> recipe configures the Goose autonomous coding agent.<br/><br/>\n<b>Operational Safeguards:</b>\n<ul>\n  <li><b>Isolated Git Worktrees:</b> Operates exclusively in dedicated worktrees on dedicated branches (<code>agent/&lt;issue_number&gt;</code>), completely isolating working files from main.</li>\n  <li><b>Model Configuration (PR #10):</b> Uses <code>gpt-oss:20b-cloud</code> via Ollama provider with a 60-turn limit.</li>\n  <li><b>Quality Gate Execution (PR #22):</b> Reviews existing PR comments from <code>qodo-code-review[bot]</code> or the repository owner. Treats High/Medium findings as required tasks, while reporting Low findings.</li>\n  <li><b>Strict Tool Directives:</b> Replaces full file contents cleanly, runs <code>uv run pytest -q</code> and smoke checks, and opens PRs with standard completion checklists.</li>\n</ul>", "inputs": "Issue number and PR body path parameters.", "outputs": "Git commit, branch push, and GitHub Pull Request.", "rules": ["AGENTS.md Quality Gate", "AGENTS.md Pre-review checklist"], "qodo_pr": "8"}, "agent_poller": {"id": "agent_poller", "name": "PowerShell Agent Poller", "category": "Autonomous Factory", "file": "scripts/agent-poll.ps1", "prs": ["#8"], "summary": "Automated background loop that polls GitHub for ready-for-agent issues, protected by a system-wide named mutex lock.", "details": "The <code>agent-poll.ps1</code> script orchestrates automated ticket execution.<br/><br/>\n<b>Architecture:</b>\n<ul>\n  <li><b>Named OS Mutex Guard:</b> Uses a Windows named mutex (<code>Global\\\\HNRadarAgentPoll</code>) to guarantee single-instance execution, preventing race conditions without brittle file locks.</li>\n  <li><b>Queue Polling:</b> Searches for open issues with label <code>ready-for-agent</code>.</li>\n  <li><b>Worktree Lifecycle:</b> Sets up isolated worktrees under <code>../hn-radar-worktrees/</code>, executes Goose, and logs all execution outputs.</li>\n  <li><b>Failure Escalation:</b> If an issue fails after 2 attempts, automatically removes the agent label, adds <code>needs-human</code>, and posts an explanatory diagnostic comment.</li>\n</ul>", "inputs": "GitHub repository issue queue.", "outputs": "Spawned Goose worker process and issue status transitions.", "rules": ["Quality Gate orchestration"], "qodo_pr": "8"}, "verify_skill": {"id": "verify_skill", "name": "Real-Data Verify Skill", "category": "Autonomous Factory", "file": ".claude/skills/verify-jobs-parse/compare_jobs.py", "prs": ["#48"], "summary": "Automated skill that runs parser changes on live Hacker News data, comparing comment IDs against baseline jobs.json.", "details": "The <code>verify-jobs-parse</code> skill verifies parser or filtering modifications against the real Hacker News thread.<br/><br/>\n<b>Verification Methodology:</b>\n<ul>\n  <li><b>Scratch Execution:</b> Fetches the live thread into a temporary scratch file to avoid modifying the tracked <code>data/jobs.json</code>.</li>\n  <li><b>ID Regression Comparison:</b> Compares scratch jobs against the committed baseline by comment ID.</li>\n  <li><b>Thread Loss Separation:</b> Cross-references cached thread responses to differentiate between posts dropped by code versus posts deleted or flagged on Hacker News.</li>\n  <li><b>Assertion Validation:</b> Confirms that <code>must-exclude</code> IDs are strictly absent and <code>must-keep</code> IDs are strictly retained.</li>\n</ul>", "inputs": "Baseline jobs file, scratch jobs file, must-keep and must-exclude comment ID lists.", "outputs": "JSON audit report with pass/fail status and ID discrepancy breakdown.", "rules": ["Rule 7: Edge-case real data tests"], "qodo_pr": "48"}, "agents_md_governance": {"id": "agents_md_governance", "name": "AGENTS.md Factory Rules & Quality Gate", "category": "Autonomous Factory", "file": "AGENTS.md", "prs": ["#2", "#7", "#11", "#22", "#28", "#35", "#39"], "summary": "The 10 foundational engineering rules, pre-review checklist, and definition-of-done quality gate governing all human and AI changes.", "details": "<code>AGENTS.md</code> defines the governance framework for the repository.<br/><br/>\n<b>The 10 Core Rules:</b>\n<ol>\n  <li><b>Every claim is cited:</b> Every insight or match reason must carry its source comment ID.</li>\n  <li><b>LLM output is schema-validated:</b> All model outputs must parse through Pydantic models.</li>\n  <li><b>Network goes through sources/:</b> All HTTP access is centralized with on-disk caching.</li>\n  <li><b>Untrusted URLs only in sandbox layer:</b> Never fetch arbitrary URLs outside sandbox.</li>\n  <li><b>Minimal personal data:</b> Store only public GitHub metadata; never scrape resumes.</li>\n  <li><b>Limits fail loudly:</b> Pagination caps and loops must raise errors rather than return partial data.</li>\n  <li><b>Every change ships edge-case tests:</b> Mandatory tests for empty, at-limit, over-limit, and upstream errors.</li>\n  <li><b>Untrusted post text is cleaned:</b> Remove control characters and formatting overrides before terminal printing.</li>\n  <li><b>Domain match is never company ownership:</b> Clarify that stories link to domains, not that companies own them.</li>\n  <li><b>Failed upstream request never returned as complete:</b> Never swallow HTTP or API failures.</li>\n</ol>", "inputs": "All pull requests and code modifications.", "outputs": "Strict pass/fail criteria for PR acceptance.", "rules": ["Rules 1 through 10"], "qodo_pr": "2"}, "qodo_reviewer": {"id": "qodo_reviewer", "name": "Qodo Code Review Bot", "category": "Autonomous Factory", "file": "GitHub PR Workflow", "prs": ["All PRs (#1 - #49)"], "summary": "Automated code reviewer that evaluates every PR, generates Mermaid architecture diagrams, and classifies findings by severity.", "details": "The <code>qodo-code-review[bot]</code> provides continuous architectural analysis and quality gate verification on every pull request.<br/><br/>\n<b>Role in the Factory:</b>\n<ul>\n  <li><b>Mermaid Diagram Generation:</b> Synthesizes a dedicated Mermaid graph or sequence diagram illustrating the architectural delta introduced by the PR.</li>\n  <li><b>Finding Classification:</b> Labels review findings by severity: High (Action required), Medium (Remediation recommended), and Low (Informational).</li>\n  <li><b>Quality Gate Integration:</b> Agents are required by AGENTS.md to resolve all High and Medium findings before declaring a task complete.</li>\n</ul>", "inputs": "Pull request git diffs and commit history.", "outputs": "PR review comments with Mermaid diagrams and structured findings.", "rules": ["Quality Gate automated review coverage"], "qodo_pr": "22"}};
+    const prDetails = {"1": {"title": "feat: add hnradar fetch-hiring command", "merged": true, "diagram": "graph TD\n  HN[\"HN Algolia API\"] --> Fetch[\"fetch-hiring CLI\"] --> Parser[\"Job Parser\"] --> Jobs[(\"data/jobs.json\")]\n  Fetch --> Table[\"CLI Table Output\"]", "note": "Initial foundation PR. Added fetch-hiring command and core parser. (Qodo automated review errored on first run; diagram synthesized from PR code)."}, "2": {"title": "docs: AGENTS.md factory rules", "merged": true, "diagram": "graph TD\n  A[\"Coding agents\"] --> B[\"AGENTS.md\"] --> C[\"Setup and checks\"]\n  B --> D[\"Development rules\"] --> E[\"Target modules\"]", "note": "Codified the initial 5 AGENTS.md factory rules governing citation, schema validation, network isolation, sandboxing, and minimal personal data."}, "6": {"title": "feat: add hnradar fingerprint command (#3)", "merged": true, "diagram": "graph TD\n  CLI[\"Fingerprint CLI\"] --> Source[\"GitHub source\"] --> API[\"GitHub REST API\"]\n  Source --> Cache[(\"Response cache\")]\n  CLI --> Builder[\"Profile builder\"] --> Model[\"Pydantic Profile\"] --> Output[(\"Profile JSON\")]", "note": "Added GitHub user fingerprinting, analyzing up to 2000 public repos (excluding forks) to extract top 5 languages, top 10 topics, and top 5 notable repos."}, "7": {"title": "docs: add AGENTS.md rules 6 and 7 (limits fail loudly, edge-case tests)", "merged": true, "diagram": "graph TD\n  F[\"Review findings\"] --> A[\"AGENTS.md rules\"] --> C[\"Future changes\"]\n  C --> L[\"Loud failures\"]\n  C --> T[\"Edge-case tests\"]", "note": "Introduced Rule 6 (limits fail loudly, no truncated silent outputs) and Rule 7 (every PR must ship edge-case tests for empty, limit, over-limit, and upstream errors)."}, "8": {"title": "feat: add Goose ticket-worker recipe and agent poller", "merged": true, "diagram": "graph TD\n  A[\"PowerShell poller\"] --> B{\"Ready issue?\"} -->|yes| C[\"Goose runner\"] --> D[\"Ticket recipe\"] --> E[\"Git and tests\"] -->|passes| F[\"GitHub PR\"]\n  B -->|none| G[\"Quiet exit\"]\n  E -->|blocked| H[\"Needs human\"]\n  C -->|run fails| H", "note": "Created autonomous engineering pipeline: PowerShell poller with OS named mutex single-instance guard and Goose ticket-worker recipe operating in isolated worktrees."}, "9": {"title": "feat: add --json option to fetch-hiring (#5)", "merged": true, "diagram": "graph TD\n  CLI[\"fetch-hiring CLI\"] --> HN[\"HN source\"] --> Parser[\"Job parser\"] --> Mode{\"JSON flag?\"} -->|yes| Stdout[\"JSON stdout\"]\n  Mode -->|no| File[\"Jobs file\"]", "note": "Added --json option and clean terminal table default for fetch-hiring, allowing composable piping into downstream tools."}, "10": {"title": "fix: cloud model and stricter tool rules for the ticket worker", "merged": true, "diagram": "graph TD\n  P[\"Issue poller\"] --> G[\"Goose run\"] --> M[\"Cloud model\"] --> T[\"Shell and write tools\"] --> F[\"Worktree files\"]\n  R[\"Worker recipe\"] --> G\n  R --> M", "note": "Upgraded worker to gpt-oss:20b-cloud, added strict directives forbidding deleting existing code and requiring full file writes."}, "11": {"title": "feat: rule 8 - clean untrusted post text before printing", "merged": true, "diagram": "graph TD\n  A[\"HN posts\"] --> B[\"Comment parser\"] --> C[\"Job records\"] --> D[\"Terminal cleaner\"] --> E[\"CLI table\"]\n  C --> F[\"JSON output\"]\n  A --> D", "note": "Added Rule 8: untrusted text from HN/GitHub must be cleaned before printing (strips Cc control characters, Cf bidi overrides; ensure_ascii=True on stdout JSON)."}, "21": {"title": "feat: hnradar showhn - find a company's Show HN story", "merged": true, "diagram": "sequenceDiagram\n    actor User\n    participant CLI\n    participant HNSource as HN Source\n    participant Cache\n    participant Algolia\n    participant Ranker\n    User->>CLI: showhn company and domain\n    CLI->>CLI: Validate input\n    CLI->>HNSource: Search Show HN\n    HNSource->>Cache: Read cached response\n    alt Valid cached response\n        Cache-->>HNSource: Validated hits\n    else Cache miss or invalid entry\n        HNSource->>Algolia: Relevance search\n        Algolia-->>HNSource: Hits and total count\n        HNSource->>HNSource: Validate response\n        HNSource->>Cache: Atomic cache write\n    end\n    HNSource-->>CLI: Mapped hits and total count\n    CLI->>Ranker: Rank against domain\n    Ranker-->>CLI: Top five and confidence\n    CLI-->>User: Table or JSON", "note": "Introduced showhn command to discover Show HN posts via Algolia, ranking by domain match, points, and recency with atomic cache writes."}, "22": {"title": "docs: add quality gate (definition of done) to AGENTS.md and the ticket-worker recipe", "merged": true, "diagram": "graph TD\n  Gate[\"Quality gate\"] --> Worker[\"Ticket worker\"] --> Findings[\"Review findings\"] --> Fixes[\"Finding fixes\"] --> Checks[\"Tests and smoke\"] --> PR[\"Open PR\"] --> Poller[\"Issue poller\"] --> Human[\"Human review\"]\n  PR --> Findings\n  Gate --> Human", "note": "Formalized Definition of Done: High and Medium findings must be fixed with tests, Low findings reported, disagreements require code citations, latest commit covered."}, "24": {"title": "feat: hnradar match - top 3 jobs for a user (#12)", "merged": true, "diagram": "graph TD\n  CLI[\"Match CLI\"] --> Profile[(\"Saved profile\")] --> Scorer[\"Job scorer\"] --> Result[\"Match result\"] --> Output[\"Table or JSON\"]\n  CLI --> Jobs[(\"Saved jobs\")] --> Scorer", "note": "Introduced match command: deterministic scoring (20 pts language, 10 pts topic, 5 pts remote bonus, max 100), alias normalization, and cited reason generation."}, "28": {"title": "docs: pre-review checklist in AGENTS.md", "merged": true, "diagram": "graph TD\n  A[\"PR changes\"] --> B[\"Pre-review checklist\"] --> C{\"Ready for review?\"} -->|Yes| D[\"Request review\"] --> E[\"Quality gate\"]\n  C -->|No| A", "note": "Added 9-point pre-review checklist addressing recurring defect patterns (ticket line-by-line, clean input failures, ambiguity rejection, identity checking)."}, "29": {"title": "docs: README with setup and how to run every command", "merged": true, "diagram": "graph TD\n  HN[\"HN API\"] --> Fetch[\"fetch-hiring\"] --> Jobs[(\"jobs.json\")] --> Match[\"match\"]\n  GitHub[\"GitHub API\"] --> Fingerprint[\"fingerprint\"] --> Profiles[(\"profile JSON\")] --> Match\n  HN --> ShowHN[\"showhn\"]", "note": "Added full repository README with setup, uv invocation patterns, and command documentation for fetch-hiring, showhn, fingerprint, and match."}, "30": {"title": "feat: flag closed jobs from the poster's own replies (#25)", "merged": true, "diagram": "graph TD\n  HN[\"HN thread\"] --> Fetch[\"Fetch hiring\"] --> Parse[\"Parse comment\"] --> Jobs[\"Job JSON\"]\n  Fetch --> Scan[\"Poster reply scan\"] --> Check{\"Closing notice?\"} --> Jobs", "note": "Added closed.py parser: analyzes author's child replies to detect closing notices with natural language clause parsing and bisect positioning."}, "33": {"title": "feat: showhn URL-restricted domain query (#20)", "merged": true, "diagram": "sequenceDiagram\n    actor User\n    participant CLI as showhn CLI\n    participant Search as HN search\n    participant Cache as Response cache\n    participant API as Algolia API\n    participant Rank as Result ranking\n    User->>CLI: company and optional domain\n    CLI->>Search: search_show_hn\n    Search->>Cache: look up name query\n    opt cache miss\n        Search->>API: name search\n        API-->>Search: name hits\n        Search->>Cache: save validated response\n    end\n    opt domain provided\n        Search->>Cache: look up URL query\n        opt cache miss\n            Search->>API: URL-restricted search\n            API-->>Search: URL hits\n            Search->>Cache: save validated response\n        end\n        Note over Search: Deduplicate IDs and compute total\n    end\n    Search-->>CLI: hits and total or error\n    CLI->>Rank: build_result\n    Rank-->>CLI: domain-first top five\n    CLI-->>User: candidates or error", "note": "Added secondary Algolia search with restrictSearchableAttributes=url when --domain is provided, deduplicating IDs and aggregating total counts."}, "34": {"title": "experiment: showhn fallback and labels (Day 11, do not merge)", "merged": false, "diagram": "graph TD\n  CLI[\"showhn CLI\"] --> Name[\"Name search\"] --> Domain{\"Domain provided?\"} -->|yes| URL[\"URL search\"] -->|available| Merge[\"Deduplicate hits\"] --> Rank[\"Rank candidates\"] --> Out[\"Table or JSON\"]\n  Domain -->|no| Rank\n  URL -->|unavailable| Rank", "note": "Experimental run evaluating fallback behaviors and label cues when URL search fails or domain is absent."}, "35": {"title": "docs: AGENTS.md rule 9, a domain match is never company ownership", "merged": true, "diagram": "graph TD\n  A[\"AGENTS.md rule 9\"] --> B[\"Qodo re-import\"] --> C[\"Future reviews\"] --> D[\"Show HN wording\"]", "note": "Added Rule 9: a domain match means a story links to that domain, never that the company owns it or posted it (protects against multi-tenant platforms like notion.so)."}, "36": {"title": "experiment: showhn domain search (Day 11 run B, do not merge)", "merged": false, "diagram": "graph TD\n  CLI[\"showhn CLI\"] --> Search[\"Search coordinator\"] --> Name[\"Name search\"] --> Merge[\"Deduplicate hits\"] --> Rank[\"Rank candidates\"] --> Output[\"Table or JSON\"]\n  Search -->|\"if domain\"| URL[\"URL search\"] --> Merge", "note": "Second experiment testing unified search coordinator structure for name and URL search."}, "39": {"title": "docs: AGENTS.md rule 10, a failed upstream request is never returned as complete", "merged": true, "diagram": "graph TD\n  U[\"Upstream services\"] --> S[\"Source adapters\"] --> C[\"CLI commands\"] --> O[\"Visible outcome\"]\n  R[\"Rule 10\"] -. governs .-> S\n  R -. governs .-> C", "note": "Added Rule 10: any failed request to Algolia, GitHub, or Ollama must raise an error and exit 1; never swallow failures into partial results."}, "43": {"title": "feat: careers-only full-text search with its own Pagefind index (#40)", "merged": true, "diagram": "graph TD\n  Jobs[(\"Jobs JSON\")] --> Builder[\"Index builder\"] --> CLI[\"Pagefind CLI\"] --> Index[(\"Careers index\")] --> Helper[\"HN search\"] --> Explorer[\"Job explorer\"]\n  Jobs --> Explorer\n  Helper -->|\"Index unavailable\"| Fallback[\"Field fallback\"] --> Explorer", "note": "Integrated Pagefind static indexing over jobs.json for full-text careers search with field-level fallback."}, "46": {"title": "feat: skip candidate profiles in fetch-hiring and report the count (#45)", "merged": true, "diagram": "graph TD\n  A[\"HN comments\"] --> B[\"Limit slice\"] --> C[\"Parse comment\"] --> D{\"Candidate profile?\"}\n  D -->|No| E[\"Kept jobs\"] --> F[\"Jobs output\"]\n  D -->|Yes| G[\"Skip count\"] --> H[\"CLI note\"]", "note": "Added is_candidate_profile() to filter out self-promotional job seekers from fetch-hiring, keeping data/jobs.json strictly hiring companies."}, "48": {"title": "feat: verify-jobs-parse skill, a real-data check for parser changes", "merged": true, "diagram": "graph TD\n  Skill[\"Verification skill\"] --> Preflight[\"Tests and hash\"] --> Fetch[\"Fetch hiring\"] --> Scratch[(\"Scratch jobs\")] --> Compare[\"Compare IDs\"] --> Report[(\"JSON report\")]\n  Baseline[(\"Baseline jobs\")] --> Compare\n  Fetch --> Thread[(\"Cached thread\")]\n  Thread --> Compare", "note": "Added Claude skill and compare_jobs.py to verify parser changes against live HN threads, validating must-keep/must-exclude IDs and baseline stability."}, "49": {"title": "feat: hnradar pulse STORY_ID groups Show HN comments into pros, bugs and asks (#13)", "merged": true, "diagram": "graph TD\n  CLI[\"Pulse CLI\"] --> HN[\"Cached HN source\"] --> Cluster[\"Comment selection\"] --> Ollama[\"Ollama client\"] --> Validate[\"Reply validation\"] --> Output[(\"Pulse JSON\")]\n  CLI --> Output", "note": "Introduced pulse command: leverages local Ollama LLM (qwen2.5:7b) to cluster comments into pros, bugs, and asks with mandatory comment ID citation."}};
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      themeVariables: {
+        darkMode: true,
+        background: '#0b0f19',
+        primaryColor: '#1e3a8a',
+        primaryTextColor: '#f3f4f6',
+        primaryBorderColor: '#38bdf8',
+        lineColor: '#64748b',
+        secondaryColor: '#14532d',
+        tertiaryColor: '#312e81'
+      }
+    });
+
+    let currentSelectedId = null;
+
+    function selectComponent(compId) {
+      const comp = componentsData[compId];
+      if (!comp) return;
+
+      currentSelectedId = compId;
+
+      document.querySelectorAll('.svg-node').forEach(el => el.classList.remove('active'));
+      const activeEl = document.getElementById('node_' + compId) || document.querySelector(`[data-comp="${compId}"]`);
+      if (activeEl) activeEl.classList.add('active');
+
+      document.getElementById('d-title').innerText = comp.name;
+      document.getElementById('d-meta').innerHTML = `
+        <span class="badge badge-blue">${comp.category}</span>
+        <span class="badge badge-purple">${comp.file}</span>
+      `;
+
+      document.getElementById('d-details').innerHTML = comp.details;
+      document.getElementById('d-inputs').innerHTML = comp.inputs;
+      document.getElementById('d-outputs').innerHTML = comp.outputs;
+
+      const prNum = comp.qodo_pr;
+      const prInfo = prDetails[prNum] || {};
+      document.getElementById('d-qodo-title').innerText = `Qodo Architectural Review Diagram (PR #${prNum})`;
+      document.getElementById('d-diagram-desc').innerHTML = `<b>PR #${prNum} (${prInfo.title || ''}):</b> ${prInfo.note || ''}`;
+      
+      const mermaidCode = prInfo.diagram || "graph TD\n  A[" + comp.name + "] --> B[HN Radar]";
+      const container = document.getElementById('d-mermaid-container');
+      container.innerHTML = `<pre class="mermaid">${mermaidCode}</pre>`;
+      mermaid.run({ nodes: container.querySelectorAll('.mermaid') });
+
+      const rulesList = document.getElementById('d-rules');
+      rulesList.innerHTML = comp.rules.map(r => `<li><b>${r.split(':')[0]}:</b> ${r.split(':')[1] || ''}</li>`).join('');
+      document.getElementById('d-file').innerText = comp.file;
+      
+      const prsContainer = document.getElementById('d-prs');
+      prsContainer.innerHTML = comp.prs.map(p => `<span class="badge badge-green" style="cursor:pointer;" onclick="switchView('timeline'); scrollToPR('${p.replace('#','')}')">${p}</span>`).join('');
+
+      document.getElementById('component-drawer').classList.remove('closed');
+    }
+
+    function closeDrawer() {
+      document.getElementById('component-drawer').classList.add('closed');
+      document.querySelectorAll('.svg-node').forEach(el => el.classList.remove('active'));
+    }
+
+    function switchDrawerTab(tabId, btn) {
+      document.querySelectorAll('.d-tab').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.getElementById('d-tab-overview').style.display = tabId === 'overview' ? 'block' : 'none';
+      document.getElementById('d-tab-diagram').style.display = tabId === 'diagram' ? 'block' : 'none';
+      document.getElementById('d-tab-rules').style.display = tabId === 'rules' ? 'block' : 'none';
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.toLowerCase().includes(viewName));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.getElementById('canvas-view').style.display = viewName === 'canvas' ? 'flex' : 'none';
+      document.getElementById('canvas-toolbar').style.display = viewName === 'canvas' ? 'flex' : 'none';
+      document.getElementById('timeline-view').style.display = viewName === 'timeline' ? 'block' : 'none';
+      document.getElementById('subsystems-view').style.display = viewName === 'subsystems' ? 'block' : 'none';
+      document.getElementById('governance-view').style.display = viewName === 'governance' ? 'block' : 'none';
+
+      if (viewName === 'timeline') {
+        mermaid.run({ nodes: document.querySelectorAll('#timeline-view .mermaid') });
+      }
+    }
+
+    function scrollToPR(num) {
+      const el = document.getElementById('pr-card-' + num);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        el.style.borderColor = '#38bdf8';
+        setTimeout(() => el.style.borderColor = '', 2000);
+      }
+    }
+
+    function filterCategory(category, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.svg-node').forEach(node => {
+        const compId = node.getAttribute('data-comp');
+        const comp = componentsData[compId];
+        if (category === 'all' || (comp && comp.category === category)) {
+          node.style.opacity = '1';
+          node.style.pointerEvents = 'auto';
+        } else {
+          node.style.opacity = '0.15';
+          node.style.pointerEvents = 'none';
+        }
+      });
+    }
+
+    function searchComponents(query) {
+      const q = query.toLowerCase().trim();
+      document.querySelectorAll('.svg-node').forEach(node => {
+        const compId = node.getAttribute('data-comp');
+        const comp = componentsData[compId];
+        if (!q || (comp && (comp.name.toLowerCase().includes(q) || comp.summary.toLowerCase().includes(q) || comp.file.toLowerCase().includes(q)))) {
+          node.style.opacity = '1';
+        } else {
+          node.style.opacity = '0.15';
+        }
+      });
+    }
+
+    const subsystemCategories = [
+      { name: "CLI Layer", desc: "User entry points built with Typer: fetch-hiring, showhn, fingerprint, match, and pulse.", keys: ["cli_fetch_hiring", "cli_showhn", "cli_fingerprint", "cli_match", "cli_pulse"] },
+      { name: "Parsing & Ingestion", desc: "Pure parsing functions and heuristic classifiers for job comments, applicant profiles, and closure notices.", keys: ["parse_job", "parse_candidate_filter", "closed_detector"] },
+      { name: "Source Adapters & Resilience", desc: "Network isolation layer handling Algolia and GitHub API access, caching, validation, and atomic writes.", keys: ["source_hn", "source_github", "source_ollama"] },
+      { name: "Scoring & Matching", desc: "Deterministic profile generation and job scoring algorithms with transparent points and alias normalizers.", keys: ["fingerprint_synthesizer", "matching_engine"] },
+      { name: "Company Radar & Show HN", desc: "Algolia query coordinators and domain validators providing outreach context from Show HN discussions.", keys: ["showhn_ranker"] },
+      { name: "Intelligence & LLM Pulse", desc: "Ollama LLM client, Pydantic schema validation, and citation integrity checking for sentiment pulse.", keys: ["pulse_clusterer"] },
+      { name: "Security & Sanitization", desc: "Protection against terminal escape sequences, bidi text exploits, untrusted URLs, and personal data scraping.", keys: ["terminal_sanitizer"] },
+      { name: "Autonomous Agent Factory", desc: "Goose worker recipes, PowerShell mutex polling, AGENTS.md rules, and Qodo review integrations.", keys: ["ticket_worker", "agent_poller", "verify_skill", "agents_md_governance", "qodo_reviewer"] }
+    ];
+
+    const subGrid = document.getElementById('subsystem-grid');
+    subsystemCategories.forEach(sub => {
+      const card = document.createElement('div');
+      card.className = 'subsystem-card';
+      card.innerHTML = `
+        <h3>${sub.name} <span class="badge badge-blue">${sub.keys.length} comps</span></h3>
+        <p>${sub.desc}</p>
+        <div class="card-tags">
+          ${sub.keys.map(k => `<span class="badge badge-purple" style="cursor:pointer;" onclick="switchView('canvas'); selectComponent('${k}')">${componentsData[k] ? componentsData[k].name : k}</span>`).join('')}
+        </div>
+      `;
+      subGrid.appendChild(card);
+    });
+
+    window.addEventListener('load', () => {
+      selectComponent('cli_fetch_hiring');
+    });
+  </script>
+</body>
+</html>
