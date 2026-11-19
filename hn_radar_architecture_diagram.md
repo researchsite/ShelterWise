@@ -2,7 +2,7 @@
 
 > **Document Type:** System Architecture & Technical Design Document  
 > **Source Repository:** [researchsite/hn-radar](https://github.com/researchsite/hn-radar)  
-> **Synthesis Scope:** Complete integration across all 23 closed Pull Requests (#1 through #49) and Qodo Bot Review Diagrams.
+> **Synthesis Scope:** Complete integration across all 26 closed Pull Requests (#1 through #53) and Qodo Bot Review Diagrams.
 
 ---
 
@@ -14,9 +14,11 @@ Instead of sending generic job applications or cold outreach messages, HN Radar 
 1. Ingesting monthly *"Ask HN: Who is hiring?"* threads, parsing job postings, discarding candidate self-pitches, and verifying active status against poster replies.
 2. Generating a privacy-respecting **Developer Fingerprint** from public GitHub repositories (languages, topics, notable repos).
 3. Deterministically **scoring and matching** jobs against the developer profile with transparent, cited evidence (Rule 1).
-4. Discovering relevant **Show HN** product posts for target companies with domain-restricted search and strict ownership semantics (Rule 9).
+4. Discovering relevant **Show HN** product posts for target companies with domain-restricted search, strict ownership semantics (Rule 9), and platform domain risk filtering (PR #50).
 5. Extracting actionable sentiment—**pros, bugs, and asks**—from Show HN comments using a local LLM (Ollama), requiring comment-ID citations for every claim.
-6. Governing all human and AI code changes through a rigid **Autonomous Software Engineering Factory** (Goose recipes, mutex-protected pollers, real-data verification skills, and Qodo automated code reviews enforcing the 10 rules of `AGENTS.md`).
+6. Generating an exact **5-line cited outreach note** via `hnradar draft` (PR #51) that pairs an authentic user-reported bug with the developer's specific open-source repository.
+7. Providing **resilient on-disk caching** (PR #53) where read-only or permission-denied cache paths warn safely to stderr and never abort successful data fetches.
+8. Governing all human and AI code changes through a rigid **Autonomous Software Engineering Factory** (Goose recipes, mutex-protected pollers, real-data verification skills, and Qodo automated code reviews enforcing the 10 rules of `AGENTS.md`).
 
 ---
 
@@ -35,11 +37,11 @@ graph TB
 
   %% Network & Caching Adapters
   subgraph SourceLayer["Source Adapters & Disk Cache (src/hnradar/sources/)"]
-    HNSource["sources/hn.py<br/>• find_latest_hiring_story()<br/>• search_show_hn()<br/>• fetch_item()"]
+    HNSource["sources/hn.py<br/>• find_latest_hiring_story()<br/>• search_show_hn()<br/>• fetch_item()<br/>• Resilient cache write (PR #53)"]
     GHSource["sources/github.py<br/>• fetch_repos()<br/>• Rate limit check<br/>• Hard limit: 2000 repos"]
     OllamaSource["sources/ollama.py<br/>• OllamaClient.complete()<br/>• format: schema<br/>• num_predict: 2048"]
     
-    HNCache[("data/cache/hn_*.json<br/>Atomic tempfile+rename")]
+    HNCache[("data/cache/hn_*.json<br/>Atomic tempfile+rename<br/>Warns on failure (PR #53)")]
     GHCache[("data/cache/github_*.json<br/>TTL: 1 hour")]
   end
 
@@ -75,7 +77,7 @@ graph TB
   subgraph MatchingSubsystem["Scoring & Recommendation Engine"]
     NormAliases["_norm() Tech Alias Normalizer<br/>(k8s ↔ kubernetes, golang ↔ go)"]
     Scorer["score_job() & top_matches()<br/>• 20 pts per matching language<br/>• 10 pts per matching topic<br/>• 5 pts remote bonus<br/>• Max 100 points"]
-    TopMatches["Top 3 Scored Matches<br/>+ Cited Evidence Reasons (Rule 1)"]
+    TopMatches["Top 10 Matches<br/>+ Cited Evidence Reasons (Rule 1)"]
   end
 
   JobsJSON --> Scorer
@@ -85,7 +87,7 @@ graph TB
 
   %% Show HN & Pulse Subsystem
   subgraph PulseSubsystem["Company Radar & AI Pulse Intelligence"]
-    ShowHNRanker["showhn.py / build_result()<br/>• URL-restricted Algolia query<br/>• Domain match precedence<br/>• Rule 9: Links to domain != ownership"]
+    ShowHNRanker["showhn.py / build_result()<br/>• URL-restricted Algolia query<br/>• Domain match precedence<br/>• is_platform_domain() check (PR #50)<br/>• Rule 9: Links to domain != ownership"]
     PulseClusterer["pulse/cluster.py<br/>• Selects longest comments (max 60)<br/>• JSON array injection defense<br/>• Pydantic schema validation<br/>• 2-attempt retry loop"]
     PulseVerify["Citation Validator<br/>• Verifies cited comment_ids in thread"]
     PulseJSON[("data/pulse/{story_id}.json<br/>Pros, Bugs, Asks")]
@@ -97,6 +99,20 @@ graph TB
   PulseClusterer --> PulseVerify
   PulseVerify --> PulseJSON
 
+  %% Outreach Draft Synthesizer Subsystem (PR #51)
+  subgraph DraftSubsystem["Outreach Draft Synthesis (PR #51)"]
+    DraftMatchLoop["Top 10 Match Evaluator<br/>• Non-platform domain required<br/>• Domain-linked Show HN required<br/>• Cited bug required"]
+    DraftWriter["draft/write.py (write_draft)<br/>• System prompt: 5 exact lines<br/>• ModelDraft Pydantic validation<br/>• Line 2 comment citation<br/>• Names developer repo<br/>• Rejects ownership claims (Rule 9)"]
+    DraftResultOut["5-Line Outreach Draft<br/>+ Line-by-Line Evidence Citations"]
+  end
+
+  TopMatches --> DraftMatchLoop
+  ShowHNRanker --> DraftMatchLoop
+  PulseJSON --> DraftMatchLoop
+  DraftMatchLoop --> DraftWriter
+  OllamaSource <--> DraftWriter
+  DraftWriter --> DraftResultOut
+
   %% CLI Layer
   subgraph CLILayer["User Interface (CLI Layer via Typer)"]
     FetchHiringCLI["hnradar fetch-hiring<br/>[--limit, --out, --json]"]
@@ -104,6 +120,7 @@ graph TB
     MatchCLI["hnradar match<br/>[<user> --jobs --json]"]
     ShowHNCLI["hnradar showhn<br/>[<company> --domain --json]"]
     PulseCLI["hnradar pulse<br/>[<story_id> --model --out]"]
+    DraftCLI["hnradar draft<br/>[<user> --model --pulse-dir]"]
   end
 
   FetchHiringCLI --> IngestionSubsystem
@@ -111,6 +128,7 @@ graph TB
   MatchCLI --> MatchingSubsystem
   ShowHNCLI --> ShowHNRanker
   PulseCLI --> PulseSubsystem
+  DraftCLI --> DraftSubsystem
 
   %% Security & Sanitization
   subgraph SecurityLayer["Security & Sanitization Boundary"]
@@ -170,7 +188,7 @@ sequenceDiagram
     alt Cache Miss
         HN->>Algolia: GET search_by_date?tags=story,author_whoishiring
         Algolia-->>HN: JSON stories
-        HN->>Cache: Atomic write cache file
+        HN->>Cache: Atomic write cache file (Warns on failure, PR #53)
     end
     HN-->>CLI: Return story_id & title
 
@@ -179,7 +197,7 @@ sequenceDiagram
     alt Cache Miss
         HN->>Algolia: GET items/{story_id}
         Algolia-->>HN: Full comment tree
-        HN->>Cache: Atomic write cache file
+        HN->>Cache: Atomic write cache file (Warns on failure, PR #53)
     end
     HN-->>CLI: Full item payload with children
 
@@ -239,8 +257,8 @@ graph TD
     
     ScoreCalc --> EvGen["Evidence Synthesizer (Rule 1):<br/>• 'Your Python work matches stack'<br/>• 'Your repo fastapi-app is written in Python'<br/>• 'Your repos use topic kubernetes'"]
     
-    EvGen --> HeapSort["heapq.nlargest(3, ...)<br/>Sort by (score desc, comment_id desc)"]
-    HeapSort --> FinalMatches["Top 3 Matches Table or JSON"]
+    EvGen --> HeapSort["heapq.nlargest(10, ...)<br/>Sort by (score desc, comment_id desc)"]
+    HeapSort --> FinalMatches["Top Matches Table or JSON"]
   end
 
   SaveProfile --> ReadProfile
@@ -299,7 +317,66 @@ sequenceDiagram
 
 ---
 
-### 3.4. Autonomous Agent Factory & Quality Gate Cycle
+### 3.4. 5-Line Outreach Draft Generation Pipeline (`hnradar draft` — PR #51)
+
+The `draft` command brings together developer profile matching, company domain validation, Show HN sentiment bugs, and local LLM composition into an exact 5-line cited outreach note.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant CLI as hnradar draft <user>
+    participant Match as match.top_matches()
+    participant ShowHN as showhn.search_show_hn()
+    participant Pulse as _cited_bug() (Pulse)
+    participant Writer as draft/write.py (write_draft)
+    participant Ollama as sources/ollama.py (OllamaClient)
+
+    User->>CLI: hnradar draft username [--model qwen2.5:7b]
+    CLI->>Match: top_matches(profile, jobs, limit=11)
+    Match-->>CLI: Top 10 scored matches
+
+    loop For each match in Top 10
+        CLI->>CLI: Extract matched repo and job URL domain
+        alt No matched repo or domain missing
+            CLI->>CLI: Record skip reason & continue
+        end
+        CLI->>CLI: Check is_platform_domain(domain) [PR #50]
+        alt Domain is shared/platform host (github.io, notion.so)
+            CLI->>CLI: Record platform skip reason & continue
+        end
+        CLI->>ShowHN: search_show_hn(company, domain=domain)
+        ShowHN-->>CLI: Candidate stories
+        alt No story links to domain or low confidence
+            CLI->>CLI: Record skip reason & continue
+        end
+        CLI->>Pulse: _cited_bug(story_id, comments, pulse_dir, client)
+        Pulse-->>CLI: (summary, cited_comments) or None
+        alt No cited bug found in Show HN comments
+            CLI->>CLI: Record skip reason & continue
+        else Valid bug found!
+            CLI->>Writer: write_draft(user, company, domain, repo, problem, cited, client)
+            loop Up to 2 Attempts (Rule 2)
+                Writer->>Ollama: complete(SYSTEM_PROMPT, facts_json, ModelDraft.schema)
+                Ollama-->>Writer: JSON string
+                Writer->>Writer: ModelDraft.model_validate_json(raw)
+                Writer->>Writer: _check(): Exactly 5 lines, line 2 cites comments, names repo, rejects forbidden phrases
+            end
+            Writer-->>CLI: DraftResult (lines, evidence)
+            Note over CLI: Match succeeded; break out of loop
+        end
+    end
+
+    alt Match Found & Drafted
+        CLI-->>User: Print 5-line outreach note + line-by-line comment citations and repo details
+    else No Usable Match in Top 10
+        CLI-->>User: Print "No cited problem found", list skipped matches, and exit 0
+    end
+```
+
+---
+
+### 3.5. Autonomous Agent Factory & Quality Gate Cycle
 
 The project implements a fully autonomous ticket-worker loop with rigorous architectural oversight.
 
@@ -353,7 +430,7 @@ stateDiagram-v2
 
 ## 4. Comprehensive Catalog of Qodo PR Diagrams
 
-The following section catalogues the architectural diagrams generated by **Qodo Code Review** across all 23 closed Pull Requests in `researchsite/hn-radar`, documenting the chronological evolution of the system.
+The following section catalogues the architectural diagrams generated by **Qodo Code Review** across all 26 closed Pull Requests in `researchsite/hn-radar`, documenting the chronological evolution of the system.
 
 ### PR #1: feat: add hnradar fetch-hiring command
 - **Status:** `Merged`
@@ -666,6 +743,45 @@ graph TD
 ```
 
 ---
+### PR #50: feat: showhn flags platform domains as low confidence (#38)
+- **Status:** `Merged`
+- **Architectural Contribution:** Flags shared/platform domains (github.com, notion.so, substack.com, form hosts) as low confidence (Rule 9). Links to platform domains may belong to someone else, not the company.
+
+```mermaid
+graph TD
+  CLI["showhn CLI"] --> Search["HN search"] --> Rank["Candidate ranking"] --> Check{"Platform host?"} -->|confidence flag| Result["ShowHNResult"] --> Output["Table or JSON"]
+  Domains["Platform domains"] --> Check
+  Rank -->|candidates| Result
+```
+
+---
+### PR #51: feat: hnradar draft writes a 5-line cited outreach note (#14)
+- **Status:** `Merged`
+- **Architectural Contribution:** Introduced draft command: evaluates top 10 matches, requires non-platform domain, Show HN link, and cited bug from comments. Writes a 5-line outreach note via local LLM with strict validation (Rule 1 & Rule 2).
+
+```mermaid
+graph TD
+  A["Profile and jobs"] --> B["Top 10 matches"] --> C{"Matched repo and domain?"} -- "Yes" --> D["Domain-safe Show HN"] --> E{"Cited bug?"} -- "Yes" --> F["Draft validation"] --> G["Note and evidence"]
+  C -- "No" --> H["Skip or explain"]
+  D -- "No matching story" --> H
+  E -- "No" --> H
+```
+
+---
+### PR #53: fix: an unwritable HN cache no longer fails a successful fetch (#52)
+- **Status:** `Merged`
+- **Architectural Contribution:** Resilient cache writing: an unwritable or permission-denied cache directory emits a single safe warning to stderr and returns the fetched data instead of crashing the CLI command.
+
+```mermaid
+graph TD
+  A["CLI commands"] --> B["Fetch HN JSON"] --> C{"Valid response?"}
+  C -- "yes" --> D["Write cache"] --> E{"Write fails?"}
+  C -- "no" --> H["Raise error"]
+  E -- "yes" --> F["Warn once"] --> G["Return data"]
+  E -- "no" --> G
+```
+
+---
 
 ## 5. Architectural Compliance & AGENTS.md Invariants
 
@@ -673,15 +789,15 @@ All components in the HN Radar architecture are bound by the 10 invariant develo
 
 | Rule | Name | Architectural Mechanism | Enforcing Files |
 | :--- | :--- | :--- | :--- |
-| **Rule 1** | **Every claim is cited** | Insights and match reasons must cite exact source comment IDs. | `pulse/cluster.py`, `match.py`, `closed.py` |
-| **Rule 2** | **LLM output is schema-validated** | Outputs from Ollama parse exclusively through Pydantic models with constrained JSON decoding. | `pulse/schema.py`, `sources/ollama.py` |
+| **Rule 1** | **Every claim is cited** | Insights, match reasons, and draft outreach lines must cite exact source comment IDs. | `pulse/cluster.py`, `match.py`, `draft/write.py`, `closed.py` |
+| **Rule 2** | **LLM output is schema-validated** | Outputs from Ollama parse exclusively through Pydantic models with constrained JSON decoding. | `pulse/schema.py`, `draft/schema.py`, `sources/ollama.py` |
 | **Rule 3** | **Network goes through sources/** | All HTTP requests are centralized in `src/hnradar/sources/` backed by atomic file-based caching. | `sources/hn.py`, `sources/github.py`, `sources/ollama.py` |
-| **Rule 4** | **Untrusted URLs only in sandbox layer** | URLs taken from posts are only parsed for host validation, never fetched over the network. | `showhn.py` (`host_matches`) |
+| **Rule 4** | **Untrusted URLs only in sandbox layer** | URLs taken from posts are only parsed for host validation, never fetched over the network. | `showhn.py` (`host_matches`, `url_domain`) |
 | **Rule 5** | **Minimal personal data** | No scraping of LinkedIn, resumes, or private info; derived strictly from public GitHub repos. | `fingerprint.py`, `sources/github.py` |
-| **Rule 6** | **Limits fail loudly** | Pagination caps (2,000 repos) and loops raise hard errors; never return silent partial results. | `sources/github.py`, `sources/hn.py` |
+| **Rule 6** | **Limits fail loudly** | Pagination caps (2,000 repos) and loops raise hard errors; never return silent partial results. | `sources/github.py`, `sources/hn.py`, `cli.py` (draft cap) |
 | **Rule 7** | **Every change ships edge-case tests** | Mandatory tests for empty inputs, boundary limits, over-limit inputs, and upstream errors. | `tests/`, `AGENTS.md` |
 | **Rule 8** | **Untrusted post text is cleaned** | Strips Unicode control chars (`Cc`) and formatting overrides (`Cf`) before terminal rendering. | `cli.py` (`_terminal_safe`) |
-| **Rule 9** | **Domain match is never company ownership** | A domain match means a story links to that domain, never that the company owns or posted it. | `showhn.py`, `models.py` |
+| **Rule 9** | **Domain match is never company ownership** | A domain match means a story links to that domain, never that the company owns or posted it. Platform domains are flagged. | `showhn.py`, `draft/write.py`, `models.py` |
 | **Rule 10** | **Failed upstream request never complete** | Upstream API failures must exit 1 with an informative message; never return partial data. | `sources/hn.py`, `sources/github.py`, `cli.py` |
 
 ---
@@ -689,7 +805,8 @@ All components in the HN Radar architecture are bound by the 10 invariant develo
 ## 6. Summary
 
 The HN Radar architecture achieves high reliability and deterministic behavior through strict decoupling:
-1. **Source Adapters** isolate network I/O, rate limiting, and atomic on-disk caching.
+1. **Source Adapters** isolate network I/O, rate limiting, and resilient on-disk caching (PR #53).
 2. **Pure Domain Functions** (`parse.py`, `match.py`, `fingerprint.py`, `showhn.py`, `closed.py`) operate without side effects or network calls.
-3. **Pydantic Validation Models** enforce boundary constraints across CLI inputs, API payloads, and LLM outputs.
-4. **The Autonomous Factory & Qodo Quality Gate** ensure that every modification is accompanied by edge-case tests, loud limits, and architectural verification.
+3. **Pydantic Validation Models** enforce boundary constraints across CLI inputs, API payloads, and LLM outputs (`ModelReply`, `ModelDraft`).
+4. **Outreach Draft Generation** (`hnradar draft` / PR #51) synthesizes company matches, Show HN bugs, and developer repos into cited outreach notes without false claims of ownership (PR #50 / Rule 9).
+5. **The Autonomous Factory & Qodo Quality Gate** ensure that every modification is accompanied by edge-case tests, loud limits, and architectural verification.

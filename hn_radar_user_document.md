@@ -16,7 +16,7 @@ Traditional job applications are transactional and low-signal. A standard resume
 HN Radar equips developers to:
 1. **Discover** the exact roles that align with their authentic coding footprint.
 2. **Understand** what real users are saying about the company's product (what they love, what bugs they encounter, and what features they are asking for).
-3. **Reach out** directly to the hiring lead with concrete solutions, pull requests, or architectural insights rather than a generic resume.
+3. **Draft** a concrete, 5-line outreach note via `hnradar draft` citing authentic user bug reports from Hacker News, connecting them directly to your open-source projects—with zero hallucination and strict ownership respect.
 
 ---
 
@@ -29,7 +29,7 @@ HN Radar equips developers to:
 
 ### Optional Dependencies
 - **GitHub Personal Access Token (`GITHUB_TOKEN`):** Raises GitHub API rate limits from 60 requests/hour to 5,000 requests/hour. Strongly recommended if fingerprinting accounts with many repositories.
-- **Ollama:** Required for the `hnradar pulse` qualitative AI feature. Needs `qwen2.5:7b` (or another compatible model) running locally on port 11434.
+- **Ollama:** Required for `hnradar pulse` (qualitative sentiment extraction) and `hnradar draft` (outreach synthesis). Needs `qwen2.5:7b` (or another compatible model) running locally on port 11434.
 
 ### Step-by-Step Installation
 
@@ -71,25 +71,39 @@ HN Radar operates as a pipeline of modular, isolated subsystems:
            │                                │                            │
            ▼                                ▼                            ▼
     data/jobs.json               data/profiles/<user>.json      data/pulse/<story_id>.json
-           │                                │
-           └──────────────┬─────────────────┘
-                          ▼
-                        match
-                      (match.py)
-                          │
-                          ▼
-            Top 3 Matches with Cited Reasons
+           │                                │                            │
+           └──────────────┬─────────────────┘                            │
+                          ▼                                              ▼
+                        match ──────────────────────────────────────►  draft
+                      (match.py)                                   (draft/write.py)
+                          │                                              │
+                          ▼                                              ▼
+            Top Matches with Cited Reasons                    5-Line Cited Outreach Note
 ```
 
 ### Safety & Resilience Invariants
-- **Atomic Caching:** Every API response is cached in `data/cache/` using atomic writes (`tempfile` + `os.replace`), protecting against corruption during interrupted runs.
+- **Atomic Caching & Resilience (PR #53):** Responses are cached in `data/cache/` using atomic writes. If writing the cache fails (e.g. read-only filesystem or permission denial), the fetch does not crash—it returns the data safely and emits a single warning to stderr.
 - **Terminal Sanitization (Rule 8):** Untrusted text from Hacker News comments or GitHub metadata is stripped of control characters (ANSI sequences, BEL, CR) and bidirectional formatting overrides before terminal printing.
-- **Zero Hallucination (Rule 1):** Every match reason and sentiment pulse insight must cite an authentic comment ID or repository name.
+- **Zero Hallucination (Rule 1):** Every match reason, sentiment pulse insight, and draft outreach line must cite an authentic comment ID or repository name.
+- **Platform Host Safety (Rule 9 & PR #50):** Links to multi-tenant platform domains (github.com, notion.so, substack.com) are flagged as low confidence because stories linking to shared hosts often belong to third parties.
 - **Privacy First (Rule 5):** No LinkedIn scraping, no resume parsing, and no tracking of private repositories. Only public, aggregate GitHub stats are retained.
 
 ---
 
 ## 4. Comprehensive Command Reference
+
+HN Radar provides **6 core CLI commands**:
+
+| Command | Purpose | Key PR Features |
+| :--- | :--- | :--- |
+| `hnradar fetch-hiring` | Ingests monthly hiring thread | Candidate filtering (#46), Closed job detection (#30), Cache resilience (#53) |
+| `hnradar fingerprint` | Profiles developer GitHub repos | Fork exclusion (#6), Top languages & topics, 2000-repo limit (#6) |
+| `hnradar match` | Deterministic job scoring | Alias normalizer, 20/10/5 point rules, cited reasons (#24, #29) |
+| `hnradar showhn` | Company product context | URL-restricted search (#33), Platform domain risk flagging (#50) |
+| `hnradar pulse` | AI sentiment clustering | Length-sorted comments, Pydantic schema validation (#49) |
+| `hnradar draft` | **Writes cited outreach note** | **Top 10 evaluation, 5-line strict note, cited bugs & repos (#51)** |
+
+---
 
 ### 4.1. `hnradar fetch-hiring`
 
@@ -109,6 +123,7 @@ uv run hnradar fetch-hiring [OPTIONS]
 2. Uses robust heuristic parsing (`parse.py`) to extract company, role title, location, remote policy, tech stack, and external career URLs.
 3. **Candidate Filtering (PR #46):** Automatically classifies and discards job-seeker pitches (*"Who wants to be hired?"*), reporting the number of skipped candidate profiles.
 4. **Closed Position Detection (PR #30):** Traverses replies posted by the author to detect if the position has been filled (*"Applications are closed"*), recording the closing comment ID.
+5. **Resilient Cache Writes (PR #53):** If saving to disk fails (e.g. read-only filesystem), warns once to stderr and safely returns the fetched data.
 
 #### Example Usage:
 ```bash
@@ -120,22 +135,6 @@ uv run hnradar fetch-hiring --limit 25
 
 # Output JSON directly to stdout for piping to jq
 uv run hnradar fetch-hiring --limit 5 --json | jq '.[0]'
-```
-
-#### Sample Terminal Output:
-```text
-Fetching latest hiring story from HN...
-Found: Ask HN: Who is hiring? (November 2026) (ID: 42109876)
-Processing 482 comments...
-Skipped 34 candidate profile comments.
-
-Found 448 jobs (12 closed). Saved to data/jobs.json
-
-| ID       | Company        | Role                   | Location         | Remote | Stack                  | Closed |
-|----------|----------------|------------------------|------------------|--------|------------------------|--------|
-| 42109912 | Acme Cloud     | Senior Backend Eng     | San Francisco    | Yes    | Python, Go, Kubernetes | No     |
-| 42109945 | VectorLabs     | Machine Learning Eng   | New York / Remote| Yes    | Python, PyTorch, CUDA  | No     |
-| 42110018 | FinScale       | Staff DevOps Architect | London, UK       | No     | AWS, Terraform, Docker | Yes    |
 ```
 
 ---
@@ -163,34 +162,6 @@ uv run hnradar fingerprint USERNAME [OPTIONS]
 #### Example Usage:
 ```bash
 uv run hnradar fingerprint octocat
-```
-
-#### Sample Generated Profile (`data/profiles/octocat.json`):
-```json
-{
-  "user": "octocat",
-  "languages": [
-    {"name": "Ruby", "bytes": 542100},
-    {"name": "Python", "bytes": 312000},
-    {"name": "JavaScript", "bytes": 184500}
-  ],
-  "topics": ["cli", "developer-tools", "api-wrapper", "docker"],
-  "repos": [
-    {
-      "name": "Spoon-Knife",
-      "description": "This repo is for spooning and knifing",
-      "stars": 12850,
-      "language": "Ruby"
-    },
-    {
-      "name": "Hello-World",
-      "description": "My first repository on GitHub!",
-      "stars": 2410,
-      "language": null
-    }
-  ],
-  "scraped_at": "2026-11-19T06:00:00Z"
-}
 ```
 
 ---
@@ -222,33 +193,6 @@ uv run hnradar match USERNAME [OPTIONS]
 uv run hnradar match octocat
 ```
 
-#### Sample Terminal Output:
-```text
-Loaded profile for octocat (3 languages, 4 topics, 2 notable repos)
-Loaded 448 jobs from data/jobs.json
-
-Top 3 Matches for @octocat:
-
-1. Acme Cloud — Senior Backend Eng (Score: 65/100)
-   Comment ID: 42109912 | Location: San Francisco (Remote: Yes)
-   Reasons:
-     • Language Match: Your profile features Python (matches job stack: Python, Go)
-     • Topic Match: Your repo Spoon-Knife uses topic 'cli' (matches job stack)
-     • Remote Bonus: +5 points (Position supports remote work)
-
-2. DataStream Inc — Data Infrastructure Engineer (Score: 45/100)
-   Comment ID: 42110540 | Location: Remote
-   Reasons:
-     • Language Match: Your profile features Python
-     • Remote Bonus: +5 points (Position supports remote work)
-
-3. DevTools Co — Developer Experience Engineer (Score: 35/100)
-   Comment ID: 42111200 | Location: Remote
-   Reasons:
-     • Topic Match: Your repos use topic 'developer-tools'
-     • Remote Bonus: +5 points
-```
-
 ---
 
 ### 4.4. `hnradar showhn`
@@ -266,25 +210,13 @@ uv run hnradar showhn COMPANY [OPTIONS]
 
 #### Key Behaviors:
 1. Executes an Algolia search restricted to `tags=show_hn`.
-2. **Dual-Query Domain Expansion (PR #33):** When `--domain` is specified, runs an additional query targeting `restrictSearchableAttributes=url` to capture stories that might not contain the company name in the title.
-3. **Domain Normalization & Security:** Strips protocols and `www.`, and rejects invalid hosts or backslashes to avoid domain confusion attacks.
-4. **Ownership Invariant (Rule 9):** A matching domain confirms only that the story *links to* that domain; it does not assert that the company posted or owns the thread.
+2. **Dual-Query Domain Expansion (PR #33):** When `--domain` is specified, runs an additional query targeting `restrictSearchableAttributes=url`.
+3. **Platform Domain Risk Flagging (PR #50):** If the domain is a shared or platform host (e.g. `github.com`, `notion.so`, `substack.com`), flags `platform_domain=True` and `low_confidence=True`, printing a warning that stories linking to shared hosts may belong to someone else.
+4. **Ownership Invariant (Rule 9):** A matching domain confirms only that the story *links to* that domain; it never asserts company ownership.
 
 #### Example Usage:
 ```bash
 uv run hnradar showhn "Supabase" --domain supabase.com
-```
-
-#### Sample Terminal Output:
-```text
-Show HN Results for 'Supabase' (Domain: supabase.com)
-Total stories found: 14 (showing top 5)
-
-| Story ID | Points | Comments | Domain Match | Title                                      | URL                          |
-|----------|--------|----------|--------------|--------------------------------------------|------------------------------|
-| 23345678 | 1280   | 342      | Yes          | Show HN: Supabase – An open source Firebase| https://supabase.com         |
-| 25410982 | 412    | 98       | Yes          | Show HN: Supabase Storage                  | https://supabase.com/storage |
-| 27819230 | 185    | 45       | No           | Show HN: Vector search with Postgres       | https://github.com/my-pg-app |
 ```
 
 ---
@@ -303,38 +235,71 @@ uv run hnradar pulse STORY_ID [OPTIONS]
 - `--out PATH`: Destination file (defaults to `data/pulse/<story_id>.json`).
 
 #### Safety & Schema Guarantees:
-- **Length-Weighted Selection:** Sorts comments by length (longest first) to maximize signal, selects up to 60 comments, and truncates individual posts to 1,500 characters.
-- **Pydantic Schema Validation (Rule 2):** Ollama is constrained to generate structured JSON conforming to `ModelReply`.
-- **Automatic Retry:** If the LLM generates non-conforming JSON, HN Radar sends the validation error back to the model for a second attempt.
-- **Strict Citation Check (Rule 1):** Verifies that every single comment ID cited by the LLM exists in the actual story discussion. Any hallucinated ID triggers a rejection.
+- **Length-Weighted Selection:** Sorts comments by length (longest first), selects up to 60 comments, and truncates posts to 1,500 characters.
+- **Pydantic Schema Validation (Rule 2):** Constrained to generate structured JSON conforming to `ModelReply`.
+- **Strict Citation Check (Rule 1):** Verifies that every single comment ID cited by the LLM exists in the actual story discussion.
 
 #### Example Usage:
 ```bash
-# Analyze feedback on a Show HN story
 uv run hnradar pulse 23345678
+```
+
+---
+
+### 4.6. `hnradar draft` (NEW — PR #51)
+
+Writes an exact 5-line cited outreach note to the best-matched company, referencing a real user-reported bug and your matching open-source repository.
+
+```bash
+uv run hnradar draft USERNAME [OPTIONS]
+```
+
+#### Arguments & Options:
+- `USERNAME`: GitHub username whose profile was generated via `fingerprint` (required).
+- `--model MODEL`: Ollama model tag for drafting (defaults to `qwen2.5:7b`).
+- `--jobs PATH`: Path to jobs file (defaults to `data/jobs.json`).
+- `--profiles-dir PATH`: Directory holding `<user>.json` (defaults to `data/profiles`).
+- `--pulse-dir PATH`: Directory holding saved pulses (defaults to `data/pulse`).
+
+#### The Triple Qualification Gate:
+`draft` iterates through your **top 10 matches** in descending score order. A match is used only when:
+1. **Verified Domain:** Its job link contains an identifiable, non-platform domain (PR #50).
+2. **Domain-Linked Show HN:** A Show HN story exists that links directly to that domain (PR #33 / PR #35).
+3. **Authentic Bug Report:** The Show HN discussion has a verified `bug` with genuine comment IDs (uses a saved pulse if available, otherwise executes `pulse` on the fly).
+
+#### The 5-Line Contract:
+The local model is strictly constrained by Pydantic (`ModelDraft`) to produce exactly 5 lines:
+- **Line 1:** Greeting and developer introduction (1 sentence).
+- **Line 2:** Problem statement stating what users reported, starting with *"A Show HN that links to &lt;domain&gt;"* and citing exact comment IDs.
+- **Line 3:** Explanation of how your matched repository addresses the issue (naming the repo).
+- **Line 4:** First action you would take (1 sentence).
+- **Line 5:** Polite invitation for a conversation.
+- **Rule 9 Guard:** Any phrase implying company ownership (*"your Show HN"*, *"you launched"*) is rejected and retried.
+
+#### Evidence Printing:
+`draft` prints the note and displays line-by-line comment citations, repository descriptions, and direct Hacker News URLs. **Nothing is ever sent automatically.**
+
+#### Example Usage:
+```bash
+uv run hnradar draft octocat
 ```
 
 #### Sample Terminal Output:
 ```text
-Analyzing Show HN #23345678 with model 'qwen2.5:7b'...
-Harvested 58 top-level comments (longest sorted).
-Querying Ollama (temperature=0, num_predict=2048)...
-Validated response conforming to Pydantic ModelReply schema.
-Saved pulse data to data/pulse/23345678.json
+Draft for Acme Cloud (qwen2.5:7b), using your repo spoon-knife:
 
-=== Show HN Pulse: Supabase – An open source Firebase ===
+Hi Acme Cloud team, I'm Alex, a backend engineer specializing in high-throughput APIs.
+A Show HN that links to acmecloud.com had users reporting connection pool exhaustion during traffic surges.
+My repository spoon-knife implements an adaptive semaphore pool that mitigates this exact failure mode.
+I'd start by profiling your async connection lifecycles under simulated peak load.
+Would you be open to a 15-minute chat next week to discuss your backend infrastructure?
 
-[PROS]
-• High praise for real-time Postgres subscriptions (Comment #23345890)
-• Loved the seamless local Docker developer experience (Comment #23346112)
-
-[BUGS & COMPLAINTS]
-• Self-hosted setup documentation lacks clarity on JWT secrets (Comment #23346450)
-• Memory consumption spikes during large table migrations (Comment #23347012)
-
-[FEATURE ASKS]
-• Support for fine-grained row-level security policy testing in CLI (Comment #23346890)
-• Native integration with Cloudflare Workers (Comment #23347500)
+Evidence (read it before you send anything; nothing is sent):
+line 2 cites comment 42109812, 42109940
+repo spoon-knife | Python | Adaptive connection pooling library for async HTTP services
+comment 42109812 | Users seeing 502 bad gateway when concurrent requests exceed 500 connections | https://news.ycombinator.com/item?id=42109812
+comment 42109940 | Connection pool leaks sockets on client disconnects | https://news.ycombinator.com/item?id=42109940
+Show HN: https://news.ycombinator.com/item?id=38910245 (links to acmecloud.com)
 ```
 
 ---
@@ -367,24 +332,11 @@ $ uv run hnradar pulse 38910245
 ✔ Highlighted Bug in Comment #38910401:
   "Cold start latency on Python 3.12 containers takes over 4 seconds due to package imports."
 
-Step 6: Craft the outreach!
+Step 6: Generate your cited outreach note!
+$ uv run hnradar draft alex-dev
+✔ Evaluates Top 10 matches -> Validates Acme Cloud -> Generates 5-line outreach note
+  cites Comment #38910401 and developer repo 'fastapi-accelerator'.
 ```
-
-### The Winning Outreach Email:
-> **Subject:** Solution for container cold start latency (HN #38910401) + Backend Role
->
-> Hi Jane,
->
-> I saw your post on Hacker News hiring for the Senior Backend Engineer role (HN #42109912).
->
-> While checking out Acme Cloud's Show HN announcement (HN #38910245), I noticed user feedback regarding 4+ second cold starts on Python 3.12 imports (HN #38910401). In my open-source project (`fastapi-accelerator`), I resolved this exact issue by pre-compiling bytecode in the base image and lazy-loading heavy SDKs, dropping initialization times by 65%.
->
-> I put together a quick 10-line POC demonstrating how Acme Cloud could apply this: `github.com/alex-dev/acme-coldstart-fix`.
->
-> I'd love to chat about joining the team and helping scale your backend infrastructure!
->
-> Best,  
-> Alex
 
 ---
 
@@ -392,16 +344,16 @@ Step 6: Craft the outreach!
 
 Every line of code in HN Radar is strictly governed by the 10 invariant engineering rules documented in `AGENTS.md`:
 
-1. **Every claim is cited:** Any pulse item or outreach reason stating what users said must carry the comment ID. Zero invented feedback.
+1. **Every claim is cited:** Any pulse item, match reason, or draft line stating what users said must carry the comment ID.
 2. **LLM output is schema-validated:** Parse model responses only through Pydantic models; never regex free text.
-3. **Network goes through sources/:** All HTTP calls to Algolia, GitHub, and Ollama live in `src/hnradar/sources/` with disk caching.
-4. **Untrusted URLs only in sandbox layer:** Never fetch arbitrary URLs taken from an HN post or profile outside the sandbox layer.
-5. **Minimal personal data:** Store only public GitHub metadata; never scrape LinkedIn or store resumes.
-6. **Limits fail loudly:** Pagination caps (2,000 repos) and loops must raise an error; never return a partial result disguised as complete.
-7. **Every change ships edge-case tests:** Mandatory tests for empty input, at-the-limit, over-the-limit, upstream errors, and concurrent cache writers.
+3. **Network goes through sources/:** All HTTP calls live in `src/hnradar/sources/` with disk caching.
+4. **Untrusted URLs only in sandbox layer:** Never fetch arbitrary URLs outside sandbox.
+5. **Minimal personal data:** Store only public GitHub metadata; never scrape resumes.
+6. **Limits fail loudly:** Pagination caps (2,000 repos) and loops must raise an error; never return partial results.
+7. **Every change ships edge-case tests:** Mandatory tests for empty, at-limit, over-limit, and upstream errors.
 8. **Clean untrusted post text:** Strip Unicode control characters (`Cc`) and formatting overrides (`Cf`) before terminal printing.
-9. **Domain match is never company ownership:** A domain match means a story links to that domain, never that the company owns it.
-10. **Failed upstream request never complete:** Failed requests must raise an error and exit 1; never swallow failures into empty results.
+9. **Domain match is never company ownership:** A domain match means a story links to that domain, never that the company owns it. Platform domains are flagged.
+10. **Failed upstream request never complete:** Failed requests must raise an error and exit 1; never swallow failures.
 
 ---
 
@@ -419,7 +371,7 @@ HN Radar is built using an autonomous engineering factory:
 ## 8. Troubleshooting & Frequently Asked Questions
 
 ### Q: `GitHubError: Rate limit exceeded`
-**Solution:** GitHub limits unauthenticated requests to 60 per hour. Generate a personal access token at [github.com/settings/tokens](https://github.com/settings/tokens) (no special scopes needed) and export it:
+**Solution:** GitHub limits unauthenticated requests to 60 per hour. Export a token:
 ```bash
 export GITHUB_TOKEN="ghp_yourTokenHere"
 ```
@@ -431,14 +383,11 @@ ollama serve &
 ollama pull qwen2.5:7b
 ```
 
-### Q: `match` reports: `Profile for <user> not found`
-**Solution:** Run the fingerprint command first:
-```bash
-uv run hnradar fingerprint <user>
-```
+### Q: `draft` reports: `No cited problem found for <user>`
+**Solution:** `draft` checks your top 10 matches. If none of the top 10 companies have a non-platform domain with a domain-linked Show HN containing a cited bug, it prints the specific skip reasons for each company. You can inspect other matches or run `showhn` and `pulse` manually.
 
-### Q: Why did `fetch-hiring` skip certain posts?
-**Solution:** `fetch-hiring` excludes posts identified by `is_candidate_profile()` as job-seekers looking for employment, as well as comments marked deleted by Hacker News moderators.
+### Q: Why did `showhn` print a platform domain warning?
+**Solution:** The requested domain is on a shared host (e.g., `github.io`, `notion.so`). Anyone can host pages on shared domains, so HN Radar flags it as low confidence (Rule 9).
 
 ---
 
