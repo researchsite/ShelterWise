@@ -328,7 +328,24 @@
       font-weight: 700;
     }
 
-  </style>
+  
+    .status-filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+    .status-filter-btn:hover, .status-filter-btn.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+</style>
 </head>
 <body>
 
@@ -351,6 +368,7 @@
     <button class="tab-btn" onclick="switchTab('tab-timeline')">PR Evolution Timeline (26 PRs)</button>
     <button class="tab-btn" onclick="switchTab('tab-subsystems')">Subsystems Directory</button>
     <button class="tab-btn" onclick="switchTab('tab-governance')">AGENTS.md Governance</button>
+    <button class="tab-btn" onclick="switchTab('tab-status')">Works Now vs Planned & Human Gates</button>
   </nav>
 
   <!-- TAB 1: DIAGRAM -->
@@ -738,6 +756,207 @@
       </tbody>
     </table>
   </section>
+  <!-- TAB: WORKS NOW VS PLANNED & HUMAN GATES -->
+  <section id="tab-status" class="tab-pane">
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+      <h2 style="margin-top: 0; display: flex; align-items: center; gap: 10px; color: var(--accent);">
+        <span>⚖️</span> System Ground Truth: Works Now vs. Planned & Human Gates
+      </h2>
+      <p style="color: var(--text-muted); line-height: 1.6;">
+        Authoritative architectural breakdown verified against live source code in <code>src/hnradar/</code> and git pull requests.
+      </p>
+
+      <!-- Filter Controls -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0;">
+        <button class="status-filter-btn active" onclick="filterStatus('all')">All Items (16)</button>
+        <button class="status-filter-btn" onclick="filterStatus('works-now')">🟢 Works Now on main (11)</button>
+        <button class="status-filter-btn" onclick="filterStatus('branch-stack')">🟡 In Progress / Branch Stack (3)</button>
+        <button class="status-filter-btn" onclick="filterStatus('planned')">🔵 Planned Roadmap (1)</button>
+        <button class="status-filter-btn" onclick="filterStatus('experiment')">🟣 Historical Spike (1)</button>
+      </div>
+
+      <!-- Status Grid -->
+      <div id="statusGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+        
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Hiring Thread Ingestion</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Algolia monthly thread sweep with pipe-header parsing, tech stack regex, and atomic disk cache.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>sources/hn.py</code>, <code>parse.py</code> | <b>PR:</b> #1, #46</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Poster Reply Closed Detector</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Scans poster replies for closure signals ('filled', 'closed') using natural language clause parser.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>closed.py</code> | <b>PR:</b> #30 | <b>Rule:</b> 8</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Resilient Cache Write Guard</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Day 14 guard: unwritable cache emits single stderr warning and carries on without crashing.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>sources/hn.py</code> | <b>PR:</b> #53 (Issue #52) | <b>Rule:</b> 10</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Candidate Profile Skip</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Filters out seeker pitches ('SEEKING WORK') and reports skipped count in CLI output.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>parse.py</code> | <b>PR:</b> #46 (Issue #45)</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">GitHub Profile Fingerprint</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Builds developer profile from public repos (forks excluded, top languages & topics, notable repos).</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>sources/github.py</code>, <code>fingerprint.py</code> | <b>PR:</b> #6 | <b>Rule:</b> 5</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Job Matching Engine (Top 3)</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;"><b>hnradar match</b> scores deterministically (max 100 pts) and returns strictly the Top 3 best jobs.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>match.py</code> (TOP_MATCHES=3) | <b>PR:</b> #24 | <b>Rule:</b> 1</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Show HN Dual Query & Domain Precedence</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Name + URL-restricted domain queries. Rule 9: links to domain never implies company ownership.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>showhn.py</code> | <b>PR:</b> #21, #33, #35 | <b>Rule:</b> 9</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Platform Domain Filter</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Flags multi-tenant shared domains (github.io, notion.so, substack.com) as low confidence.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>showhn.py</code> (is_platform_domain) | <b>PR:</b> #50 (Issue #38)</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Show HN Sentiment Pulse</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Clusters Show HN comments into pros, bugs, and asks using Ollama with verbatim comment ID citations.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>pulse/</code> | <b>PR:</b> #49 (Issue #13) | <b>Rule:</b> 7</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">5-Line Outreach Draft (Scans Top 10)</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;"><b>hnradar draft</b> evaluates top 10 matches, synthesizes exact 5-line outreach note with cited problem. Rule 4 human gate.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>draft/</code> (DRAFT_MATCHES=10) | <b>PR:</b> #51 (Issue #14) | <b>Rule:</b> 4</div>
+        </div>
+
+        <div class="status-card" data-cat="works-now" style="background: var(--bg-canvas); border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #10b981;">Parser Regression Skill</h4>
+            <span class="badge" style="background: #10b981; color: #000;">WORKS NOW</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Real-data verification skill enforcing must-keep and must-exclude comment IDs, preventing false PASS.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>.claude/skills/verify-jobs-parse/</code> | <b>PR:</b> #48</div>
+        </div>
+
+        <!-- In-Progress Stacked Branch Cards -->
+        <div class="status-card" data-cat="branch-stack" style="background: var(--bg-canvas); border: 1px solid #f59e0b; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #f59e0b;">Careers Static Web Portal</h4>
+            <span class="badge" style="background: #f59e0b; color: #000;">BRANCH STACK (OPEN)</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Static site pages for careers job exploration consuming jobs.json. Open PR against main.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Branch:</b> <code>feat/site-careers</code> | <b>PR:</b> #42 (OPEN)</div>
+        </div>
+
+        <div class="status-card" data-cat="branch-stack" style="background: var(--bg-canvas); border: 1px solid #f59e0b; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #f59e0b;">Careers Pagefind Search Index</h4>
+            <span class="badge" style="background: #f59e0b; color: #000;">MERGED INTO STACK</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Isolated Pagefind 1.6.0 index in <code>careers/pagefind/</code>. Merged into feat/site-careers.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Branch:</b> <code>feat/site-careers</code> | <b>PR:</b> #43 (MERGED to stack)</div>
+        </div>
+
+        <div class="status-card" data-cat="branch-stack" style="background: var(--bg-canvas); border: 1px solid #f59e0b; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #f59e0b;">Company Detail Page Slice</h4>
+            <span class="badge" style="background: #f59e0b; color: #000;">BRANCH STACK (OPEN)</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Company-specific job landing page slice. Open PR against feat/site-careers.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Branch:</b> <code>feat/careers-company</code> | <b>PR:</b> #44 (OPEN to stack)</div>
+        </div>
+
+        <!-- Planned -->
+        <div class="status-card" data-cat="planned" style="background: var(--bg-canvas); border: 1px solid #3b82f6; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #3b82f6;">Pre-Flight URL Reputation Check</h4>
+            <span class="badge" style="background: #3b82f6; color: #fff;">PLANNED ROADMAP</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Spike comparing urlscan.io, Google Safe Browsing, and URLhaus to flag malicious job links.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Issue:</b> #27 (OPEN) | <b>Rule:</b> 4 (no user URL fetching)</div>
+        </div>
+
+        <!-- Historical Experiment -->
+        <div class="status-card" data-cat="experiment" style="background: var(--bg-canvas); border: 1px solid #a855f7; border-radius: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0; color: #a855f7;">Goose Autonomous Ticket Worker</h4>
+            <span class="badge" style="background: #a855f7; color: #fff;">HISTORICAL SPIKE</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;">Automated ticket poller and Goose recipe. Successfully implemented Ticket #5 (PR #9). All other tickets built by developer pair-programming.</p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);"><b>Files:</b> <code>scripts/agent-poll.ps1</code> | <b>PR:</b> #8, #9</div>
+        </div>
+
+      </div>
+
+      <!-- Human Decision Points Panel -->
+      <div style="margin-top: 32px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 20px;">
+        <h3 style="margin-top: 0; color: #60a5fa;">🛡️ Non-Negotiable Human Decision Gates</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+          <div style="background: var(--bg-card); padding: 14px; border-radius: 6px; border-left: 3px solid #60a5fa;">
+            <h5 style="margin: 0 0 6px 0; color: #93c5fd;">1. Ticket Authoring & Acceptance Criteria</h5>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Human defines scope, acceptance criteria, and AGENTS.md rules before any code is generated.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px; border-radius: 6px; border-left: 3px solid #60a5fa;">
+            <h5 style="margin: 0 0 6px 0; color: #93c5fd;">2. Local Command Execution</h5>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Developer runs uv run pytest, smoke checks, and verify-jobs-parse manually in their local terminal.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px; border-radius: 6px; border-left: 3px solid #60a5fa;">
+            <h5 style="margin: 0 0 6px 0; color: #93c5fd;">3. Qodo Review Triage</h5>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Human evaluates Qodo findings, writes regression tests, and commits 'fix: ... review round 1'.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px; border-radius: 6px; border-left: 3px solid #60a5fa;">
+            <h5 style="margin: 0 0 6px 0; color: #93c5fd;">4. Rule 4 Outreach Inspection</h5>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">CLI prints 5-line draft and comment evidence to stdout. Human inspects and sends manually. Nothing sent automatically.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px; border-radius: 6px; border-left: 3px solid #60a5fa;">
+            <h5 style="margin: 0 0 6px 0; color: #93c5fd;">5. Branch Stack Merge Governance</h5>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Human controls merges to main vs branch stacks (e.g. feat/site-careers for careers portal).</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
 
   <!-- Slide-Over Drawer -->
   <div id="drawer" class="drawer">
@@ -1152,15 +1371,15 @@
   },
   "ticket_worker": {
     "id": "ticket_worker",
-    "name": "Goose Ticket Worker Recipe",
-    "category": "Autonomous Factory",
+    "name": "Goose Ticket Worker Recipe (Historical Spike)",
+    "category": "Experimental Automation",
     "file": ".goose/recipes/ticket-worker.yaml",
     "prs": [
       "#8",
       "#10",
       "#22"
     ],
-    "summary": "Autonomous AI agent recipe that implements GitHub issues in dedicated git worktrees and opens pull requests.",
+    "summary": "Experimental AI agent recipe that ran on Ticket #5 (PR #9). All subsequent development was pair-programmed by the human developer with Claude Sonnet.",
     "details": "The <code>ticket-worker.yaml</code> recipe configures the Goose autonomous coding agent.<br/><br/>\n<b>Operational Safeguards:</b>\n<ul>\n  <li><b>Isolated Git Worktrees:</b> Operates exclusively in dedicated worktrees on dedicated branches (<code>agent/&lt;issue_number&gt;</code>), completely isolating working files from main.</li>\n  <li><b>Model Configuration (PR #10):</b> Uses <code>gpt-oss:20b-cloud</code> via Ollama provider with a 60-turn limit.</li>\n  <li><b>Quality Gate Execution (PR #22):</b> Reviews existing PR comments from <code>qodo-code-review[bot]</code> or the repository owner. Treats High/Medium findings as required tasks, while reporting Low findings.</li>\n  <li><b>Strict Tool Directives:</b> Replaces full file contents cleanly, runs <code>uv run pytest -q</code> and smoke checks, and opens PRs with standard completion checklists.</li>\n</ul>",
     "inputs": "Issue number and PR body path parameters.",
     "outputs": "Git commit, branch push, and GitHub Pull Request.",
@@ -1173,12 +1392,12 @@
   "agent_poller": {
     "id": "agent_poller",
     "name": "PowerShell Agent Poller",
-    "category": "Autonomous Factory",
+    "category": "Experimental Automation",
     "file": "scripts/agent-poll.ps1",
     "prs": [
       "#8"
     ],
-    "summary": "Automated background loop that polls GitHub for ready-for-agent issues, protected by a system-wide named mutex lock.",
+    "summary": "PowerShell background poller equipped with Windows Named Mutex lock and worktree isolation. Used during the Day 4 automation spike on Ticket #5.",
     "details": "The <code>agent-poll.ps1</code> script orchestrates automated ticket execution.<br/><br/>\n<b>Architecture:</b>\n<ul>\n  <li><b>Named OS Mutex Guard:</b> Uses a Windows named mutex (<code>Global\\\\HNRadarAgentPoll</code>) to guarantee single-instance execution, preventing race conditions without brittle file locks.</li>\n  <li><b>Queue Polling:</b> Searches for open issues with label <code>ready-for-agent</code>.</li>\n  <li><b>Worktree Lifecycle:</b> Sets up isolated worktrees under <code>../hn-radar-worktrees/</code>, executes Goose, and logs all execution outputs.</li>\n  <li><b>Failure Escalation:</b> If an issue fails after 2 attempts, automatically removes the agent label, adds <code>needs-human</code>, and posts an explanatory diagnostic comment.</li>\n</ul>",
     "inputs": "GitHub repository issue queue.",
     "outputs": "Spawned Goose worker process and issue status transitions.",
@@ -1244,13 +1463,34 @@
     ],
     "qodo_pr": "22"
   }
-};
+,
+  "careers_site": {
+    "id": "careers_site",
+    "name": "Careers Static Web Portal",
+    "category": "Web Frontend",
+    "file": "site/careers/",
+    "prs": [
+      "#42",
+      "#43",
+      "#44"
+    ],
+    "summary": "Pure static HTML5/CSS portal consuming data/jobs.json with an isolated Pagefind 1.6.0 full-text search index and brand design tokens.",
+    "details": "<h3>Architecture Overview</h3><p>Located in <code>site/careers/</code> and developed on stacked branch <code>feat/site-careers</code>. Features include:</p><ul><li><b>Independent Search Index:</b> Full-text client-side search via Pagefind 1.6.0 index in <code>careers/pagefind/</code> without touching parent site search.</li><li><b>Strict XSS Boundary:</b> Hacker News post text rendered exclusively via <code>textContent</code> after control-code stripping.</li><li><b>Brand Styling:</b> Uses <code>--rw-*</code> CSS variables supporting instant theme toggling.</li><li><b>Stacked Branches:</b> PR #42 (open against main), PR #43 (merged into stack), PR #44 (open against stack).</li></ul>",
+    "inputs": "data/jobs.json, site design tokens in includes/brand.css",
+    "outputs": "Static web pages (site/careers/) and Pagefind search index.",
+    "rules": [
+      "Untrusted text via textContent only",
+      "Citations required for user claims",
+      "No absolute paths"
+    ],
+    "qodo_pr": "43"
+  }};
     const prDetailsData = {
   "1": {
     "title": "feat: add hnradar fetch-hiring command",
     "merged": true,
     "diagram": "graph TD\n  HN[\"HN Algolia API\"] --> Fetch[\"fetch-hiring CLI\"] --> Parser[\"Job Parser\"] --> Jobs[(\"data/jobs.json\")]\n  Fetch --> Table[\"CLI Table Output\"]",
-    "note": "Initial foundation PR. Added fetch-hiring command and core parser. (Qodo automated review errored on first run; diagram synthesized from PR code)."
+    "note": "Initial foundation PR. Added fetch-hiring command and core parser. (Note: Developer Qodo account access was blocked until November 11, 2026; once unblocked on Nov 11, /agentic_review ran cleanly without errors)."
   },
   "2": {
     "title": "docs: AGENTS.md factory rules",
@@ -1340,7 +1580,7 @@
     "title": "experiment: showhn fallback and labels (Day 11, do not merge)",
     "merged": false,
     "diagram": "graph TD\n  CLI[\"showhn CLI\"] --> Name[\"Name search\"] --> Domain{\"Domain provided?\"} -->|yes| URL[\"URL search\"] -->|available| Merge[\"Deduplicate hits\"] --> Rank[\"Rank candidates\"] --> Out[\"Table or JSON\"]\n  Domain -->|no| Rank\n  URL -->|unavailable| Rank",
-    "note": "Experimental run evaluating fallback behaviors and label cues when URL search fails or domain is absent."
+    "note": "Day 11 Seeded-Defect Experiment A (do not merge): Intentionally tested Qodo review bot by introducing subtle fallback behavior and misleading labels when URL search fails. Closed unmerged as planned once Qodo triaged the behavior."
   },
   "35": {
     "title": "docs: AGENTS.md rule 9, a domain match is never company ownership",
@@ -1352,7 +1592,7 @@
     "title": "experiment: showhn domain search (Day 11 run B, do not merge)",
     "merged": false,
     "diagram": "graph TD\n  CLI[\"showhn CLI\"] --> Search[\"Search coordinator\"] --> Name[\"Name search\"] --> Merge[\"Deduplicate hits\"] --> Rank[\"Rank candidates\"] --> Output[\"Table or JSON\"]\n  Search -->|\"if domain\"| URL[\"URL search\"] --> Merge",
-    "note": "Second experiment testing unified search coordinator structure for name and URL search."
+    "note": "Day 11 Seeded-Defect Experiment B (do not merge): Intentionally tested Qodo review bot detection on a second seeded variation combining name and URL queries into a coordinator. Closed unmerged as planned."
   },
   "39": {
     "title": "docs: AGENTS.md rule 10, a failed upstream request is never returned as complete",
@@ -1364,7 +1604,7 @@
     "title": "feat: careers-only full-text search with its own Pagefind index (#40)",
     "merged": true,
     "diagram": "graph TD\n  Jobs[(\"Jobs JSON\")] --> Builder[\"Index builder\"] --> CLI[\"Pagefind CLI\"] --> Index[(\"Careers index\")] --> Helper[\"HN search\"] --> Explorer[\"Job explorer\"]\n  Jobs --> Explorer\n  Helper -->|\"Index unavailable\"| Fallback[\"Field fallback\"] --> Explorer",
-    "note": "Integrated Pagefind static indexing over jobs.json for full-text careers search with field-level fallback."
+    "note": "Merged into stacked branch feat/site-careers (NOT main). Integrated isolated Pagefind 1.6.0 static indexing over jobs.json for full-text careers search in site/careers/pagefind/. Part of the 3-tier careers branch stack (PR #42 OPEN against main, PR #43 MERGED into stack, PR #44 OPEN against stack)."
   },
   "46": {
     "title": "feat: skip candidate profiles in fetch-hiring and report the count (#45)",
@@ -1415,33 +1655,33 @@
     const deepDivesData = [
   {
     "id": "dd-1",
-    "title": "1. Overall System Architecture (6 Layers, External APIs & Storage)",
-    "diagram": "graph TB\n  %% External Services\n  subgraph ExternalServices[\"External Services & APIs\"]\n    AlgoliaAPI[\"Hacker News Algolia REST API<br/>(hn.algolia.com/api/v1)\"]\n    GitHubAPI[\"GitHub Public REST API<br/>(api.github.com/users/repos)\"]\n    LocalOllama[\"Local / Remote Ollama Server<br/>(localhost:11434 / qwen2.5:7b)\"]\n  end\n\n  %% Network & Caching Adapters\n  subgraph SourceLayer[\"Source Adapters & Disk Cache (src/hnradar/sources/)\"]\n    HNSource[\"sources/hn.py<br/>\u2022 find_latest_hiring_story()<br/>\u2022 search_show_hn()<br/>\u2022 fetch_item()<br/>\u2022 Resilient cache write (PR #53)\"]\n    GHSource[\"sources/github.py<br/>\u2022 fetch_repos()<br/>\u2022 Rate limit check<br/>\u2022 Hard limit: 2000 repos\"]\n    OllamaSource[\"sources/ollama.py<br/>\u2022 OllamaClient.complete()<br/>\u2022 format: schema<br/>\u2022 num_predict: 2048\"]\n    \n    HNCache[(\"data/cache/hn_*.json<br/>Atomic tempfile+rename<br/>Warns on failure (PR #53)\")]\n    GHCache[(\"data/cache/github_*.json<br/>TTL: 1 hour\")]\n  end\n\n  AlgoliaAPI <-->|HTTP GET| HNSource\n  GitHubAPI <-->|\"HTTP GET (Bearer Token)\"| GHSource\n  LocalOllama <-->|HTTP POST /api/chat| OllamaSource\n  HNSource <-->|Read / Atomic Write| HNCache\n  GHSource <-->|Read / Atomic Write| GHCache\n\n  %% Ingestion & Parsing Subsystem\n  subgraph IngestionSubsystem[\"Ingestion & Data Normalization\"]\n    ParseComment[\"parse_comment()<br/>\u2022 Pipe header extraction<br/>\u2022 Tech stack regex (_STACK, _GO_RE)<br/>\u2022 Remote status & URL extraction\"]\n    CandidateFilter[\"is_candidate_profile()<br/>\u2022 Drops job-seeker pitches<br/>\u2022 First-person / Resume heuristics\"]\n    ClosedDetector[\"closing_reply_id()<br/>\u2022 Scans poster replies<br/>\u2022 Natural language clause parser<br/>\u2022 Bisect condition checking\"]\n    JobsJSON[(\"data/jobs.json<br/>Validated Job Records\")]\n  end\n\n  HNSource -->|Raw Comment HTML| ParseComment\n  ParseComment -->|Parsed Candidate| CandidateFilter\n  CandidateFilter -->|Not Candidate| ClosedDetector\n  ClosedDetector -->|Enriched with closed_id| JobsJSON\n\n  %% User Fingerprinting Subsystem\n  subgraph FingerprintSubsystem[\"Developer Profiling\"]\n    ProfileBuilder[\"build_profile()<br/>\u2022 Filters out all forks<br/>\u2022 Top 5 languages by byte size<br/>\u2022 Top 10 repository topics<br/>\u2022 Top 5 notable repos by stars\"]\n    ProfileJSON[(\"data/profiles/{user}.json<br/>Pydantic Profile\")]\n  end\n\n  GHSource -->|Own Repositories| ProfileBuilder\n  ProfileBuilder -->|\"Validate & Save\"| ProfileJSON\n\n  %% Matching Engine Subsystem\n  subgraph MatchingSubsystem[\"Scoring & Recommendation Engine\"]\n    NormAliases[\"_norm() Tech Alias Normalizer<br/>(k8s \u2194 kubernetes, golang \u2194 go)\"]\n    Scorer[\"score_job() & top_matches()<br/>\u2022 20 pts per matching language<br/>\u2022 10 pts per matching topic<br/>\u2022 5 pts remote bonus<br/>\u2022 Max 100 points\"]\n    TopMatches[\"Top 10 Matches<br/>+ Cited Evidence Reasons (Rule 1)\"]\n  end\n\n  JobsJSON --> Scorer\n  ProfileJSON --> Scorer\n  NormAliases -. Normalizes terms .-> Scorer\n  Scorer --> TopMatches\n\n  %% Show HN & Pulse Subsystem\n  subgraph PulseSubsystem[\"Company Radar & AI Pulse Intelligence\"]\n    ShowHNRanker[\"showhn.py / build_result()<br/>\u2022 URL-restricted Algolia query<br/>\u2022 Domain match precedence<br/>\u2022 is_platform_domain() check (PR #50)<br/>\u2022 Rule 9: Links to domain != ownership\"]\n    PulseClusterer[\"pulse/cluster.py<br/>\u2022 Selects longest comments (max 60)<br/>\u2022 JSON array injection defense<br/>\u2022 Pydantic schema validation<br/>\u2022 2-attempt retry loop\"]\n    PulseVerify[\"Citation Validator<br/>\u2022 Verifies cited comment_ids in thread\"]\n    PulseJSON[(\"data/pulse/{story_id}.json<br/>Pros, Bugs, Asks\")]\n  end\n\n  HNSource --> ShowHNRanker\n  HNSource --> PulseClusterer\n  OllamaSource <--> PulseClusterer\n  PulseClusterer --> PulseVerify\n  PulseVerify --> PulseJSON\n\n  %% Outreach Draft Synthesizer Subsystem (PR #51)\n  subgraph DraftSubsystem[\"Outreach Draft Synthesis (PR #51)\"]\n    DraftMatchLoop[\"Top 10 Match Evaluator<br/>\u2022 Non-platform domain required<br/>\u2022 Domain-linked Show HN required<br/>\u2022 Cited bug required\"]\n    DraftWriter[\"draft/write.py (write_draft)<br/>\u2022 System prompt: 5 exact lines<br/>\u2022 ModelDraft Pydantic validation<br/>\u2022 Line 2 comment citation<br/>\u2022 Names developer repo<br/>\u2022 Rejects ownership claims (Rule 9)\"]\n    DraftResultOut[\"5-Line Outreach Draft<br/>+ Line-by-Line Evidence Citations\"]\n  end\n\n  TopMatches --> DraftMatchLoop\n  ShowHNRanker --> DraftMatchLoop\n  PulseJSON --> DraftMatchLoop\n  DraftMatchLoop --> DraftWriter\n  OllamaSource <--> DraftWriter\n  DraftWriter --> DraftResultOut\n\n  %% CLI Layer\n  subgraph CLILayer[\"User Interface (CLI Layer via Typer)\"]\n    FetchHiringCLI[\"hnradar fetch-hiring<br/>[--limit, --out, --json]\"]\n    FingerprintCLI[\"hnradar fingerprint<br/>[<user> --out-dir]\"]\n    MatchCLI[\"hnradar match<br/>[<user> --jobs --json]\"]\n    ShowHNCLI[\"hnradar showhn<br/>[<company> --domain --json]\"]\n    PulseCLI[\"hnradar pulse<br/>[<story_id> --model --out]\"]\n    DraftCLI[\"hnradar draft<br/>[<user> --model --pulse-dir]\"]\n  end\n\n  FetchHiringCLI --> IngestionSubsystem\n  FingerprintCLI --> FingerprintSubsystem\n  MatchCLI --> MatchingSubsystem\n  ShowHNCLI --> ShowHNRanker\n  PulseCLI --> PulseSubsystem\n  DraftCLI --> DraftSubsystem\n\n  %% Security & Sanitization\n  subgraph SecurityLayer[\"Security & Sanitization Boundary\"]\n    TerminalSanitizer[\"_terminal_safe() (Rule 8)<br/>\u2022 Strips Cc control codes (ESC, BEL, CR)<br/>\u2022 Drops Cf format codes (Bidi overrides)<br/>\u2022 stdout JSON uses ensure_ascii=True\"]\n    URLSandbox[\"URL Sandbox Boundary (Rule 4)<br/>\u2022 Untrusted URLs only parsed, never fetched\"]\n    PrivacyBoundary[\"Privacy Boundary (Rule 5)<br/>\u2022 Public repo stats only, zero resume scraping\"]\n  end\n\n  CLILayer -. Sanitized by .-> TerminalSanitizer\n  ShowHNRanker -. Enforces .-> URLSandbox\n  ProfileBuilder -. Enforces .-> PrivacyBoundary\n\n  %% Autonomous Engineering Factory\n  subgraph AutonomousFactory[\"Autonomous Agent Engineering Factory\"]\n    GitHubIssues[\"GitHub Issue Queue<br/>(label: ready-for-agent)\"]\n    NamedMutex[\"Global\\HNRadarAgentPoll<br/>(Windows Named OS Mutex Guard)\"]\n    Poller[\"scripts/agent-poll.ps1<br/>\u2022 Mutex single-instance check<br/>\u2022 Spawns dedicated git worktrees<br/>\u2022 Retries up to 2 times\"]\n    Worktrees[\"Git Worktree Isolation<br/>(../hn-radar-worktrees/agent-{N})\"]\n    GooseAgent[\"Goose Ticket Worker<br/>(.goose/recipes/ticket-worker.yaml)<br/>\u2022 Model: gpt-oss:20b-cloud<br/>\u2022 Minimal clean diffs<br/>\u2022 Pytest & smoke check\"]\n    QodoReview[\"Qodo Code Review Bot<br/>\u2022 Mermaid architecture diagrams<br/>\u2022 Severity: High, Medium, Low\"]\n    QualityGate[\"AGENTS.md Quality Gate (DoD)<br/>\u2022 High & Medium findings fixed with tests<br/>\u2022 Low findings reported to human\"]\n    VerifySkill[\".claude/skills/verify-jobs-parse/<br/>\u2022 Real-data regression testing<br/>\u2022 Must-keep vs must-exclude IDs\"]\n  end\n\n  GitHubIssues --> Poller\n  NamedMutex -. Guards .-> Poller\n  Poller --> Worktrees\n  Worktrees --> GooseAgent\n  GooseAgent -->|\"Git Push & PR\"| QodoReview\n  QodoReview --> QualityGate\n  GooseAgent -. Verified by .-> VerifySkill"
+    "title": "1. Overall System Architecture (External APIs, CLI & Engineering Workflow)",
+    "diagram": "graph TB\n  %% External Services\n  subgraph ExternalServices[\"External Services & APIs\"]\n    AlgoliaAPI[\"Hacker News Algolia REST API<br/>(hn.algolia.com/api/v1)\"]\n    GitHubAPI[\"GitHub Public REST API<br/>(api.github.com/users/repos)\"]\n    LocalOllama[\"Local / Remote Ollama Server<br/>(localhost:11434 / qwen2.5:7b)\"]\n  end\n\n  %% Network & Caching Adapters\n  subgraph SourceLayer[\"Source Adapters & Disk Cache (src/hnradar/sources/)\"]\n    HNSource[\"sources/hn.py<br/>\u2022 find_latest_hiring_story()<br/>\u2022 search_show_hn()<br/>\u2022 fetch_item()<br/>\u2022 Resilient cache write (PR #53)\"]\n    GHSource[\"sources/github.py<br/>\u2022 fetch_repos()<br/>\u2022 Rate limit check<br/>\u2022 Hard limit: 2000 repos\"]\n    OllamaSource[\"sources/ollama.py<br/>\u2022 OllamaClient.complete()<br/>\u2022 format: schema<br/>\u2022 num_predict: 2048\"]\n    \n    HNCache[(\"data/cache/hn_*.json<br/>Atomic tempfile+rename<br/>Warns on failure (PR #53)\")]\n    GHCache[(\"data/cache/github_*.json<br/>TTL: 1 hour\")]\n  end\n\n  AlgoliaAPI <-->|HTTP GET| HNSource\n  GitHubAPI <-->|\"HTTP GET (Bearer Token)\"| GHSource\n  LocalOllama <-->|HTTP POST /api/chat| OllamaSource\n  HNSource <-->|Read / Atomic Write| HNCache\n  GHSource <-->|Read / Atomic Write| GHCache\n\n  %% Ingestion & Parsing Subsystem\n  subgraph IngestionSubsystem[\"Ingestion & Data Normalization\"]\n    ParseComment[\"parse_comment()<br/>\u2022 Pipe header extraction<br/>\u2022 Tech stack regex (_STACK, _GO_RE)<br/>\u2022 Remote status & URL extraction\"]\n    CandidateFilter[\"is_candidate_profile()<br/>\u2022 Drops job-seeker pitches<br/>\u2022 First-person / Resume heuristics\"]\n    ClosedDetector[\"closing_reply_id()<br/>\u2022 Scans poster replies<br/>\u2022 Natural language clause parser<br/>\u2022 Bisect condition checking\"]\n    JobsJSON[(\"data/jobs.json<br/>Validated Job Records\")]\n  end\n\n  HNSource -->|Raw Comment HTML| ParseComment\n  ParseComment -->|Parsed Candidate| CandidateFilter\n  CandidateFilter -->|Not Candidate| ClosedDetector\n  ClosedDetector -->|Enriched with closed_id| JobsJSON\n\n  %% User Fingerprinting Subsystem\n  subgraph FingerprintSubsystem[\"Developer Profiling\"]\n    ProfileBuilder[\"build_profile()<br/>\u2022 Filters out all forks<br/>\u2022 Top 5 languages by byte size<br/>\u2022 Top 10 repository topics<br/>\u2022 Top 5 notable repos by stars\"]\n    ProfileJSON[(\"data/profiles/{user}.json<br/>Pydantic Profile\")]\n  end\n\n  GHSource -->|Own Repositories| ProfileBuilder\n  ProfileBuilder -->|\"Validate & Save\"| ProfileJSON\n\n  %% Matching Engine Subsystem\n  subgraph MatchingSubsystem[\"Scoring & Recommendation Engine\"]\n    NormAliases[\"_norm() Tech Alias Normalizer<br/>(k8s \u2194 kubernetes, golang \u2194 go)\"]\n    Scorer[\"score_job() & top_matches()<br/>\u2022 20 pts per matching language<br/>\u2022 10 pts per matching topic<br/>\u2022 5 pts remote bonus<br/>\u2022 Max 100 points\"]\n    TopMatches[\"Deterministic Scorer Output<br/>\u2022 match command: Top 3 opportunities<br/>\u2022 draft command: Evaluates top 10 candidates\"]\n  end\n\n  JobsJSON --> Scorer\n  ProfileJSON --> Scorer\n  NormAliases -. Normalizes terms .-> Scorer\n  Scorer --> TopMatches\n\n  %% Show HN & Pulse Subsystem\n  subgraph PulseSubsystem[\"Company Radar & AI Pulse Intelligence\"]\n    ShowHNRanker[\"showhn.py / build_result()<br/>\u2022 URL-restricted Algolia query<br/>\u2022 Domain match precedence<br/>\u2022 is_platform_domain() check (PR #50)<br/>\u2022 Rule 9: Links to domain != ownership\"]\n    PulseClusterer[\"pulse/cluster.py<br/>\u2022 Selects longest comments (max 60)<br/>\u2022 JSON array injection defense<br/>\u2022 Pydantic schema validation<br/>\u2022 2-attempt retry loop\"]\n    PulseVerify[\"Citation Validator<br/>\u2022 Verifies cited comment_ids in thread\"]\n    PulseJSON[(\"data/pulse/{story_id}.json<br/>Pros, Bugs, Asks\")]\n  end\n\n  HNSource --> ShowHNRanker\n  HNSource --> PulseClusterer\n  OllamaSource <--> PulseClusterer\n  PulseClusterer --> PulseVerify\n  PulseVerify --> PulseJSON\n\n  %% Outreach Draft Synthesizer Subsystem (PR #51)\n  subgraph DraftSubsystem[\"Outreach Draft Synthesis (PR #51)\"]\n    DraftMatchLoop[\"Top 10 Match Evaluator<br/>\u2022 Non-platform domain required<br/>\u2022 Domain-linked Show HN required<br/>\u2022 Cited bug required\"]\n    DraftWriter[\"draft/write.py (write_draft)<br/>\u2022 System prompt: 5 exact lines<br/>\u2022 ModelDraft Pydantic validation<br/>\u2022 Line 2 comment citation<br/>\u2022 Names developer repo<br/>\u2022 Rejects ownership claims (Rule 9)\"]\n    DraftResultOut[\"5-Line Outreach Draft<br/>+ Line-by-Line Evidence Citations\"]\n  end\n\n  TopMatches --> DraftMatchLoop\n  ShowHNRanker --> DraftMatchLoop\n  PulseJSON --> DraftMatchLoop\n  DraftMatchLoop --> DraftWriter\n  OllamaSource <--> DraftWriter\n  DraftWriter --> DraftResultOut\n\n  %% CLI Layer\n  subgraph CLILayer[\"User Interface (CLI Layer via Typer)\"]\n    FetchHiringCLI[\"hnradar fetch-hiring<br/>[--limit, --out, --json]\"]\n    FingerprintCLI[\"hnradar fingerprint<br/>[<user> --out-dir]\"]\n    MatchCLI[\"hnradar match<br/>[<user> --jobs --json]\"]\n    ShowHNCLI[\"hnradar showhn<br/>[<company> --domain --json]\"]\n    PulseCLI[\"hnradar pulse<br/>[<story_id> --model --out]\"]\n    DraftCLI[\"hnradar draft<br/>[<user> --model --pulse-dir]\"]\n  end\n\n  FetchHiringCLI --> IngestionSubsystem\n  FingerprintCLI --> FingerprintSubsystem\n  MatchCLI --> MatchingSubsystem\n  ShowHNCLI --> ShowHNRanker\n  PulseCLI --> PulseSubsystem\n  DraftCLI --> DraftSubsystem\n\n  %% Security & Sanitization\n  subgraph SecurityLayer[\"Security & Sanitization Boundary\"]\n    TerminalSanitizer[\"_terminal_safe() (Rule 8)<br/>\u2022 Strips Cc control codes (ESC, BEL, CR)<br/>\u2022 Drops Cf format codes (Bidi overrides)<br/>\u2022 stdout JSON uses ensure_ascii=True\"]\n    URLSandbox[\"URL Sandbox Boundary (Rule 4)<br/>\u2022 Untrusted URLs only parsed, never fetched\"]\n    PrivacyBoundary[\"Privacy Boundary (Rule 5)<br/>\u2022 Public repo stats only, zero resume scraping\"]\n  end\n\n  CLILayer -. Sanitized by .-> TerminalSanitizer\n  ShowHNRanker -. Enforces .-> URLSandbox\n  ProfileBuilder -. Enforces .-> PrivacyBoundary\n\n  %% Development Engine & Qodo Review Quality Gate\n  subgraph DevEngine[\"Engineering Workflow & Qodo Review Gate\"]\n    HumanDev[\"Human Engineer (Sham)<br/>+ AI Pair (Claude Sonnet)<br/>\u2022 Hand-crafted implementations & commands\"]\n    GooseOneOff[\"Goose Experiment (PR #9)<br/>\u2022 One-off trial on Ticket #5 only\"]\n    LocalVerify[\"Local Verification & Quality Gate<br/>\u2022 uv run pytest -q<br/>\u2022 verify-jobs-parse real-data skill\"]\n    GitHubPRs[\"GitHub Pull Requests<br/>(Branch pushes & reviews)\"]\n    QodoReview[\"Qodo Code Review Bot<br/>\u2022 Automated architecture diagrams<br/>\u2022 AGENTS.md Review Standards (Rules 9, 10)\"]\n    ReviewTriage[\"Human Review Triage & Fixes<br/>\u2022 fix: ... review round 1 commits<br/>\u2022 Human maintainer merge to main\"]\n  end\n\n  HumanDev --> LocalVerify\n  GooseOneOff -. One-time experiment .-> GitHubPRs\n  LocalVerify --> GitHubPRs\n  GitHubPRs --> QodoReview\n  QodoReview --> ReviewTriage\n  ReviewTriage -->|\"Merge Approval\"| GitHubPRs"
   },
   {
     "id": "dd-2",
-    "title": "2. Core Dataflow: Ingestion to Scoring Pipeline",
+    "title": "2. Ingestion & Sanitization Pipeline (Data Flow)",
     "diagram": "sequenceDiagram\n    autonumber\n    actor User as User / CLI\n    participant CLI as cli.fetch_hiring\n    participant HN as sources/hn.py\n    participant Cache as data/cache/\n    participant Algolia as HN Algolia API\n    participant Parse as parse.py\n    participant Closed as closed.py\n    participant Disk as data/jobs.json\n\n    User->>CLI: hnradar fetch-hiring [--limit N] [--out PATH]\n    CLI->>HN: find_latest_hiring_story()\n    HN->>Cache: Check cached story (TTL: 1h)\n    alt Cache Miss\n        HN->>Algolia: GET search_by_date?tags=story,author_whoishiring\n        Algolia-->>HN: JSON stories\n        HN->>Cache: Atomic write cache file (Warns on failure, PR #53)\n    end\n    HN-->>CLI: Return story_id & title\n\n    CLI->>HN: fetch_item(story_id)\n    HN->>Cache: Check cached item (TTL: 6h)\n    alt Cache Miss\n        HN->>Algolia: GET items/{story_id}\n        Algolia-->>HN: Full comment tree\n        HN->>Cache: Atomic write cache file (Warns on failure, PR #53)\n    end\n    HN-->>CLI: Full item payload with children\n\n    loop For each top-level comment\n        CLI->>Parse: parse_comment(comment_id, html_text)\n        Parse-->>CLI: Job(company, role, location, remote, stack, url)\n        CLI->>Parse: is_candidate_profile(text)\n        alt Is Candidate Pitch\n            CLI->>CLI: Increment skipped_candidates count\n        else Genuine Job Listing\n            CLI->>Closed: closing_reply_id(comment_node)\n            Closed-->>CLI: closing_id or None\n            CLI->>CLI: Append to valid jobs list\n        end\n    end\n\n    CLI->>Disk: Write atomic data/jobs.json\n    CLI->>CLI: Apply _terminal_safe() [Rule 8]\n    CLI-->>User: Render ASCII table or JSON stdout + summary"
   },
   {
     "id": "dd-3",
-    "title": "3. Developer Fingerprinting & Matching Engine",
-    "diagram": "graph TD\n  subgraph Fingerprinting[\"1. Profile Fingerprint Phase\"]\n    UserArg[\"Username Argument\"] --> CLI_FP[\"hnradar fingerprint <user>\"]\n    CLI_FP --> GH_Source[\"sources/github.py\"]\n    GH_Source -->|\"GET /users/{user}/repos\"| GH_API[\"GitHub REST API\"]\n    GH_API -->|Public Repos| FilterForks{\"Is Fork?\"}\n    FilterForks -->|Yes| DropFork[\"Discard Fork\"]\n    FilterForks -->|No| KeepRepo[\"Retain Author's Repo\"]\n    \n    KeepRepo --> AggLang[\"Aggregate Byte Size per Language<br/>(Keep Top 5)\"]\n    KeepRepo --> AggTopics[\"Count Topics Occurrence<br/>(Keep Top 10)\"]\n    KeepRepo --> TopRepos[\"Sort by Stars Descending<br/>(Keep Top 5 Notable)\"]\n    \n    AggLang --> PydanticProfile[\"Pydantic Profile Model\"]\n    AggTopics --> PydanticProfile\n    TopRepos --> PydanticProfile\n    PydanticProfile --> SaveProfile[(\"data/profiles/{user}.json\")]\n  end\n\n  subgraph Matching[\"2. Job Matching Phase\"]\n    CLI_Match[\"hnradar match <user>\"] --> ReadProfile[(\"data/profiles/{user}.json\")]\n    CLI_Match --> ReadJobs[(\"data/jobs.json\")]\n    \n    ReadProfile --> MatchEngine[\"Deterministic Match Engine\"]\n    ReadJobs --> MatchEngine\n    \n    MatchEngine --> AliasNorm[\"_norm() Alias Canonicalization<br/>(postgres \u2194 postgresql, ts \u2194 typescript)\"]\n    AliasNorm --> ScoreCalc[\"Scoring Algorithm:<br/>\u2022 Language Overlap: +20 pts<br/>\u2022 Topic Overlap: +10 pts<br/>\u2022 Remote Bonus: +5 pts (if stack overlap)<br/>\u2022 Max Score: 100 pts\"]\n    \n    ScoreCalc --> EvGen[\"Evidence Synthesizer (Rule 1):<br/>\u2022 'Your Python work matches stack'<br/>\u2022 'Your repo fastapi-app is written in Python'<br/>\u2022 'Your repos use topic kubernetes'\"]\n    \n    EvGen --> HeapSort[\"heapq.nlargest(10, ...)<br/>Sort by (score desc, comment_id desc)\"]\n    HeapSort --> FinalMatches[\"Top Matches Table or JSON\"]\n  end\n\n  SaveProfile --> ReadProfile"
+    "title": "3. Developer Fingerprinting & Deterministic Match Pipeline (Top 3 for match, Top 10 for draft)",
+    "diagram": "graph TD\n  subgraph Fingerprinting[\"1. Profile Fingerprint Phase\"]\n    UserArg[\"Username Argument\"] --> CLI_FP[\"hnradar fingerprint <user>\"]\n    CLI_FP --> GH_Source[\"sources/github.py\"]\n    GH_Source -->|\"GET /users/{user}/repos\"| GH_API[\"GitHub REST API\"]\n    GH_API -->|Public Repos| FilterForks{\"Is Fork?\"}\n    FilterForks -->|Yes| DropFork[\"Discard Fork\"]\n    FilterForks -->|No| KeepRepo[\"Retain Author's Repo\"]\n    \n    KeepRepo --> AggLang[\"Aggregate Byte Size per Language<br/>(Keep Top 5)\"]\n    KeepRepo --> AggTopics[\"Count Topics Occurrence<br/>(Keep Top 10)\"]\n    KeepRepo --> TopRepos[\"Sort by Stars Descending<br/>(Keep Top 5 Notable)\"]\n    \n    AggLang --> PydanticProfile[\"Pydantic Profile Model\"]\n    AggTopics --> PydanticProfile\n    TopRepos --> PydanticProfile\n    PydanticProfile --> SaveProfile[(\"data/profiles/{user}.json\")]\n  end\n\n  subgraph Matching[\"2. Job Matching Phase\"]\n    CLI_Match[\"hnradar match <user>\"] --> ReadProfile[(\"data/profiles/{user}.json\")]\n    CLI_Match --> ReadJobs[(\"data/jobs.json\")]\n    \n    ReadProfile --> MatchEngine[\"Deterministic Match Engine\"]\n    ReadJobs --> MatchEngine\n    \n    MatchEngine --> AliasNorm[\"_norm() Alias Canonicalization<br/>(postgres \u2194 postgresql, ts \u2194 typescript)\"]\n    AliasNorm --> ScoreCalc[\"Scoring Algorithm:<br/>\u2022 Language Overlap: +20 pts<br/>\u2022 Topic Overlap: +10 pts<br/>\u2022 Remote Bonus: +5 pts (if stack overlap)<br/>\u2022 Max Score: 100 pts\"]\n    \n    ScoreCalc --> EvGen[\"Evidence Synthesizer (Rule 1):<br/>\u2022 'Your Python work matches stack'<br/>\u2022 'Your repo fastapi-app is written in Python'<br/>\u2022 'Your repos use topic kubernetes'\"]\n    \n    EvGen --> HeapSort[\"heapq.nlargest(limit, ...)<br/>\u2022 hnradar match: limit=3 (Top 3)<br/>\u2022 hnradar draft: limit=11 (Scans top 10)\"]\n    HeapSort --> FinalMatches[\"Top 3 Scored Matches for User (match)<br/>or Ranked Candidate Stream (draft)\"]\n  end\n\n  SaveProfile --> ReadProfile"
   },
   {
     "id": "dd-4",
-    "title": "4. Show HN Search & Sentiment Pulse Pipeline",
+    "title": "4. Show HN & Pulse Intelligence Pipeline (Algolia Search + Ollama LLM)",
     "diagram": "sequenceDiagram\n    autonumber\n    actor User\n    participant CLI as hnradar pulse\n    participant HN as sources/hn.py\n    participant Cluster as pulse/cluster.py\n    participant Schema as pulse/schema.py\n    participant Ollama as sources/ollama.py (OllamaClient)\n    participant Disk as data/pulse/{story_id}.json\n\n    User->>CLI: hnradar pulse 12345 [--model qwen2.5:7b]\n    CLI->>HN: fetch_item(12345)\n    HN-->>CLI: Return Show HN story & comments\n\n    CLI->>Cluster: cluster(story_id, title, comments, client)\n    Cluster->>Cluster: select_comments(): Filter text, sort by length (longest first, max 60, cut to 1500 chars)\n    Cluster->>Cluster: Re-sort selected comments in thread order\n    Cluster->>Cluster: Enforce MIN_COMMENTS >= 3\n\n    Cluster->>Schema: ModelReply.model_json_schema()\n    Schema-->>Cluster: JSON Schema definition\n\n    loop Up to 2 Attempts (Rule 2 & Retry Logic)\n        Cluster->>Ollama: complete(system_prompt, user_prompt, schema)\n        Note over Ollama: Options: temperature=0, num_predict=2048\n        Ollama-->>Cluster: Raw JSON string reply\n        Cluster->>Schema: ModelReply.model_validate_json(raw)\n        alt Validation Error\n            Schema-->>Cluster: ValidationError (loc, message)\n            Cluster->>Cluster: Format clean input-free error message\n        else Schema Passes\n            Cluster->>Cluster: _check_ids(): Verify all cited comment_ids belong to the thread\n            alt Unknown IDs Found\n                Cluster->>Cluster: Reject attempt (IDs not in thread)\n            else IDs Verified\n                Cluster-->>CLI: Return validated PulseResult\n            end\n        end\n    end\n\n    CLI->>Disk: Atomically write data/pulse/{story_id}.json\n    CLI-->>User: Output terminal table of Pros, Bugs, and Asks with Comment Citations"
   },
   {
     "id": "dd-5",
-    "title": "5. 5-Line Outreach Draft Generation (PR #51)",
-    "diagram": "sequenceDiagram\n    autonumber\n    actor User\n    participant CLI as hnradar draft <user>\n    participant Match as match.top_matches()\n    participant ShowHN as showhn.search_show_hn()\n    participant Pulse as _cited_bug() (Pulse)\n    participant Writer as draft/write.py (write_draft)\n    participant Ollama as sources/ollama.py (OllamaClient)\n\n    User->>CLI: hnradar draft username [--model qwen2.5:7b]\n    CLI->>Match: top_matches(profile, jobs, limit=11)\n    Match-->>CLI: Top 10 scored matches\n\n    loop For each match in Top 10\n        CLI->>CLI: Extract matched repo and job URL domain\n        alt No matched repo or domain missing\n            CLI->>CLI: Record skip reason & continue\n        end\n        CLI->>CLI: Check is_platform_domain(domain) [PR #50]\n        alt Domain is shared/platform host (github.io, notion.so)\n            CLI->>CLI: Record platform skip reason & continue\n        end\n        CLI->>ShowHN: search_show_hn(company, domain=domain)\n        ShowHN-->>CLI: Candidate stories\n        alt No story links to domain or low confidence\n            CLI->>CLI: Record skip reason & continue\n        end\n        CLI->>Pulse: _cited_bug(story_id, comments, pulse_dir, client)\n        Pulse-->>CLI: (summary, cited_comments) or None\n        alt No cited bug found in Show HN comments\n            CLI->>CLI: Record skip reason & continue\n        else Valid bug found!\n            CLI->>Writer: write_draft(user, company, domain, repo, problem, cited, client)\n            loop Up to 2 Attempts (Rule 2)\n                Writer->>Ollama: complete(SYSTEM_PROMPT, facts_json, ModelDraft.schema)\n                Ollama-->>Writer: JSON string\n                Writer->>Writer: ModelDraft.model_validate_json(raw)\n                Writer->>Writer: _check(): Exactly 5 lines, line 2 cites comments, names repo, rejects forbidden phrases\n            end\n            Writer-->>CLI: DraftResult (lines, evidence)\n            Note over CLI: Match succeeded -- break out of loop\n        end\n    end\n\n    alt Match Found & Drafted\n        CLI-->>User: Print 5-line outreach note + line-by-line comment citations and repo details\n    else No Usable Match in Top 10\n        CLI-->>User: Print \"No cited problem found\", list skipped matches, and exit 0\n    end"
+    "title": "5. 5-Line Outreach Draft Generation Pipeline (Strict Schema & Comment Citations - PR #51)",
+    "diagram": "sequenceDiagram\n    autonumber\n    actor User\n    participant CLI as hnradar draft <user>\n    participant Match as match.top_matches()\n    participant ShowHN as showhn.search_show_hn()\n    participant Pulse as _cited_bug() (Pulse)\n    participant Writer as draft/write.py (write_draft)\n    participant Ollama as sources/ollama.py (OllamaClient)\n\n    User->>CLI: hnradar draft username [--model qwen2.5:7b]\n    CLI->>Match: top_matches(profile, jobs, limit=11)\n    Match-->>CLI: Top 10 scored matches\n\n    loop For each match in Top 10\n        CLI->>CLI: Extract matched repo and job URL domain\n        alt No matched repo or domain missing\n            CLI->>CLI: Record skip reason & continue\n        end\n        CLI->>CLI: Check is_platform_domain(domain) [PR #50]\n        alt Domain is shared/platform host (github.io, notion.so)\n            CLI->>CLI: Record platform skip reason & continue\n        end\n        CLI->>ShowHN: search_show_hn(company, domain=domain)\n        ShowHN-->>CLI: Candidate stories\n        alt No story links to domain or low confidence\n            CLI->>CLI: Record skip reason & continue\n        end\n        CLI->>Pulse: _cited_bug(story_id, comments, pulse_dir, client)\n        Pulse-->>CLI: (summary, cited_comments) or None\n        alt No cited bug found in Show HN comments\n            CLI->>CLI: Record skip reason & continue\n        else Valid bug found!\n            CLI->>Writer: write_draft(user, company, domain, repo, problem, cited, client)\n            loop Up to 2 Attempts (Rule 2)\n                Writer->>Ollama: complete(SYSTEM_PROMPT, facts_json, ModelDraft.schema)\n                Ollama-->>Writer: JSON string\n                Writer->>Writer: ModelDraft.model_validate_json(raw)\n                Writer->>Writer: _check(): Exactly 5 lines, line 2 cites comments, names repo, rejects forbidden phrases\n            end\n            Writer-->>CLI: DraftResult (lines, evidence)\n            Note over CLI: Match succeeded -- break out of loop\n        end\n    end\n\n    alt Match Found & Drafted\n        CLI-->>User: Print 5-line outreach note + line-by-line comment citations and repo details\n        User->>User: Human reviews note and citations (Rule 4: Nothing sent automatically)\n    else No Usable Match in Top 10\n        CLI-->>User: Print \"No cited problem found\", list skipped matches, and exit 0\n    end"
   },
   {
     "id": "dd-6",
-    "title": "6. Autonomous Agent Development Factory Lifecycle",
-    "diagram": "stateDiagram-v2\n    [*] --> Idle: Single-instance Mutex Guard (agent-poll.ps1)\n    \n    Idle --> TicketFound: Poll finds issue labeled 'ready-for-agent'\n    Idle --> Idle: No ready issues (quiet exit 0)\n\n    TicketFound --> WorktreeSetup: Create dedicated git worktree in ../hn-radar-worktrees/\n    WorktreeSetup --> GooseWorker: Launch Goose with .goose/recipes/ticket-worker.yaml\n    \n    state GooseWorker {\n        [*] --> ReadIssue: gh issue view {N}\n        ReadIssue --> ReadRules: type AGENTS.md (Rules 1-10 & Quality Gate)\n        ReadRules --> InspectCode: Read necessary files with shell tool\n        InspectCode --> ImplementDiff: Minimal diff + Edge-case tests (Rule 7)\n        ImplementDiff --> RunTests: uv run pytest -q\n        RunTests --> SmokeCheck: uv run hnradar fetch-hiring --limit 20\n        SmokeCheck --> CommitPush: git commit & git push origin agent/{N}\n        CommitPush --> OpenPR: gh pr create (Checklist & acceptance criteria)\n    }\n\n    GooseWorker --> QodoReview: PR Trigger activates qodo-code-review[bot]\n    \n    state QodoReview {\n        [*] --> GenDiagram: Synthesize Mermaid Architecture Diagram\n        GenDiagram --> ClassifyFindings: Categorize into High, Medium, Low\n    }\n\n    QodoReview --> QualityGate: AGENTS.md Quality Gate Check\n\n    state QualityGate {\n        HighOrMedium: High / Medium findings present?\n        ResolveRequired: Agent must fix in next run with new tests\n        LowOnly: Low / Informational findings only?\n        HumanEscalate: Report in PR body for human review\n    }\n\n    QualityGate --> HumanReview: Definition of Done Satisfied\n    QualityGate --> TicketRetry: Findings exist (Attempt <= 2)\n    QualityGate --> NeedsHuman: Attempt > 2 or Blocked\n    \n    NeedsHuman --> [*]: Add label 'needs-human' & post diagnostic comment\n    HumanReview --> Merged: Human merges PR into main\n    Merged --> [*]"
+    "title": "6. Human-Led Pair Programming & Qodo Review Gate Lifecycle",
+    "diagram": "stateDiagram-v2\n    [*] --> IssueScoping: Human developer authors GitHub issue with acceptance criteria\n    \n    state EngineeringWorkflow {\n        [*] --> Implementation: Developer (Sham) pairs with Claude Sonnet\n        Implementation --> TestsAndChecks: Minimal clean diff + edge-case tests\n        TestsAndChecks --> LocalVerify: uv run pytest -q\n        LocalVerify --> RealDataCheck: verify-jobs-parse skill check (PR #48)\n        RealDataCheck --> PushBranch: git commit & git push origin feat/...\n        PushBranch --> OpenPR: gh pr create with checklist\n    }\n\n    state HistoricalGooseExperiment {\n        Issue5: Ticket #5 (fetch-hiring --json)\n        GooseRun: Goose ticket-worker recipe (PR #9 only)\n        Issue5 --> GooseRun\n    }\n\n    OpenPR --> QodoReview: GitHub webhook activates qodo-code-review[bot]\n    \n    state QodoReviewGate {\n        [*] --> GenerateDiagrams: Synthesize Mermaid architecture delta\n        GenerateDiagrams --> ClassifyFindings: Categorize into High, Medium, Low\n        ClassifyFindings --> ApplyReviewStandards: Evaluate against AGENTS.md rules (Rules 9, 10)\n    }\n\n    QodoReviewGate --> DeveloperTriage: Human reviews Qodo findings\n    \n    state RemediationLoop {\n        DeveloperTriage --> FixRequired: High / Medium findings need resolution\n        FixRequired --> Round1Commit: Write tests and push review remediation commit\n        Round1Commit --> QodoReviewGate: Re-review updated diff\n        DeveloperTriage --> GatePassed: All findings resolved or verified safe\n    }\n\n    GatePassed --> HumanSignoff: Maintainer verifies final clean diff\n    HumanSignoff --> MergedMain: Merged to main (or stacked branch for careers)\n    MergedMain --> [*]"
   }
 ];
     let currentMermaidIdx = 0;
@@ -1655,6 +1895,19 @@
       document.getElementById(tabId).classList.add('active');
       document.querySelector('.tab-btn:first-child').classList.add('active');
     }
-  </script>
+  
+    function filterStatus(cat) {
+      document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      const cards = document.querySelectorAll('.status-card');
+      cards.forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-cat') === cat) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+</script>
 </body>
 </html>

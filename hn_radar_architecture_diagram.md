@@ -77,7 +77,7 @@ graph TB
   subgraph MatchingSubsystem["Scoring & Recommendation Engine"]
     NormAliases["_norm() Tech Alias Normalizer<br/>(k8s ↔ kubernetes, golang ↔ go)"]
     Scorer["score_job() & top_matches()<br/>• 20 pts per matching language<br/>• 10 pts per matching topic<br/>• 5 pts remote bonus<br/>• Max 100 points"]
-    TopMatches["Top 10 Matches<br/>+ Cited Evidence Reasons (Rule 1)"]
+    TopMatches["Deterministic Scorer Output<br/>• match command: Top 3 opportunities<br/>• draft command: Evaluates top 10 candidates"]
   end
 
   JobsJSON --> Scorer
@@ -141,25 +141,22 @@ graph TB
   ShowHNRanker -. Enforces .-> URLSandbox
   ProfileBuilder -. Enforces .-> PrivacyBoundary
 
-  %% Autonomous Engineering Factory
-  subgraph AutonomousFactory["Autonomous Agent Engineering Factory"]
-    GitHubIssues["GitHub Issue Queue<br/>(label: ready-for-agent)"]
-    NamedMutex["Global\HNRadarAgentPoll<br/>(Windows Named OS Mutex Guard)"]
-    Poller["scripts/agent-poll.ps1<br/>• Mutex single-instance check<br/>• Spawns dedicated git worktrees<br/>• Retries up to 2 times"]
-    Worktrees["Git Worktree Isolation<br/>(../hn-radar-worktrees/agent-{N})"]
-    GooseAgent["Goose Ticket Worker<br/>(.goose/recipes/ticket-worker.yaml)<br/>• Model: gpt-oss:20b-cloud<br/>• Minimal clean diffs<br/>• Pytest & smoke check"]
-    QodoReview["Qodo Code Review Bot<br/>• Mermaid architecture diagrams<br/>• Severity: High, Medium, Low"]
-    QualityGate["AGENTS.md Quality Gate (DoD)<br/>• High & Medium findings fixed with tests<br/>• Low findings reported to human"]
-    VerifySkill[".claude/skills/verify-jobs-parse/<br/>• Real-data regression testing<br/>• Must-keep vs must-exclude IDs"]
+  %% Development Engine & Qodo Review Quality Gate
+  subgraph DevEngine["Engineering Workflow & Qodo Review Gate"]
+    HumanDev["Human Engineer (Sham)<br/>+ AI Pair (Claude Sonnet)<br/>• Hand-crafted implementations & commands"]
+    GooseOneOff["Goose Experiment (PR #9)<br/>• One-off trial on Ticket #5 only"]
+    LocalVerify["Local Verification & Quality Gate<br/>• uv run pytest -q<br/>• verify-jobs-parse real-data skill"]
+    GitHubPRs["GitHub Pull Requests<br/>(Branch pushes & reviews)"]
+    QodoReview["Qodo Code Review Bot<br/>• Automated architecture diagrams<br/>• AGENTS.md Review Standards (Rules 9, 10)"]
+    ReviewTriage["Human Review Triage & Fixes<br/>• fix: ... review round 1 commits<br/>• Human maintainer merge to main"]
   end
 
-  GitHubIssues --> Poller
-  NamedMutex -. Guards .-> Poller
-  Poller --> Worktrees
-  Worktrees --> GooseAgent
-  GooseAgent -->|"Git Push & PR"| QodoReview
-  QodoReview --> QualityGate
-  GooseAgent -. Verified by .-> VerifySkill
+  HumanDev --> LocalVerify
+  GooseOneOff -. One-time experiment .-> GitHubPRs
+  LocalVerify --> GitHubPRs
+  GitHubPRs --> QodoReview
+  QodoReview --> ReviewTriage
+  ReviewTriage -->|"Merge Approval"| GitHubPRs
 ```
 
 ---
@@ -257,8 +254,8 @@ graph TD
     
     ScoreCalc --> EvGen["Evidence Synthesizer (Rule 1):<br/>• 'Your Python work matches stack'<br/>• 'Your repo fastapi-app is written in Python'<br/>• 'Your repos use topic kubernetes'"]
     
-    EvGen --> HeapSort["heapq.nlargest(10, ...)<br/>Sort by (score desc, comment_id desc)"]
-    HeapSort --> FinalMatches["Top Matches Table or JSON"]
+    EvGen --> HeapSort["heapq.nlargest(limit, ...)<br/>• hnradar match: limit=3 (Top 3)<br/>• hnradar draft: limit=11 (Scans top 10)"]
+    HeapSort --> FinalMatches["Top 3 Scored Matches for User (match)<br/>or Ranked Candidate Stream (draft)"]
   end
 
   SaveProfile --> ReadProfile
@@ -369,6 +366,7 @@ sequenceDiagram
 
     alt Match Found & Drafted
         CLI-->>User: Print 5-line outreach note + line-by-line comment citations and repo details
+        User->>User: Human reviews note and citations (Rule 4: Nothing sent automatically)
     else No Usable Match in Top 10
         CLI-->>User: Print "No cited problem found", list skipped matches, and exit 0
     end
@@ -382,48 +380,43 @@ The project implements a fully autonomous ticket-worker loop with rigorous archi
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle: Single-instance Mutex Guard (agent-poll.ps1)
+    [*] --> IssueScoping: Human developer authors GitHub issue with acceptance criteria
     
-    Idle --> TicketFound: Poll finds issue labeled 'ready-for-agent'
-    Idle --> Idle: No ready issues (quiet exit 0)
-
-    TicketFound --> WorktreeSetup: Create dedicated git worktree in ../hn-radar-worktrees/
-    WorktreeSetup --> GooseWorker: Launch Goose with .goose/recipes/ticket-worker.yaml
-    
-    state GooseWorker {
-        [*] --> ReadIssue: gh issue view {N}
-        ReadIssue --> ReadRules: type AGENTS.md (Rules 1-10 & Quality Gate)
-        ReadRules --> InspectCode: Read necessary files with shell tool
-        InspectCode --> ImplementDiff: Minimal diff + Edge-case tests (Rule 7)
-        ImplementDiff --> RunTests: uv run pytest -q
-        RunTests --> SmokeCheck: uv run hnradar fetch-hiring --limit 20
-        SmokeCheck --> CommitPush: git commit & git push origin agent/{N}
-        CommitPush --> OpenPR: gh pr create (Checklist & acceptance criteria)
+    state EngineeringWorkflow {
+        [*] --> Implementation: Developer (Sham) pairs with Claude Sonnet
+        Implementation --> TestsAndChecks: Minimal clean diff + edge-case tests
+        TestsAndChecks --> LocalVerify: uv run pytest -q
+        LocalVerify --> RealDataCheck: verify-jobs-parse skill check (PR #48)
+        RealDataCheck --> PushBranch: git commit & git push origin feat/...
+        PushBranch --> OpenPR: gh pr create with checklist
     }
 
-    GooseWorker --> QodoReview: PR Trigger activates qodo-code-review[bot]
-    
-    state QodoReview {
-        [*] --> GenDiagram: Synthesize Mermaid Architecture Diagram
-        GenDiagram --> ClassifyFindings: Categorize into High, Medium, Low
+    state HistoricalGooseExperiment {
+        Issue5: Ticket #5 (fetch-hiring --json)
+        GooseRun: Goose ticket-worker recipe (PR #9 only)
+        Issue5 --> GooseRun
     }
 
-    QodoReview --> QualityGate: AGENTS.md Quality Gate Check
-
-    state QualityGate {
-        HighOrMedium: High / Medium findings present?
-        ResolveRequired: Agent must fix in next run with new tests
-        LowOnly: Low / Informational findings only?
-        HumanEscalate: Report in PR body for human review
+    OpenPR --> QodoReview: GitHub webhook activates qodo-code-review[bot]
+    
+    state QodoReviewGate {
+        [*] --> GenerateDiagrams: Synthesize Mermaid architecture delta
+        GenerateDiagrams --> ClassifyFindings: Categorize into High, Medium, Low
+        ClassifyFindings --> ApplyReviewStandards: Evaluate against AGENTS.md rules (Rules 9, 10)
     }
 
-    QualityGate --> HumanReview: Definition of Done Satisfied
-    QualityGate --> TicketRetry: Findings exist (Attempt <= 2)
-    QualityGate --> NeedsHuman: Attempt > 2 or Blocked
+    QodoReviewGate --> DeveloperTriage: Human reviews Qodo findings
     
-    NeedsHuman --> [*]: Add label 'needs-human' & post diagnostic comment
-    HumanReview --> Merged: Human merges PR into main
-    Merged --> [*]
+    state RemediationLoop {
+        DeveloperTriage --> FixRequired: High / Medium findings need resolution
+        FixRequired --> Round1Commit: Write tests and push review remediation commit
+        Round1Commit --> QodoReviewGate: Re-review updated diff
+        DeveloperTriage --> GatePassed: All findings resolved or verified safe
+    }
+
+    GatePassed --> HumanSignoff: Maintainer verifies final clean diff
+    HumanSignoff --> MergedMain: Merged to main (or stacked branch for careers)
+    MergedMain --> [*]
 ```
 
 ---
@@ -434,7 +427,7 @@ The following section catalogues the architectural diagrams generated by **Qodo 
 
 ### PR #1: feat: add hnradar fetch-hiring command
 - **Status:** `Merged`
-- **Architectural Contribution:** Initial foundation PR. Added fetch-hiring command and core parser. (Qodo automated review errored on first run; diagram synthesized from PR code).
+- **Architectural Contribution:** Initial foundation PR. Added fetch-hiring command and core parser. (Note: Developer's Qodo account access was blocked until November 11, 2026; once unblocked on Nov 11, /agentic_review ran cleanly without errors).
 
 ```mermaid
 graph TD
@@ -652,7 +645,7 @@ sequenceDiagram
 ---
 ### PR #34: experiment: showhn fallback and labels (Day 11, do not merge)
 - **Status:** `Experiment (Closed, Not Merged)`
-- **Architectural Contribution:** Experimental run evaluating fallback behaviors and label cues when URL search fails or domain is absent.
+- **Architectural Contribution:** Day 11 Seeded-Defect Experiment A (do not merge): Intentionally tested Qodo review bot by introducing subtle fallback behavior and misleading labels when URL search fails. Closed unmerged as planned once Qodo triaged the behavior.
 
 ```mermaid
 graph TD
@@ -674,7 +667,7 @@ graph TD
 ---
 ### PR #36: experiment: showhn domain search (Day 11 run B, do not merge)
 - **Status:** `Experiment (Closed, Not Merged)`
-- **Architectural Contribution:** Second experiment testing unified search coordinator structure for name and URL search.
+- **Architectural Contribution:** Day 11 Seeded-Defect Experiment B (do not merge): Intentionally tested Qodo review bot detection on a second seeded variation combining name and URL queries into a coordinator. Closed unmerged as planned.
 
 ```mermaid
 graph TD
@@ -696,8 +689,8 @@ graph TD
 
 ---
 ### PR #43: feat: careers-only full-text search with its own Pagefind index (#40)
-- **Status:** `Merged`
-- **Architectural Contribution:** Integrated Pagefind static indexing over jobs.json for full-text careers search with field-level fallback.
+- **Status:** `Merged into stacked branch feat/site-careers (NOT main)`
+- **Architectural Contribution:** Integrated isolated Pagefind 1.6.0 static indexing over jobs.json for full-text careers search in site/careers/pagefind/. Part of the 3-tier careers branch stack (PR #42 OPEN against main, PR #43 MERGED into stack, PR #44 OPEN against stack).
 
 ```mermaid
 graph TD
@@ -801,6 +794,102 @@ All components in the HN Radar architecture are bound by the 10 invariant develo
 | **Rule 10** | **Failed upstream request never complete** | Upstream API failures must exit 1 with an informative message; never return partial data. | `sources/hn.py`, `sources/github.py`, `cli.py` |
 
 ---
+
+
+
+---
+
+## 2.1. Human Decision Points & Operational Governance
+
+HN Radar operates as a human-in-the-loop system where automation assists but never usurps developer oversight:
+
+```mermaid
+graph TD
+  subgraph HumanGates["Mandatory Human Decision Gates"]
+    G1["1. Ticket Scoping & Rule Formulation<br/>• Defines acceptance criteria & AGENTS.md rules"]
+    G2["2. Local Command Execution<br/>• Runs test suite, smoke checks, and parser verification"]
+    G3["3. Qodo Review Triage<br/>• Evaluates AI review suggestions, discards false positives, writes fixes"]
+    G4["4. Outreach Review (Rule 4 Gate)<br/>• Reviews 5-line outreach note & cited comments before sending"]
+    G5["5. Branch Merge Governance<br/>• Approves PRs, manages branch stacks (feat/site-careers)"]
+  end
+
+  G1 --> G2
+  G2 --> G3
+  G3 --> G5
+  G2 -. Runs CLI .-> G4
+```
+
+- **Rule 4 Gate (Outreach Delivery):** `hnradar draft` outputs the drafted outreach note and evidence to stdout. It is strictly forbidden from transmitting emails or API messages autonomously. A human engineer must inspect the cited Hacker News comments, verify the repository attribution, and transmit the communication.
+- **Review Triage Gate:** Qodo review comments are advisory; the human developer evaluates each item, writes reproducible tests, and commits fixes in explicit `review round 1` commits.
+
+---
+
+## 2.2. Chronological Qodo Layering Evolution
+
+Rather than a static one-time setup, Qodo code review was layered into the repository progressively across the 14-day cycle:
+
+1. **Phase 1 (Nov 11 - PR #1, #2, #7):** Account access activated; enabled basic automated PR reviews (`/agentic_review`).
+2. **Phase 2 (Nov 12 - PR #8):** Infrastructure hardening; Qodo review identified git worktree race conditions and uncommitted change retention issues in `scripts/agent-poll.ps1`.
+3. **Phase 3 (Nov 14 - PR #22):** Formalized the repository Quality Gate and Definition of Done in `docs/quality-gate.md`.
+4. **Phase 4 (Nov 16-17 - PR #28, #35, #39):** Codified `AGENTS.md` rules directly into Qodo Review Standards:
+   - *Rule 9:* Domain match is never company ownership (PR #35).
+   - *Rule 10:* Upstream failures are never returned as complete (PR #39).
+   - *Pre-review checklist:* Added 9-item pre-review verification list (PR #28).
+5. **Phase 5 (Nov 18 - PR #48):** Real-data verification armor; created `.claude/skills/verify-jobs-parse/` to verify parser changes against live threads, with Qodo review hardening it against false PASS results.
+6. **Phase 6 (Nov 19 - PR #49, #50, #51, #53):** Standardized the multi-round remediation workflow (`fix: ... review round 1`) for sentiment clustering, platform domain protection, 5-line outreach draft contract, and resilient cache writes.
+
+---
+
+## 3.6. Day 14 Production Guards & Review Remediation
+
+The final Day 14 stabilization sprint introduced three architectural guards:
+
+1. **Resilient Cache-Write Guard (PR #53 / Issue #52):**
+   - Implemented `_warn_cache_not_written()` in `src/hnradar/sources/hn.py`.
+   - When disk or cache directory is unwritable or permissions are denied, prints a single warning to `stderr` and carries on without failing.
+   - Reverses previous brittle behavior where an `OSError` on cache write crashed a successful fetch.
+2. **ModelDraft 5-Line Contract Guard (PR #51 / Issue #14):**
+   - `_check()` strictly validates LLM output: exactly 5 non-empty lines.
+   - Line 2 MUST cite Hacker News comment IDs from the thread and use the phrasing *"links to <domain>"* (Rule 9).
+   - Rejects forbidden AI clichés (*"streamline"*, *"delve"*, *"thrilled"*).
+   - Enforces a 2-attempt retry loop; if invalid after 2 attempts, exits cleanly with exit code 0 and logs diagnostic skip reasons.
+3. **Platform Domain Leak Guard (PR #50 / Issue #38):**
+   - `is_platform_domain()` checks domains against 14 multi-tenant platform hosts (`github.io`, `notion.so`, `substack.com`).
+   - Flags platform hosts as low confidence and skips them in `draft` to prevent attributing third-party Show HN stories to unrelated companies.
+
+---
+
+## 3.7. The Careers Static Web Portal (`site/careers/`)
+
+The repository includes a decoupled static web portal located in `site/careers/` (developed on branch `feat/site-careers`):
+- **Architecture:** Zero-build pure HTML5/CSS/JavaScript consuming `data/jobs.json`.
+- **Search Subsystem:** Dedicated **Pagefind 1.6.0** indexer (`site/tools/build_careers_index.py`) generating an isolated search index in `careers/pagefind/`. Does not conflict with parent website search.
+- **Brand Tokens:** Uses `--rw-*` CSS variables (`--rw-text`, `--rw-orange`, `--rw-card`) supporting instant dark/light themes.
+- **XSS Boundary:** All job descriptions and Hacker News comment text are rendered via `textContent` after stripping bidirectional and control characters; `innerHTML` is strictly prohibited.
+- **Branch Stack Status:** PR #42 (Base: `main`, Head: `feat/site-careers` - OPEN), PR #43 (Base: `feat/site-careers`, Head: `feat/careers-search` - MERGED into stack), PR #44 (Base: `feat/site-careers`, Head: `feat/careers-company` - OPEN).
+
+---
+
+## 5. Works Now vs Planned / In-Progress Status Matrix
+
+| Subsystem / Feature | Current State | Code Location | Governing Rules / PRs |
+|---|---|---|---|
+| **Hiring Thread Ingestion** | **WORKS NOW** | `src/hnradar/sources/hn.py`, `parse.py` | PR #1, #46, #53; Rules 4, 10 |
+| **Poster Reply Closed Job Filter** | **WORKS NOW** | `src/hnradar/closed.py` | PR #30; Rule 8 |
+| **Resilient Cache Write** | **WORKS NOW** | `src/hnradar/sources/hn.py` | PR #53 (Issue #52); Rule 10 |
+| **Candidate Profile Skip** | **WORKS NOW** | `src/hnradar/parse.py` (`is_candidate_profile`) | PR #46 (Issue #45) |
+| **GitHub Developer Fingerprint** | **WORKS NOW** | `src/hnradar/sources/github.py`, `fingerprint.py` | PR #6; Rule 5 (no resume scraping) |
+| **Job Matching Engine (Top 3)** | **WORKS NOW** | `src/hnradar/match.py` (`top_matches`) | PR #11; Deterministic scoring |
+| **Show HN Dual-Search & Domain Check** | **WORKS NOW** | `src/hnradar/showhn.py` | PR #33, #50; Rules 9, 10 |
+| **Platform Domain Filter** | **WORKS NOW** | `src/hnradar/showhn.py` (`is_platform_domain`) | PR #50 (Issue #38); Rule 9 |
+| **Show HN Sentiment Pulse** | **WORKS NOW** | `src/hnradar/pulse/` | PR #49 (Issue #13); Rule 7 |
+| **5-Line Outreach Draft (Top 10)** | **WORKS NOW** | `src/hnradar/draft/` | PR #51 (Issue #14); Rules 1, 2, 4 |
+| **Parser Regression Skill** | **WORKS NOW** | `.claude/skills/verify-jobs-parse/` | PR #48; Quality Gate |
+| **Careers Web Pages (Static)** | **IN PROGRESS (Branch Stack)** | `site/careers/` (on branch `feat/site-careers`) | PR #42 (OPEN against `main`) |
+| **Careers Pagefind Search Index** | **IN PROGRESS (Branch Stack)** | `site/tools/build_careers_index.py` | PR #43 (MERGED into `feat/site-careers`) |
+| **Company Detail Pages** | **IN PROGRESS (Branch Stack)** | `site/careers/company.html` | PR #44 (OPEN against `feat/site-careers`) |
+| **Pre-Flight URL Reputation Checker** | **PLANNED (Issue #27)** | Not yet started | Issue #27 (Open); Rule 4 |
+| **Autonomous Multi-Agent Fleet** | **HISTORICAL EXPERIMENT** | `scripts/agent-poll.ps1` (ran on PR #9 only) | Manual pair-programming remains current engine |
 
 ## 6. Summary
 

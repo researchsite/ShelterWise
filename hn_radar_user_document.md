@@ -181,6 +181,7 @@ uv run hnradar match USERNAME [OPTIONS]
 - `--json`: Output matches in structured JSON format.
 
 #### Deterministic Scoring Model:
+- **Returns Top 3 Matches:** `hnradar match` computes deterministic match scores for all active jobs and returns strictly the **Top 3** highest-scoring opportunities (`TOP_MATCHES = 3` in `src/hnradar/match.py`). If fewer than 3 qualify, it prints only the qualifying jobs (never filler results).
 - **Language Overlap:** +20 points per matching language.
 - **Topic Overlap:** +10 points per matching topic.
 - **Remote Work Bonus:** +5 points (awarded only if there is already a tech stack match).
@@ -253,6 +254,9 @@ Writes an exact 5-line cited outreach note to the best-matched company, referenc
 ```bash
 uv run hnradar draft USERNAME [OPTIONS]
 ```
+
+> [!IMPORTANT]
+> **Human-in-the-Loop Gate (Rule 4):** `hnradar draft` evaluates the **Top 10 matches** in descending score order. When a valid match is found, it prints the 5-line note, developer repo details, and comment citations to `stdout`. **Nothing is ever sent automatically**. You must read the citations, verify the match, and transmit the message manually.
 
 #### Arguments & Options:
 - `USERNAME`: GitHub username whose profile was generated via `fingerprint` (required).
@@ -357,14 +361,25 @@ Every line of code in HN Radar is strictly governed by the 10 invariant engineer
 
 ---
 
-## 7. Autonomous Engineering & Verification
+## 7. Engineering Workflow, Human Gates & Quality Assurance
 
-HN Radar is built using an autonomous engineering factory:
+HN Radar was developed through a disciplined human-in-the-loop pair-programming workflow:
 
-- **PowerShell Mutex Poller (`scripts/agent-poll.ps1`):** Uses an OS named mutex (`Global\HNRadarAgentPoll`) to guarantee single-instance execution when monitoring GitHub issues labeled `ready-for-agent`.
-- **Goose Worker Recipe (`.goose/recipes/ticket-worker.yaml`):** Implements code modifications in dedicated git worktrees (`../hn-radar-worktrees/`), enforces minimal diffs, runs test suites, and opens pull requests.
-- **Real-Data Verification Skill (`.claude/skills/verify-jobs-parse/`):** When modifying the job parser, runs a verification test against the live Hacker News thread into a scratch file, confirming that `must-keep` IDs are retained and `must-exclude` candidate pitches are dropped.
-- **Qodo Code Review Bot & Quality Gate:** Automatically reviews every PR, generates Mermaid architecture diagrams, and classifies findings into High, Medium, and Low. Under the repository's Definition of Done, all High and Medium findings must be resolved with regression tests.
+- **Human + AI Pair Programming:** The developer (Sham) pairs with Claude Sonnet to author minimal, test-driven pull requests. Local terminal commands and tests are executed manually by the engineer.
+- **The Goose Automation Spike (Day 4):** An autonomous ticket worker (`scripts/agent-poll.ps1` + `.goose/recipes/ticket-worker.yaml`) with Windows Named Mutex locking was tested on **exactly one issue** (Issue #5 / PR #9, `fetch-hiring --json`). All subsequent tickets were built by hand.
+- **Real-Data Verification Skill (`.claude/skills/verify-jobs-parse/`):** When modifying parser or closed-job logic, runs verification tests against live Hacker News threads into scratch files, confirming that `must-keep` IDs are retained and `must-exclude` candidate pitches are dropped (PR #48).
+- **Qodo Code Review Bot Quality Gate:** Automatically reviews every PR on GitHub, generates Mermaid architecture diagrams, and evaluates code against Review Standards imported from `AGENTS.md` (e.g. Rules 9 and 10).
+- **Remediation Loop:** The developer triages findings and pushes explicit `fix: ... review round 1` commits before merging.
+
+---
+
+## 7.1. Careers Static Web Portal (`site/careers/`)
+
+In addition to the CLI engine, the repository contains a static careers job portal located in `site/careers/` (developed on the stacked branch `feat/site-careers`):
+- **Zero-Build Static HTML5/CSS:** Consumes `data/jobs.json` directly using `fetch`.
+- **Standalone Pagefind Search Index:** Uses **Pagefind 1.6.0** (`site/tools/build_careers_index.py`) to build an isolated full-text index in `careers/pagefind/` without interfering with parent site searches.
+- **Strict Content Security:** All job descriptions and user comments are rendered via `textContent` after stripping control codes; `innerHTML` is strictly forbidden.
+- **Branch Stack:** PR #42 (`feat/site-careers` -> `main`, OPEN), PR #43 (careers search index, MERGED into stack), PR #44 (company page slice, OPEN).
 
 ---
 
