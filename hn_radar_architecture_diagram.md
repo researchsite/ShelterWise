@@ -46,7 +46,7 @@ graph TB
   end
 
   AlgoliaAPI <-->|HTTP GET| HNSource
-  GitHubAPI <-->|HTTP GET (Bearer Token)| GHSource
+  GitHubAPI <-->|"HTTP GET (Bearer Token)"| GHSource
   LocalOllama <-->|HTTP POST /api/chat| OllamaSource
   HNSource <-->|Read / Atomic Write| HNCache
   GHSource <-->|Read / Atomic Write| GHCache
@@ -71,7 +71,7 @@ graph TB
   end
 
   GHSource -->|Own Repositories| ProfileBuilder
-  ProfileBuilder -->|Validate & Save| ProfileJSON
+  ProfileBuilder -->|"Validate & Save"| ProfileJSON
 
   %% Matching Engine Subsystem
   subgraph MatchingSubsystem["Scoring & Recommendation Engine"]
@@ -157,7 +157,7 @@ graph TB
   NamedMutex -. Guards .-> Poller
   Poller --> Worktrees
   Worktrees --> GooseAgent
-  GooseAgent -->|Git Push & PR| QodoReview
+  GooseAgent -->|"Git Push & PR"| QodoReview
   QodoReview --> QualityGate
   GooseAgent -. Verified by .-> VerifySkill
 ```
@@ -230,7 +230,7 @@ graph TD
   subgraph Fingerprinting["1. Profile Fingerprint Phase"]
     UserArg["Username Argument"] --> CLI_FP["hnradar fingerprint <user>"]
     CLI_FP --> GH_Source["sources/github.py"]
-    GH_Source -->|GET /users/{user}/repos| GH_API["GitHub REST API"]
+    GH_Source -->|"GET /users/{user}/repos"| GH_API["GitHub REST API"]
     GH_API -->|Public Repos| FilterForks{"Is Fork?"}
     FilterForks -->|Yes| DropFork["Discard Fork"]
     FilterForks -->|No| KeepRepo["Retain Author's Repo"]
@@ -363,7 +363,7 @@ sequenceDiagram
                 Writer->>Writer: _check(): Exactly 5 lines, line 2 cites comments, names repo, rejects forbidden phrases
             end
             Writer-->>CLI: DraftResult (lines, evidence)
-            Note over CLI: Match succeeded; break out of loop
+            Note over CLI: Match succeeded -- break out of loop
         end
     end
 

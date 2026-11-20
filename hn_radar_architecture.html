@@ -305,6 +305,29 @@
     }
     .rule-table th { background: #1e293b; color: var(--accent); }
     .rule-table tr:nth-child(even) { background: rgba(30, 41, 59, 0.5); }
+
+    .pill-btn {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .pill-btn.active {
+      background: var(--accent);
+      color: #030712;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
   </style>
 </head>
 <body>
@@ -324,6 +347,7 @@
 
   <nav class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('tab-diagram')">Interactive System Map</button>
+    <button class="tab-btn" onclick="switchTab('tab-mermaid')">Mermaid Architecture & Deep Dives (6)</button>
     <button class="tab-btn" onclick="switchTab('tab-timeline')">PR Evolution Timeline (26 PRs)</button>
     <button class="tab-btn" onclick="switchTab('tab-subsystems')">Subsystems Directory</button>
     <button class="tab-btn" onclick="switchTab('tab-governance')">AGENTS.md Governance</button>
@@ -634,6 +658,42 @@
     </g>
 </svg>
 
+    </div>
+  </section>
+
+  <!-- TAB: MERMAID ARCHITECTURE & DEEP DIVES -->
+  <section id="tab-mermaid" class="tab-pane">
+    <div style="background:#1e293b; border:1px solid var(--border); border-radius:10px; padding:18px 22px; margin-bottom:16px;">
+      <h2 style="color:var(--accent); font-size:1.25rem; margin-bottom:6px;">System Architecture & Deep Dive Mermaid Diagrams</h2>
+      <p style="color:#94a3b8; font-size:0.9rem; line-height:1.5;">
+        Explore the 6 core architectural specifications and flow diagrams of HN Radar. Every diagram below adheres to strict Mermaid syntax validation and reflects all merged PRs through PR #53.
+      </p>
+
+      <!-- Selector pills -->
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;" id="mermaid-pills">
+        <button class="pill-btn active" onclick="selectMermaidDiagram(0, this)">1. Overall Architecture (graph TB)</button>
+        <button class="pill-btn" onclick="selectMermaidDiagram(1, this)">2. Ingestion to Scoring (sequence)</button>
+        <button class="pill-btn" onclick="selectMermaidDiagram(2, this)">3. Fingerprint & Match (graph TD)</button>
+        <button class="pill-btn" onclick="selectMermaidDiagram(3, this)">4. Show HN & Pulse (sequence)</button>
+        <button class="pill-btn" onclick="selectMermaidDiagram(4, this)">5. 5-Line Outreach Draft (sequence)</button>
+        <button class="pill-btn" onclick="selectMermaidDiagram(5, this)">6. Autonomous Factory (stateDiagram)</button>
+      </div>
+    </div>
+
+    <!-- Active Diagram Info Banner -->
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; border:1px solid var(--border); border-radius:8px; padding:12px 18px; margin-bottom:14px;">
+      <div>
+        <h3 id="mermaid-active-title" style="color:#f8fafc; font-size:1.05rem;">1. Overall System Architecture</h3>
+        <span id="mermaid-active-meta" style="color:var(--accent); font-size:0.82rem; font-family:monospace;">graph TB • 6 Layers • External APIs & Caches</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="ctrl-btn" onclick="copyMermaidSource()">📋 Copy Mermaid Source</button>
+      </div>
+    </div>
+
+    <!-- Mermaid Rendering Viewport -->
+    <div class="mermaid-box" style="background:#0b1120; border:1px solid var(--border); border-radius:10px; padding:24px; min-height:480px; overflow-x:auto;">
+      <div id="mermaid-viewer-target" class="mermaid"></div>
     </div>
   </section>
 
@@ -1351,11 +1411,82 @@
       flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
     });
 
+
+    const deepDivesData = [
+  {
+    "id": "dd-1",
+    "title": "1. Overall System Architecture (6 Layers, External APIs & Storage)",
+    "diagram": "graph TB\n  %% External Services\n  subgraph ExternalServices[\"External Services & APIs\"]\n    AlgoliaAPI[\"Hacker News Algolia REST API<br/>(hn.algolia.com/api/v1)\"]\n    GitHubAPI[\"GitHub Public REST API<br/>(api.github.com/users/repos)\"]\n    LocalOllama[\"Local / Remote Ollama Server<br/>(localhost:11434 / qwen2.5:7b)\"]\n  end\n\n  %% Network & Caching Adapters\n  subgraph SourceLayer[\"Source Adapters & Disk Cache (src/hnradar/sources/)\"]\n    HNSource[\"sources/hn.py<br/>\u2022 find_latest_hiring_story()<br/>\u2022 search_show_hn()<br/>\u2022 fetch_item()<br/>\u2022 Resilient cache write (PR #53)\"]\n    GHSource[\"sources/github.py<br/>\u2022 fetch_repos()<br/>\u2022 Rate limit check<br/>\u2022 Hard limit: 2000 repos\"]\n    OllamaSource[\"sources/ollama.py<br/>\u2022 OllamaClient.complete()<br/>\u2022 format: schema<br/>\u2022 num_predict: 2048\"]\n    \n    HNCache[(\"data/cache/hn_*.json<br/>Atomic tempfile+rename<br/>Warns on failure (PR #53)\")]\n    GHCache[(\"data/cache/github_*.json<br/>TTL: 1 hour\")]\n  end\n\n  AlgoliaAPI <-->|HTTP GET| HNSource\n  GitHubAPI <-->|\"HTTP GET (Bearer Token)\"| GHSource\n  LocalOllama <-->|HTTP POST /api/chat| OllamaSource\n  HNSource <-->|Read / Atomic Write| HNCache\n  GHSource <-->|Read / Atomic Write| GHCache\n\n  %% Ingestion & Parsing Subsystem\n  subgraph IngestionSubsystem[\"Ingestion & Data Normalization\"]\n    ParseComment[\"parse_comment()<br/>\u2022 Pipe header extraction<br/>\u2022 Tech stack regex (_STACK, _GO_RE)<br/>\u2022 Remote status & URL extraction\"]\n    CandidateFilter[\"is_candidate_profile()<br/>\u2022 Drops job-seeker pitches<br/>\u2022 First-person / Resume heuristics\"]\n    ClosedDetector[\"closing_reply_id()<br/>\u2022 Scans poster replies<br/>\u2022 Natural language clause parser<br/>\u2022 Bisect condition checking\"]\n    JobsJSON[(\"data/jobs.json<br/>Validated Job Records\")]\n  end\n\n  HNSource -->|Raw Comment HTML| ParseComment\n  ParseComment -->|Parsed Candidate| CandidateFilter\n  CandidateFilter -->|Not Candidate| ClosedDetector\n  ClosedDetector -->|Enriched with closed_id| JobsJSON\n\n  %% User Fingerprinting Subsystem\n  subgraph FingerprintSubsystem[\"Developer Profiling\"]\n    ProfileBuilder[\"build_profile()<br/>\u2022 Filters out all forks<br/>\u2022 Top 5 languages by byte size<br/>\u2022 Top 10 repository topics<br/>\u2022 Top 5 notable repos by stars\"]\n    ProfileJSON[(\"data/profiles/{user}.json<br/>Pydantic Profile\")]\n  end\n\n  GHSource -->|Own Repositories| ProfileBuilder\n  ProfileBuilder -->|\"Validate & Save\"| ProfileJSON\n\n  %% Matching Engine Subsystem\n  subgraph MatchingSubsystem[\"Scoring & Recommendation Engine\"]\n    NormAliases[\"_norm() Tech Alias Normalizer<br/>(k8s \u2194 kubernetes, golang \u2194 go)\"]\n    Scorer[\"score_job() & top_matches()<br/>\u2022 20 pts per matching language<br/>\u2022 10 pts per matching topic<br/>\u2022 5 pts remote bonus<br/>\u2022 Max 100 points\"]\n    TopMatches[\"Top 10 Matches<br/>+ Cited Evidence Reasons (Rule 1)\"]\n  end\n\n  JobsJSON --> Scorer\n  ProfileJSON --> Scorer\n  NormAliases -. Normalizes terms .-> Scorer\n  Scorer --> TopMatches\n\n  %% Show HN & Pulse Subsystem\n  subgraph PulseSubsystem[\"Company Radar & AI Pulse Intelligence\"]\n    ShowHNRanker[\"showhn.py / build_result()<br/>\u2022 URL-restricted Algolia query<br/>\u2022 Domain match precedence<br/>\u2022 is_platform_domain() check (PR #50)<br/>\u2022 Rule 9: Links to domain != ownership\"]\n    PulseClusterer[\"pulse/cluster.py<br/>\u2022 Selects longest comments (max 60)<br/>\u2022 JSON array injection defense<br/>\u2022 Pydantic schema validation<br/>\u2022 2-attempt retry loop\"]\n    PulseVerify[\"Citation Validator<br/>\u2022 Verifies cited comment_ids in thread\"]\n    PulseJSON[(\"data/pulse/{story_id}.json<br/>Pros, Bugs, Asks\")]\n  end\n\n  HNSource --> ShowHNRanker\n  HNSource --> PulseClusterer\n  OllamaSource <--> PulseClusterer\n  PulseClusterer --> PulseVerify\n  PulseVerify --> PulseJSON\n\n  %% Outreach Draft Synthesizer Subsystem (PR #51)\n  subgraph DraftSubsystem[\"Outreach Draft Synthesis (PR #51)\"]\n    DraftMatchLoop[\"Top 10 Match Evaluator<br/>\u2022 Non-platform domain required<br/>\u2022 Domain-linked Show HN required<br/>\u2022 Cited bug required\"]\n    DraftWriter[\"draft/write.py (write_draft)<br/>\u2022 System prompt: 5 exact lines<br/>\u2022 ModelDraft Pydantic validation<br/>\u2022 Line 2 comment citation<br/>\u2022 Names developer repo<br/>\u2022 Rejects ownership claims (Rule 9)\"]\n    DraftResultOut[\"5-Line Outreach Draft<br/>+ Line-by-Line Evidence Citations\"]\n  end\n\n  TopMatches --> DraftMatchLoop\n  ShowHNRanker --> DraftMatchLoop\n  PulseJSON --> DraftMatchLoop\n  DraftMatchLoop --> DraftWriter\n  OllamaSource <--> DraftWriter\n  DraftWriter --> DraftResultOut\n\n  %% CLI Layer\n  subgraph CLILayer[\"User Interface (CLI Layer via Typer)\"]\n    FetchHiringCLI[\"hnradar fetch-hiring<br/>[--limit, --out, --json]\"]\n    FingerprintCLI[\"hnradar fingerprint<br/>[<user> --out-dir]\"]\n    MatchCLI[\"hnradar match<br/>[<user> --jobs --json]\"]\n    ShowHNCLI[\"hnradar showhn<br/>[<company> --domain --json]\"]\n    PulseCLI[\"hnradar pulse<br/>[<story_id> --model --out]\"]\n    DraftCLI[\"hnradar draft<br/>[<user> --model --pulse-dir]\"]\n  end\n\n  FetchHiringCLI --> IngestionSubsystem\n  FingerprintCLI --> FingerprintSubsystem\n  MatchCLI --> MatchingSubsystem\n  ShowHNCLI --> ShowHNRanker\n  PulseCLI --> PulseSubsystem\n  DraftCLI --> DraftSubsystem\n\n  %% Security & Sanitization\n  subgraph SecurityLayer[\"Security & Sanitization Boundary\"]\n    TerminalSanitizer[\"_terminal_safe() (Rule 8)<br/>\u2022 Strips Cc control codes (ESC, BEL, CR)<br/>\u2022 Drops Cf format codes (Bidi overrides)<br/>\u2022 stdout JSON uses ensure_ascii=True\"]\n    URLSandbox[\"URL Sandbox Boundary (Rule 4)<br/>\u2022 Untrusted URLs only parsed, never fetched\"]\n    PrivacyBoundary[\"Privacy Boundary (Rule 5)<br/>\u2022 Public repo stats only, zero resume scraping\"]\n  end\n\n  CLILayer -. Sanitized by .-> TerminalSanitizer\n  ShowHNRanker -. Enforces .-> URLSandbox\n  ProfileBuilder -. Enforces .-> PrivacyBoundary\n\n  %% Autonomous Engineering Factory\n  subgraph AutonomousFactory[\"Autonomous Agent Engineering Factory\"]\n    GitHubIssues[\"GitHub Issue Queue<br/>(label: ready-for-agent)\"]\n    NamedMutex[\"Global\\HNRadarAgentPoll<br/>(Windows Named OS Mutex Guard)\"]\n    Poller[\"scripts/agent-poll.ps1<br/>\u2022 Mutex single-instance check<br/>\u2022 Spawns dedicated git worktrees<br/>\u2022 Retries up to 2 times\"]\n    Worktrees[\"Git Worktree Isolation<br/>(../hn-radar-worktrees/agent-{N})\"]\n    GooseAgent[\"Goose Ticket Worker<br/>(.goose/recipes/ticket-worker.yaml)<br/>\u2022 Model: gpt-oss:20b-cloud<br/>\u2022 Minimal clean diffs<br/>\u2022 Pytest & smoke check\"]\n    QodoReview[\"Qodo Code Review Bot<br/>\u2022 Mermaid architecture diagrams<br/>\u2022 Severity: High, Medium, Low\"]\n    QualityGate[\"AGENTS.md Quality Gate (DoD)<br/>\u2022 High & Medium findings fixed with tests<br/>\u2022 Low findings reported to human\"]\n    VerifySkill[\".claude/skills/verify-jobs-parse/<br/>\u2022 Real-data regression testing<br/>\u2022 Must-keep vs must-exclude IDs\"]\n  end\n\n  GitHubIssues --> Poller\n  NamedMutex -. Guards .-> Poller\n  Poller --> Worktrees\n  Worktrees --> GooseAgent\n  GooseAgent -->|\"Git Push & PR\"| QodoReview\n  QodoReview --> QualityGate\n  GooseAgent -. Verified by .-> VerifySkill"
+  },
+  {
+    "id": "dd-2",
+    "title": "2. Core Dataflow: Ingestion to Scoring Pipeline",
+    "diagram": "sequenceDiagram\n    autonumber\n    actor User as User / CLI\n    participant CLI as cli.fetch_hiring\n    participant HN as sources/hn.py\n    participant Cache as data/cache/\n    participant Algolia as HN Algolia API\n    participant Parse as parse.py\n    participant Closed as closed.py\n    participant Disk as data/jobs.json\n\n    User->>CLI: hnradar fetch-hiring [--limit N] [--out PATH]\n    CLI->>HN: find_latest_hiring_story()\n    HN->>Cache: Check cached story (TTL: 1h)\n    alt Cache Miss\n        HN->>Algolia: GET search_by_date?tags=story,author_whoishiring\n        Algolia-->>HN: JSON stories\n        HN->>Cache: Atomic write cache file (Warns on failure, PR #53)\n    end\n    HN-->>CLI: Return story_id & title\n\n    CLI->>HN: fetch_item(story_id)\n    HN->>Cache: Check cached item (TTL: 6h)\n    alt Cache Miss\n        HN->>Algolia: GET items/{story_id}\n        Algolia-->>HN: Full comment tree\n        HN->>Cache: Atomic write cache file (Warns on failure, PR #53)\n    end\n    HN-->>CLI: Full item payload with children\n\n    loop For each top-level comment\n        CLI->>Parse: parse_comment(comment_id, html_text)\n        Parse-->>CLI: Job(company, role, location, remote, stack, url)\n        CLI->>Parse: is_candidate_profile(text)\n        alt Is Candidate Pitch\n            CLI->>CLI: Increment skipped_candidates count\n        else Genuine Job Listing\n            CLI->>Closed: closing_reply_id(comment_node)\n            Closed-->>CLI: closing_id or None\n            CLI->>CLI: Append to valid jobs list\n        end\n    end\n\n    CLI->>Disk: Write atomic data/jobs.json\n    CLI->>CLI: Apply _terminal_safe() [Rule 8]\n    CLI-->>User: Render ASCII table or JSON stdout + summary"
+  },
+  {
+    "id": "dd-3",
+    "title": "3. Developer Fingerprinting & Matching Engine",
+    "diagram": "graph TD\n  subgraph Fingerprinting[\"1. Profile Fingerprint Phase\"]\n    UserArg[\"Username Argument\"] --> CLI_FP[\"hnradar fingerprint <user>\"]\n    CLI_FP --> GH_Source[\"sources/github.py\"]\n    GH_Source -->|\"GET /users/{user}/repos\"| GH_API[\"GitHub REST API\"]\n    GH_API -->|Public Repos| FilterForks{\"Is Fork?\"}\n    FilterForks -->|Yes| DropFork[\"Discard Fork\"]\n    FilterForks -->|No| KeepRepo[\"Retain Author's Repo\"]\n    \n    KeepRepo --> AggLang[\"Aggregate Byte Size per Language<br/>(Keep Top 5)\"]\n    KeepRepo --> AggTopics[\"Count Topics Occurrence<br/>(Keep Top 10)\"]\n    KeepRepo --> TopRepos[\"Sort by Stars Descending<br/>(Keep Top 5 Notable)\"]\n    \n    AggLang --> PydanticProfile[\"Pydantic Profile Model\"]\n    AggTopics --> PydanticProfile\n    TopRepos --> PydanticProfile\n    PydanticProfile --> SaveProfile[(\"data/profiles/{user}.json\")]\n  end\n\n  subgraph Matching[\"2. Job Matching Phase\"]\n    CLI_Match[\"hnradar match <user>\"] --> ReadProfile[(\"data/profiles/{user}.json\")]\n    CLI_Match --> ReadJobs[(\"data/jobs.json\")]\n    \n    ReadProfile --> MatchEngine[\"Deterministic Match Engine\"]\n    ReadJobs --> MatchEngine\n    \n    MatchEngine --> AliasNorm[\"_norm() Alias Canonicalization<br/>(postgres \u2194 postgresql, ts \u2194 typescript)\"]\n    AliasNorm --> ScoreCalc[\"Scoring Algorithm:<br/>\u2022 Language Overlap: +20 pts<br/>\u2022 Topic Overlap: +10 pts<br/>\u2022 Remote Bonus: +5 pts (if stack overlap)<br/>\u2022 Max Score: 100 pts\"]\n    \n    ScoreCalc --> EvGen[\"Evidence Synthesizer (Rule 1):<br/>\u2022 'Your Python work matches stack'<br/>\u2022 'Your repo fastapi-app is written in Python'<br/>\u2022 'Your repos use topic kubernetes'\"]\n    \n    EvGen --> HeapSort[\"heapq.nlargest(10, ...)<br/>Sort by (score desc, comment_id desc)\"]\n    HeapSort --> FinalMatches[\"Top Matches Table or JSON\"]\n  end\n\n  SaveProfile --> ReadProfile"
+  },
+  {
+    "id": "dd-4",
+    "title": "4. Show HN Search & Sentiment Pulse Pipeline",
+    "diagram": "sequenceDiagram\n    autonumber\n    actor User\n    participant CLI as hnradar pulse\n    participant HN as sources/hn.py\n    participant Cluster as pulse/cluster.py\n    participant Schema as pulse/schema.py\n    participant Ollama as sources/ollama.py (OllamaClient)\n    participant Disk as data/pulse/{story_id}.json\n\n    User->>CLI: hnradar pulse 12345 [--model qwen2.5:7b]\n    CLI->>HN: fetch_item(12345)\n    HN-->>CLI: Return Show HN story & comments\n\n    CLI->>Cluster: cluster(story_id, title, comments, client)\n    Cluster->>Cluster: select_comments(): Filter text, sort by length (longest first, max 60, cut to 1500 chars)\n    Cluster->>Cluster: Re-sort selected comments in thread order\n    Cluster->>Cluster: Enforce MIN_COMMENTS >= 3\n\n    Cluster->>Schema: ModelReply.model_json_schema()\n    Schema-->>Cluster: JSON Schema definition\n\n    loop Up to 2 Attempts (Rule 2 & Retry Logic)\n        Cluster->>Ollama: complete(system_prompt, user_prompt, schema)\n        Note over Ollama: Options: temperature=0, num_predict=2048\n        Ollama-->>Cluster: Raw JSON string reply\n        Cluster->>Schema: ModelReply.model_validate_json(raw)\n        alt Validation Error\n            Schema-->>Cluster: ValidationError (loc, message)\n            Cluster->>Cluster: Format clean input-free error message\n        else Schema Passes\n            Cluster->>Cluster: _check_ids(): Verify all cited comment_ids belong to the thread\n            alt Unknown IDs Found\n                Cluster->>Cluster: Reject attempt (IDs not in thread)\n            else IDs Verified\n                Cluster-->>CLI: Return validated PulseResult\n            end\n        end\n    end\n\n    CLI->>Disk: Atomically write data/pulse/{story_id}.json\n    CLI-->>User: Output terminal table of Pros, Bugs, and Asks with Comment Citations"
+  },
+  {
+    "id": "dd-5",
+    "title": "5. 5-Line Outreach Draft Generation (PR #51)",
+    "diagram": "sequenceDiagram\n    autonumber\n    actor User\n    participant CLI as hnradar draft <user>\n    participant Match as match.top_matches()\n    participant ShowHN as showhn.search_show_hn()\n    participant Pulse as _cited_bug() (Pulse)\n    participant Writer as draft/write.py (write_draft)\n    participant Ollama as sources/ollama.py (OllamaClient)\n\n    User->>CLI: hnradar draft username [--model qwen2.5:7b]\n    CLI->>Match: top_matches(profile, jobs, limit=11)\n    Match-->>CLI: Top 10 scored matches\n\n    loop For each match in Top 10\n        CLI->>CLI: Extract matched repo and job URL domain\n        alt No matched repo or domain missing\n            CLI->>CLI: Record skip reason & continue\n        end\n        CLI->>CLI: Check is_platform_domain(domain) [PR #50]\n        alt Domain is shared/platform host (github.io, notion.so)\n            CLI->>CLI: Record platform skip reason & continue\n        end\n        CLI->>ShowHN: search_show_hn(company, domain=domain)\n        ShowHN-->>CLI: Candidate stories\n        alt No story links to domain or low confidence\n            CLI->>CLI: Record skip reason & continue\n        end\n        CLI->>Pulse: _cited_bug(story_id, comments, pulse_dir, client)\n        Pulse-->>CLI: (summary, cited_comments) or None\n        alt No cited bug found in Show HN comments\n            CLI->>CLI: Record skip reason & continue\n        else Valid bug found!\n            CLI->>Writer: write_draft(user, company, domain, repo, problem, cited, client)\n            loop Up to 2 Attempts (Rule 2)\n                Writer->>Ollama: complete(SYSTEM_PROMPT, facts_json, ModelDraft.schema)\n                Ollama-->>Writer: JSON string\n                Writer->>Writer: ModelDraft.model_validate_json(raw)\n                Writer->>Writer: _check(): Exactly 5 lines, line 2 cites comments, names repo, rejects forbidden phrases\n            end\n            Writer-->>CLI: DraftResult (lines, evidence)\n            Note over CLI: Match succeeded -- break out of loop\n        end\n    end\n\n    alt Match Found & Drafted\n        CLI-->>User: Print 5-line outreach note + line-by-line comment citations and repo details\n    else No Usable Match in Top 10\n        CLI-->>User: Print \"No cited problem found\", list skipped matches, and exit 0\n    end"
+  },
+  {
+    "id": "dd-6",
+    "title": "6. Autonomous Agent Development Factory Lifecycle",
+    "diagram": "stateDiagram-v2\n    [*] --> Idle: Single-instance Mutex Guard (agent-poll.ps1)\n    \n    Idle --> TicketFound: Poll finds issue labeled 'ready-for-agent'\n    Idle --> Idle: No ready issues (quiet exit 0)\n\n    TicketFound --> WorktreeSetup: Create dedicated git worktree in ../hn-radar-worktrees/\n    WorktreeSetup --> GooseWorker: Launch Goose with .goose/recipes/ticket-worker.yaml\n    \n    state GooseWorker {\n        [*] --> ReadIssue: gh issue view {N}\n        ReadIssue --> ReadRules: type AGENTS.md (Rules 1-10 & Quality Gate)\n        ReadRules --> InspectCode: Read necessary files with shell tool\n        InspectCode --> ImplementDiff: Minimal diff + Edge-case tests (Rule 7)\n        ImplementDiff --> RunTests: uv run pytest -q\n        RunTests --> SmokeCheck: uv run hnradar fetch-hiring --limit 20\n        SmokeCheck --> CommitPush: git commit & git push origin agent/{N}\n        CommitPush --> OpenPR: gh pr create (Checklist & acceptance criteria)\n    }\n\n    GooseWorker --> QodoReview: PR Trigger activates qodo-code-review[bot]\n    \n    state QodoReview {\n        [*] --> GenDiagram: Synthesize Mermaid Architecture Diagram\n        GenDiagram --> ClassifyFindings: Categorize into High, Medium, Low\n    }\n\n    QodoReview --> QualityGate: AGENTS.md Quality Gate Check\n\n    state QualityGate {\n        HighOrMedium: High / Medium findings present?\n        ResolveRequired: Agent must fix in next run with new tests\n        LowOnly: Low / Informational findings only?\n        HumanEscalate: Report in PR body for human review\n    }\n\n    QualityGate --> HumanReview: Definition of Done Satisfied\n    QualityGate --> TicketRetry: Findings exist (Attempt <= 2)\n    QualityGate --> NeedsHuman: Attempt > 2 or Blocked\n    \n    NeedsHuman --> [*]: Add label 'needs-human' & post diagnostic comment\n    HumanReview --> Merged: Human merges PR into main\n    Merged --> [*]"
+  }
+];
+    let currentMermaidIdx = 0;
+
+    function selectMermaidDiagram(idx, btn) {
+      currentMermaidIdx = idx;
+      if (btn) {
+        document.querySelectorAll('#mermaid-pills .pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      } else {
+        const pills = document.querySelectorAll('#mermaid-pills .pill-btn');
+        pills.forEach((b, i) => {
+          if (i === idx) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+      }
+
+      const item = deepDivesData[idx];
+      document.getElementById('mermaid-active-title').textContent = item.title;
+      
+      const lines = item.diagram.split('\n');
+      const firstLine = lines[0] || '';
+      document.getElementById('mermaid-active-meta').textContent = firstLine + ' • ' + lines.length + ' lines • Validated syntax';
+
+      const target = document.getElementById('mermaid-viewer-target');
+      target.removeAttribute('data-processed');
+      target.innerHTML = item.diagram;
+      mermaid.init(undefined, target);
+    }
+
+    function copyMermaidSource() {
+      const item = deepDivesData[currentMermaidIdx];
+      navigator.clipboard.writeText(item.diagram).then(() => {
+        alert('Copied Mermaid syntax to clipboard!');
+      }).catch(() => {
+        alert('Failed to copy to clipboard.');
+      });
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       event.target.classList.add('active');
       document.getElementById(tabId).classList.add('active');
+      if (tabId === 'tab-mermaid') selectMermaidDiagram(currentMermaidIdx);
       if (tabId === 'tab-timeline') renderTimeline();
       if (tabId === 'tab-subsystems') renderSubsystems();
     }
