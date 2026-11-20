@@ -3,319 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HN Radar — Interactive Architecture Explainer Video</title>
+  <title>HN Radar — Cinematic Architecture Film & Interactive Explainer</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     :root {
-      --bg: #070b13;
-      --card-bg: #111827;
-      --panel-bg: #1e293b;
-      --border: #334155;
+      --bg: #030712;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --border: #1e293b;
       --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.35);
-      --success: #4ade80;
-      --warning: #fbbf24;
-      --danger: #f87171;
+      --accent-glow: rgba(56, 189, 248, 0.4);
+      --gold: #fbbf24;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
+      --purple: #a855f7;
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* Video Player Wrapper */
-    .player-wrapper {
+    /* Top Cinematic Header */
+    .cinema-header {
       width: 100%;
       max-width: 1280px;
-      margin: 16px auto;
-      padding: 0 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    /* Top Video Header */
-    .player-header {
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 16px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      flex-wrap: wrap;
-      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(3, 7, 18, 0.8);
+      backdrop-filter: blur(12px);
+      z-index: 50;
     }
-    .player-title-box {
+    .brand-box {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    .brand-pill {
+    .film-badge {
       background: linear-gradient(135deg, #0284c7, #38bdf8);
-      color: #082f49;
-      font-weight: 800;
+      color: #030712;
+      font-weight: 900;
       font-size: 0.75rem;
-      padding: 4px 10px;
-      border-radius: 6px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
+      padding: 4px 8px;
+      border-radius: 4px;
     }
-    .main-title {
+    .film-title {
       font-size: 1.15rem;
       font-weight: 700;
-      color: var(--text);
+      letter-spacing: 0.05em;
     }
-    .status-badge {
+    .header-btns {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      background: #1e293b;
-      padding: 4px 10px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 8px var(--success);
-    }
-    .status-dot.paused {
-      background: var(--warning);
-      box-shadow: 0 0 8px var(--warning);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
       gap: 10px;
     }
-    .btn-header {
-      background: #1e293b;
+    .btn-cinema {
+      background: #0f172a;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 6px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-header:hover {
-      background: #334155;
+    .btn-cinema:hover {
       border-color: var(--accent);
+      background: #1e293b;
     }
-    .btn-header.active {
+    .btn-cinema.active {
       background: var(--accent);
-      color: #082f49;
+      color: #030712;
       font-weight: bold;
     }
 
-    /* Main Video Stage (16:9 Aspect Ratio) */
-    .video-viewport {
+    /* Main Theater Container */
+    .theater-container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 16px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* 16:9 Cinematic Video Frame */
+    .cinema-viewport {
       position: relative;
       width: 100%;
       height: 640px;
-      background: #020617;
-      border: 2px solid var(--border);
+      background: #000;
+      border: 1px solid #1e293b;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-      cursor: crosshair;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+      cursor: pointer;
     }
 
-    /* The Dynamic SVG Canvas */
-    #stage-svg {
+    /* Canvas Film Screen */
+    #film-canvas {
       width: 100%;
       height: 100%;
-      transition: viewBox 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+      display: block;
     }
 
-    /* Active Component Glowing in Scene */
-    .v-node {
-      cursor: pointer;
-      transition: opacity 0.4s ease, transform 0.3s ease;
-    }
-    .v-node:hover .v-rect {
-      stroke: var(--accent) !important;
-      stroke-width: 3px !important;
-      filter: drop-shadow(0 0 10px var(--accent));
-    }
-    .v-node.active-scene .v-rect {
-      stroke: #38bdf8 !important;
-      stroke-width: 3.5px !important;
-      filter: drop-shadow(0 0 12px #38bdf8);
-      animation: pulse-glow 2s infinite ease-in-out;
-    }
-    .v-node.dimmed {
-      opacity: 0.25;
-    }
-    .v-node.selected-inspector .v-rect {
-      stroke: #f59e0b !important;
-      stroke-width: 4px !important;
-      filter: drop-shadow(0 0 14px #f59e0b);
-    }
-
-    @keyframes pulse-glow {
-      0%, 100% { filter: drop-shadow(0 0 8px #38bdf8); }
-      50% { filter: drop-shadow(0 0 18px #38bdf8); }
-    }
-
-    /* Animated Data Packets */
-    .data-packet {
-      fill: #38bdf8;
-      filter: drop-shadow(0 0 6px #38bdf8);
-    }
-
-    /* Center Play/Pause Overlay */
-    .center-overlay {
+    /* Big Center Play Button Overlay */
+    .center-play-overlay {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80px;
-      height: 80px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       background: rgba(15, 23, 42, 0.85);
       border: 2px solid var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       color: var(--accent);
       cursor: pointer;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 30px var(--accent-glow);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 35px var(--accent-glow);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s ease, transform 0.2s ease;
-      z-index: 20;
+      transition: all 0.25s ease;
+      z-index: 30;
     }
-    .center-overlay.visible {
+    .center-play-overlay.visible {
       opacity: 1;
       pointer-events: auto;
     }
-    .center-overlay:hover {
+    .center-play-overlay:hover {
       transform: translate(-50%, -50%) scale(1.1);
       background: var(--accent);
-      color: #082f49;
+      color: #030712;
     }
 
-    /* Chapter Badge in Viewport */
-    .viewport-chapter-pill {
+    /* Cinematic Subtitle Overlay */
+    .cinema-subtitles {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid var(--border);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent);
-      backdrop-filter: blur(6px);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 10;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    .viewport-chapter-pill span.num {
-      background: var(--accent);
-      color: #082f49;
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-size: 0.75rem;
-    }
-
-    /* Subtitle / Closed Caption Banner */
-    .subtitles-banner {
-      position: absolute;
-      bottom: 20px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      width: 90%;
+      width: 85%;
       max-width: 960px;
-      background: rgba(2, 6, 23, 0.9);
-      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: rgba(3, 7, 18, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       border-radius: 10px;
-      padding: 12px 24px;
+      padding: 14px 28px;
       text-align: center;
-      font-size: 1.05rem;
-      line-height: 1.45;
+      font-size: 1.12rem;
+      line-height: 1.5;
       color: #f8fafc;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-      z-index: 10;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      z-index: 20;
       transition: opacity 0.3s ease;
     }
-    .subtitles-banner.hidden {
+    .cinema-subtitles.hidden {
       opacity: 0;
       pointer-events: none;
     }
-    .subtitles-banner strong {
+    .cinema-subtitles strong {
       color: var(--accent);
     }
 
-    /* Soundwave visualizer bar */
-    .voice-visualizer {
+    /* Director's Cut Callout Button inside screen */
+    .btn-inspect-overlay {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
+      top: 20px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 14px;
       border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      z-index: 20;
       display: flex;
       align-items: center;
-      gap: 4px;
-      height: 32px;
-      z-index: 10;
+      gap: 6px;
+      transition: all 0.2s;
     }
-    .wave-bar {
-      width: 3px;
+    .btn-inspect-overlay:hover {
       background: var(--accent);
-      border-radius: 2px;
-      height: 6px;
-      transition: height 0.15s ease;
-    }
-    .wave-bar.speaking {
-      animation: wave 1s infinite ease-in-out;
-    }
-    .wave-bar:nth-child(2) { animation-delay: 0.2s; }
-    .wave-bar:nth-child(3) { animation-delay: 0.4s; }
-    .wave-bar:nth-child(4) { animation-delay: 0.1s; }
-    .wave-bar:nth-child(5) { animation-delay: 0.3s; }
-    @keyframes wave {
-      0%, 100% { height: 6px; }
-      50% { height: 22px; }
+      color: #030712;
+      box-shadow: 0 0 15px var(--accent-glow);
     }
 
-    /* Bottom Video Control Bar */
-    .controls-panel {
-      background: var(--card-bg);
+    /* Cinematic Controls Panel */
+    .cinema-controls {
+      background: rgba(15, 23, 42, 0.95);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 12px 18px;
+      padding: 12px 20px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
     /* Scrubber Timeline */
-    .scrubber-wrapper {
+    .scrubber-track {
       position: relative;
       width: 100%;
       height: 14px;
@@ -323,1214 +232,529 @@
       align-items: center;
       cursor: pointer;
     }
-    .scrubber-rail {
+    .scrubber-bg {
       position: absolute;
       width: 100%;
       height: 6px;
       background: #1e293b;
       border-radius: 3px;
-      overflow: hidden;
     }
-    .scrubber-fill {
+    .scrubber-progress {
       position: absolute;
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, #0284c7, #38bdf8);
       border-radius: 3px;
-      box-shadow: 0 0 10px #38bdf8;
+      box-shadow: 0 0 10px var(--accent);
     }
-    .scrubber-handle {
+    .scrubber-head {
       position: absolute;
       left: 0%;
       width: 16px;
       height: 16px;
-      background: #f8fafc;
-      border: 2px solid #0284c7;
+      background: #fff;
+      border: 2px solid var(--accent);
       border-radius: 50%;
       transform: translateX(-50%);
-      transition: transform 0.1s ease;
-      box-shadow: 0 0 8px rgba(255,255,255,0.8);
+      box-shadow: 0 0 10px #fff;
+      transition: transform 0.1s;
     }
-    .scrubber-wrapper:hover .scrubber-handle {
+    .scrubber-track:hover .scrubber-head {
       transform: translateX(-50%) scale(1.3);
     }
-    .chapter-notch {
+    .act-notch {
       position: absolute;
-      width: 3px;
+      width: 2px;
       height: 10px;
       background: #64748b;
-      transform: translateX(-50%);
       top: 2px;
-      border-radius: 1px;
+      transform: translateX(-50%);
       pointer-events: none;
     }
 
-    /* Control Buttons Row */
-    .buttons-row {
+    /* Buttons Row */
+    .ctrl-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
     }
-    .left-controls, .right-controls {
+    .ctrl-left, .ctrl-right {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .btn-ctrl {
-      background: #1e293b;
+    .btn-icon {
+      background: #0f172a;
       border: 1px solid var(--border);
       color: var(--text);
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      font-size: 1rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1rem;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-ctrl:hover {
-      background: #334155;
-      color: var(--accent);
+    .btn-icon:hover {
+      background: #1e293b;
       border-color: var(--accent);
+      color: var(--accent);
     }
-    .btn-play-pause {
+    .btn-main-play {
       width: 44px;
       height: 44px;
       background: var(--accent);
-      color: #082f49;
+      color: #030712;
       font-size: 1.25rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
     }
-    .btn-play-pause:hover {
+    .btn-main-play:hover {
       background: #7dd3fc;
       transform: scale(1.05);
     }
-    .time-readout {
+    .timecode {
       font-family: monospace;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       color: #cbd5e1;
       margin-left: 6px;
     }
-
-    .select-dropdown {
-      background: #1e293b;
+    .select-act {
+      background: #0f172a;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 6px 12px;
+      padding: 8px 12px;
       border-radius: 6px;
       font-size: 0.85rem;
       cursor: pointer;
       outline: none;
     }
-    .select-dropdown:hover {
+    .select-act:hover {
       border-color: var(--accent);
     }
 
-    /* Interactive Component Inspector Drawer */
-    .inspector-drawer {
-      position: fixed;
-      top: 0;
-      right: -620px;
-      width: 600px;
-      height: 100vh;
-      background: #0f172a;
-      border-left: 2px solid var(--accent);
-      box-shadow: -15px 0 30px rgba(0,0,0,0.8);
-      transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-    }
-    .inspector-drawer.open {
-      right: 0;
-    }
-    .drawer-top {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #1e293b;
-    }
-    .drawer-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-    .drawer-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-    .btn-close-drawer {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-    .btn-close-drawer:hover {
-      color: var(--text);
-    }
-
-    /* Tabs inside Drawer */
-    .drawer-nav {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      background: #111827;
-    }
-    .d-tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      padding: 10px 6px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-    .d-tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-      background: #1e293b;
-    }
-    .drawer-content-box {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-    }
-    .d-pane { display: none; }
-    .d-pane.active { display: block; }
-
-    /* Terminal Simulator */
-    .terminal-window {
-      background: #020617;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.85rem;
-      color: #38bdf8;
-      min-height: 220px;
-      max-height: 380px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      line-height: 1.4;
-    }
-    .terminal-prompt {
-      color: #4ade80;
-    }
-    .btn-run-sim {
-      margin-top: 10px;
-      background: linear-gradient(135deg, #0284c7, #38bdf8);
-      border: none;
-      color: #082f49;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .btn-run-sim:hover {
-      filter: brightness(1.1);
-    }
-
-    /* Chapter Quick-Jump Grid */
-    .chapters-grid {
+    /* Acts Film Strip */
+    .acts-strip {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 12px;
-      margin-top: 12px;
+      margin-top: 6px;
     }
-    .ch-card {
-      background: var(--card-bg);
+    .act-card {
+      background: rgba(15, 23, 42, 0.7);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px 14px;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .ch-card:hover {
+    .act-card:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
     }
-    .ch-card.active {
+    .act-card.active {
       border-color: var(--accent);
-      background: #1e293b;
-      box-shadow: 0 0 10px var(--accent-glow);
+      background: #0f172a;
+      box-shadow: 0 0 15px var(--accent-glow);
     }
-    .ch-card-header {
+    .act-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 800;
       color: var(--accent);
-      font-weight: 700;
       margin-bottom: 4px;
     }
-    .ch-card-title {
+    .act-title {
       font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text);
+      font-weight: 700;
+      color: #fff;
       margin-bottom: 4px;
     }
-    .ch-card-desc {
+    .act-tagline {
       font-size: 0.8rem;
       color: var(--text-muted);
-      line-height: 1.35;
     }
 
-    .rule-tag {
-      display: inline-block;
-      background: #1e1b4b;
-      color: #a5b4fc;
-      border: 1px solid #4338ca;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      margin: 2px 4px 2px 0;
+    /* Director's Cut / Technical Blueprint Drawer */
+    .blueprint-drawer {
+      position: fixed;
+      top: 0;
+      right: -650px;
+      width: 620px;
+      height: 100vh;
+      background: #0b1120;
+      border-left: 2px solid var(--accent);
+      box-shadow: -20px 0 40px rgba(0,0,0,0.9);
+      transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+    .blueprint-drawer.open {
+      right: 0;
+    }
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #0f172a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .btn-close-drawer {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+    .drawer-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #090e1a;
+    }
+    .drawer-tab {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      border-bottom: 2px solid transparent;
+    }
+    .drawer-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: #0f172a;
+    }
+    .drawer-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Terminal Simulator inside Drawer */
+    .term-box {
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+      min-height: 220px;
+      max-height: 380px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .btn-term-run {
+      margin-top: 10px;
+      background: var(--accent);
+      color: #030712;
+      font-weight: 700;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
 
-  <div class="player-wrapper">
-    <!-- Top Player Header -->
-    <header class="player-header">
-      <div class="player-title-box">
-        <span class="brand-pill">INTERACTIVE VIDEO</span>
-        <h1 class="main-title">HN Radar — Architecture & Subsystems Explainer</h1>
-        <div class="status-badge">
-          <div id="status-dot" class="status-dot"></div>
-          <span id="status-text">PLAYING</span>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button class="btn-header" onclick="toggleExploreMode()" id="btn-mode">
-          <span>🔍</span> Free Explore Mode
-        </button>
-        <button class="btn-header" onclick="jumpToChapter(0)">
-          <span>↺</span> Restart
-        </button>
-      </div>
-    </header>
+  <!-- Top Cinematic Header -->
+  <header class="cinema-header">
+    <div class="brand-box">
+      <span class="film-badge">CINEMATIC FILM</span>
+      <h1 class="film-title">HN Radar — "Arrive With The Fix"</h1>
+    </div>
+    <div class="header-btns">
+      <button class="btn-cinema" onclick="openBlueprintDrawer()">
+        <span>🛠</span> Technical Blueprint
+      </button>
+      <button class="btn-cinema" onclick="toggleAudioScore()" id="btn-soundtrack">
+        <span>🎵</span> Soundtrack: ON
+      </button>
+      <button class="btn-cinema" onclick="restartFilm()">
+        <span>↺</span> Replay
+      </button>
+    </div>
+  </header>
 
-    <!-- Main 16:9 Video Viewport -->
-    <div class="video-viewport" id="viewport-stage" onclick="handleStageClick(event)">
-      <!-- Chapter Badge Overlay -->
-      <div class="viewport-chapter-pill">
-        <span class="num" id="pill-ch-num">CH 1</span>
-        <span id="pill-ch-title">Core Mission & System Philosophy</span>
-      </div>
+  <!-- Main Theater Container -->
+  <div class="theater-container">
+    <div class="cinema-viewport" id="viewport" onclick="togglePlayPause(event)">
+      <!-- Director's Cut Overlay Button -->
+      <button class="btn-inspect-overlay" onclick="openBlueprintDrawer(event)">
+        <span>🔍</span> Director's Cut
+      </button>
 
-      <!-- Speech Narration Visualizer -->
-      <div class="voice-visualizer">
-        <span style="font-size:0.75rem; color:#94a3b8; margin-right:4px;">NARRATION</span>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-      </div>
-
-      <!-- Center Big Play Button (shows when paused) -->
-      <div class="center-overlay" id="center-play-btn" onclick="togglePlayPause(event)">
+      <!-- Center Big Play Button -->
+      <div class="center-play-overlay" id="center-play" onclick="togglePlayPause(event)">
         ▶
       </div>
 
-      <!-- Live Dynamic SVG Architecture Stage -->
-      <svg id="stage-svg" viewBox="0 0 1110 1000" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="varrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#64748b" />
-          </marker>
-        </defs>
+      <!-- Live Canvas Screen -->
+      <canvas id="film-canvas" width="1920" height="1080"></canvas>
 
-        <!-- Subsystem Boundaries (Backdrop) -->
-        <rect x="20" y="20" width="1070" height="85" rx="10" fill="rgba(30, 41, 59, 0.25)" stroke="#334155" stroke-dasharray="2" />
-        <text x="35" y="40" fill="#64748b" font-family="system-ui" font-size="11px" font-weight="bold">EXTERNAL SERVICES & APIs</text>
-
-        <rect x="20" y="115" width="1070" height="180" rx="10" fill="rgba(15, 47, 87, 0.2)" stroke="#2563eb" stroke-dasharray="2" />
-        <text x="35" y="132" fill="#60a5fa" font-family="system-ui" font-size="11px" font-weight="bold">SOURCE ADAPTERS & ATOMIC DISK CACHE (src/hnradar/sources/)</text>
-
-        <rect x="20" y="305" width="1070" height="390" rx="10" fill="rgba(59, 30, 109, 0.2)" stroke="#7c3aed" stroke-dasharray="2" />
-        <text x="35" y="322" fill="#c084fc" font-family="system-ui" font-size="11px" font-weight="bold">PROCESSING, PARSING, SCORING & OUTREACH DRAFT SYNTHESIS</text>
-
-        <rect x="20" y="705" width="1070" height="150" rx="10" fill="rgba(88, 28, 28, 0.2)" stroke="#dc2626" stroke-dasharray="2" />
-        <text x="35" y="722" fill="#fca5a5" font-family="system-ui" font-size="11px" font-weight="bold">USER COMMANDS & SANITIZATION LAYER (Typer CLI)</text>
-
-        <rect x="20" y="860" width="1070" height="125" rx="10" fill="rgba(20, 69, 42, 0.2)" stroke="#16a34a" stroke-dasharray="2" />
-        <text x="35" y="877" fill="#86efac" font-family="system-ui" font-size="11px" font-weight="bold">AUTONOMOUS ENGINEERING FACTORY & QUALITY GATE (DoD)</text>
-
-        <!-- Connectors -->
-        <line id="conn_1" x1="140" y1="90" x2="140" y2="140" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_2" x1="510" y1="90" x2="510" y2="140" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_3" x1="890" y1="90" x2="890" y2="140" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_4" x1="140" y1="200" x2="140" y2="240" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_5" x1="510" y1="200" x2="510" y2="240" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_6" x1="140" y1="285" x2="140" y2="330" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_7" x1="230" y1="355" x2="250" y2="355" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_8" x1="140" y1="385" x2="140" y2="425" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_9" x1="230" y1="450" x2="250" y2="450" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_10" x1="510" y1="285" x2="550" y2="330" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_11" x1="550" y1="385" x2="550" y2="425" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_12" x1="340" y1="480" x2="440" y2="525" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_13" x1="550" y1="480" x2="480" y2="525" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_14" x1="140" y1="200" x2="780" y2="330" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_15" x1="780" y1="385" x2="820" y2="425" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_16" x1="820" y1="480" x2="820" y2="525" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_17" x1="890" y1="200" x2="840" y2="425" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_18" x1="480" y1="585" x2="650" y2="625" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_19" x1="820" y1="580" x2="720" y2="625" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_20" x1="890" y1="200" x2="750" y2="625" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_21" x1="110" y1="725" x2="250" y2="480" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_22" x1="285" y1="725" x2="470" y2="480" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_23" x1="460" y1="725" x2="460" y2="585" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_24" x1="635" y1="725" x2="780" y2="385" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_25" x1="810" y1="725" x2="820" y2="580" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" /><line id="conn_26" x1="990" y1="725" x2="750" y2="685" stroke="#334155" stroke-width="2" stroke-dasharray="4" marker-end="url(#varrow)" class="v-conn" />
-
-        <!-- Nodes -->
-        
-    <g class="v-node" id="ext_hn" data-comp-id="source_hn" tabindex="0" role="button">
-      <rect x="50" y="40" width="180" height="50" rx="8" ry="8"
-            fill="#1e293b" stroke="#475569" stroke-width="2" class="v-rect" />
-      <text x="140.0" y="59.0"
-            text-anchor="middle" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="140.0" dy="0" font-weight="bold">HN Algolia API</tspan><tspan x="140.0" dy="16" font-size="11px" fill="#cbd5e0">(Public REST API)</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="ext_gh" data-comp-id="source_github" tabindex="0" role="button">
-      <rect x="420" y="40" width="180" height="50" rx="8" ry="8"
-            fill="#1e293b" stroke="#475569" stroke-width="2" class="v-rect" />
-      <text x="510.0" y="59.0"
-            text-anchor="middle" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="510.0" dy="0" font-weight="bold">GitHub REST API</tspan><tspan x="510.0" dy="16" font-size="11px" fill="#cbd5e0">(Public /users/repos)</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="ext_ollama" data-comp-id="source_ollama" tabindex="0" role="button">
-      <rect x="800" y="40" width="180" height="50" rx="8" ry="8"
-            fill="#1e293b" stroke="#475569" stroke-width="2" class="v-rect" />
-      <text x="890.0" y="59.0"
-            text-anchor="middle" fill="#e2e8f0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="890.0" dy="0" font-weight="bold">Local Ollama</tspan><tspan x="890.0" dy="16" font-size="11px" fill="#cbd5e0">(http://localhost:11434)</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_source_hn" data-comp-id="source_hn" tabindex="0" role="button">
-      <rect x="50" y="140" width="230" height="60" rx="8" ry="8"
-            fill="#0f2f57" stroke="#2563eb" stroke-width="2" class="v-rect" />
-      <text x="165.0" y="164.0"
-            text-anchor="middle" fill="#bfdbfe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="165.0" dy="0" font-weight="bold">sources/hn.py</tspan><tspan x="165.0" dy="16" font-size="11px" fill="#cbd5e0">[Algolia Client &amp; Resilient Cache (PR #53)]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_source_gh" data-comp-id="source_github" tabindex="0" role="button">
-      <rect x="420" y="140" width="180" height="60" rx="8" ry="8"
-            fill="#0f2f57" stroke="#2563eb" stroke-width="2" class="v-rect" />
-      <text x="510.0" y="164.0"
-            text-anchor="middle" fill="#bfdbfe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="510.0" dy="0" font-weight="bold">sources/github.py</tspan><tspan x="510.0" dy="16" font-size="11px" fill="#cbd5e0">[Repo Fetcher &amp; Cache]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_source_ollama" data-comp-id="source_ollama" tabindex="0" role="button">
-      <rect x="800" y="140" width="180" height="60" rx="8" ry="8"
-            fill="#0f2f57" stroke="#2563eb" stroke-width="2" class="v-rect" />
-      <text x="890.0" y="164.0"
-            text-anchor="middle" fill="#bfdbfe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="890.0" dy="0" font-weight="bold">sources/ollama.py</tspan><tspan x="890.0" dy="16" font-size="11px" fill="#cbd5e0">[OllamaClient Client]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cache_hn" data-comp-id="source_hn" tabindex="0" role="button">
-      <rect x="50" y="240" width="230" height="45" rx="8" ry="8"
-            fill="#114440" stroke="#0d9488" stroke-width="2" class="v-rect" />
-      <text x="165.0" y="256.5"
-            text-anchor="middle" fill="#99f6e4" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="165.0" dy="0" font-weight="bold">data/cache/hn_*.json</tspan><tspan x="165.0" dy="16" font-size="11px" fill="#cbd5e0">(Resilient: warns on failure)</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cache_gh" data-comp-id="source_github" tabindex="0" role="button">
-      <rect x="420" y="240" width="180" height="45" rx="8" ry="8"
-            fill="#114440" stroke="#0d9488" stroke-width="2" class="v-rect" />
-      <text x="510.0" y="256.5"
-            text-anchor="middle" fill="#99f6e4" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="510.0" dy="0" font-weight="bold">data/cache/github_*.json</tspan><tspan x="510.0" dy="16" font-size="11px" fill="#cbd5e0">(TTL: 3600s)</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_parse_comment" data-comp-id="parse_job" tabindex="0" role="button">
-      <rect x="50" y="330" width="180" height="55" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="140.0" y="351.5"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="140.0" dy="0" font-weight="bold">parse_comment()</tspan><tspan x="140.0" dy="16" font-size="11px" fill="#cbd5e0">[Pipe header &amp; stack regex]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_candidate_filter" data-comp-id="parse_candidate_filter" tabindex="0" role="button">
-      <rect x="250" y="330" width="180" height="55" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="340.0" y="351.5"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="340.0" dy="0" font-weight="bold">is_candidate_profile()</tspan><tspan x="340.0" dy="16" font-size="11px" fill="#cbd5e0">[Skip job seekers (PR #46)]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_closed_detector" data-comp-id="closed_detector" tabindex="0" role="button">
-      <rect x="50" y="425" width="180" height="55" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="140.0" y="446.5"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="140.0" dy="0" font-weight="bold">closing_reply_id()</tspan><tspan x="140.0" dy="16" font-size="11px" fill="#cbd5e0">[Poster reply scanner (PR #30)]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_jobs_json" data-comp-id="cli_fetch_hiring" tabindex="0" role="button">
-      <rect x="250" y="425" width="180" height="55" rx="8" ry="8"
-            fill="#114440" stroke="#0d9488" stroke-width="2" class="v-rect" />
-      <text x="340.0" y="446.5"
-            text-anchor="middle" fill="#99f6e4" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="340.0" dy="0" font-weight="bold">data/jobs.json</tspan><tspan x="340.0" dy="16" font-size="11px" fill="#cbd5e0">[Tracked Structured Jobs]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_fingerprint_builder" data-comp-id="fingerprint_synthesizer" tabindex="0" role="button">
-      <rect x="470" y="330" width="190" height="55" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="565.0" y="351.5"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="565.0" dy="0" font-weight="bold">build_profile()</tspan><tspan x="565.0" dy="16" font-size="11px" fill="#cbd5e0">[Top 5 lang, 10 topics, 5 repos]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_profile_json" data-comp-id="cli_fingerprint" tabindex="0" role="button">
-      <rect x="470" y="425" width="190" height="55" rx="8" ry="8"
-            fill="#114440" stroke="#0d9488" stroke-width="2" class="v-rect" />
-      <text x="565.0" y="446.5"
-            text-anchor="middle" fill="#99f6e4" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="565.0" dy="0" font-weight="bold">data/profiles/&lt;user&gt;.json</tspan><tspan x="565.0" dy="16" font-size="11px" fill="#cbd5e0">[Pydantic Profile]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_match_scorer" data-comp-id="matching_engine" tabindex="0" role="button">
-      <rect x="360" y="525" width="220" height="60" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="470.0" y="549.0"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="470.0" dy="0" font-weight="bold">score_job() &amp; top_matches()</tspan><tspan x="470.0" dy="16" font-size="11px" fill="#cbd5e0">[20pt lang, 10pt topic, 5pt remote]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_showhn_ranker" data-comp-id="showhn_ranker" tabindex="0" role="button">
-      <rect x="690" y="330" width="210" height="55" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="795.0" y="351.5"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="795.0" dy="0" font-weight="bold">showhn.py / search_show_hn</tspan><tspan x="795.0" dy="16" font-size="11px" fill="#cbd5e0">[Platform filter (PR #50) &amp; Ranker]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_pulse_clusterer" data-comp-id="pulse_clusterer" tabindex="0" role="button">
-      <rect x="750" y="425" width="180" height="55" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="840.0" y="446.5"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="840.0" dy="0" font-weight="bold">pulse/cluster.py</tspan><tspan x="840.0" dy="16" font-size="11px" fill="#cbd5e0">[Comment selector &amp; 2-try retry]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_pulse_json" data-comp-id="cli_pulse" tabindex="0" role="button">
-      <rect x="750" y="525" width="180" height="55" rx="8" ry="8"
-            fill="#114440" stroke="#0d9488" stroke-width="2" class="v-rect" />
-      <text x="840.0" y="546.5"
-            text-anchor="middle" fill="#99f6e4" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="840.0" dy="0" font-weight="bold">data/pulse/&lt;story_id&gt;.json</tspan><tspan x="840.0" dy="16" font-size="11px" fill="#cbd5e0">[Pydantic PulseResult]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_draft_writer" data-comp-id="draft_writer" tabindex="0" role="button">
-      <rect x="560" y="625" width="260" height="60" rx="8" ry="8"
-            fill="#3b1e6d" stroke="#7c3aed" stroke-width="2" class="v-rect" />
-      <text x="690.0" y="649.0"
-            text-anchor="middle" fill="#ddd6fe" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="690.0" dy="0" font-weight="bold">draft/write.py (write_draft)</tspan><tspan x="690.0" dy="16" font-size="11px" fill="#cbd5e0">[5-line note, schema valid, cited bugs]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cli_fetch" data-comp-id="cli_fetch_hiring" tabindex="0" role="button">
-      <rect x="30" y="725" width="160" height="55" rx="8" ry="8"
-            fill="#581c1c" stroke="#dc2626" stroke-width="2" class="v-rect" />
-      <text x="110.0" y="746.5"
-            text-anchor="middle" fill="#fecaca" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="110.0" dy="0" font-weight="bold">hnradar fetch-hiring</tspan><tspan x="110.0" dy="16" font-size="11px" fill="#cbd5e0">[--limit, --out, --json]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cli_fingerprint" data-comp-id="cli_fingerprint" tabindex="0" role="button">
-      <rect x="205" y="725" width="160" height="55" rx="8" ry="8"
-            fill="#581c1c" stroke="#dc2626" stroke-width="2" class="v-rect" />
-      <text x="285.0" y="746.5"
-            text-anchor="middle" fill="#fecaca" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="285.0" dy="0" font-weight="bold">hnradar fingerprint</tspan><tspan x="285.0" dy="16" font-size="11px" fill="#cbd5e0">[&lt;user&gt; --out-dir]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cli_match" data-comp-id="cli_match" tabindex="0" role="button">
-      <rect x="380" y="725" width="160" height="55" rx="8" ry="8"
-            fill="#581c1c" stroke="#dc2626" stroke-width="2" class="v-rect" />
-      <text x="460.0" y="746.5"
-            text-anchor="middle" fill="#fecaca" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="460.0" dy="0" font-weight="bold">hnradar match</tspan><tspan x="460.0" dy="16" font-size="11px" fill="#cbd5e0">[&lt;user&gt; --jobs --json]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cli_showhn" data-comp-id="cli_showhn" tabindex="0" role="button">
-      <rect x="555" y="725" width="160" height="55" rx="8" ry="8"
-            fill="#581c1c" stroke="#dc2626" stroke-width="2" class="v-rect" />
-      <text x="635.0" y="746.5"
-            text-anchor="middle" fill="#fecaca" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="635.0" dy="0" font-weight="bold">hnradar showhn</tspan><tspan x="635.0" dy="16" font-size="11px" fill="#cbd5e0">[&lt;company&gt; --domain --json]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cli_pulse" data-comp-id="cli_pulse" tabindex="0" role="button">
-      <rect x="730" y="725" width="160" height="55" rx="8" ry="8"
-            fill="#581c1c" stroke="#dc2626" stroke-width="2" class="v-rect" />
-      <text x="810.0" y="746.5"
-            text-anchor="middle" fill="#fecaca" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="810.0" dy="0" font-weight="bold">hnradar pulse</tspan><tspan x="810.0" dy="16" font-size="11px" fill="#cbd5e0">[&lt;story_id&gt; --model --out]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_cli_draft" data-comp-id="cli_draft" tabindex="0" role="button">
-      <rect x="905" y="725" width="175" height="55" rx="8" ry="8"
-            fill="#581c1c" stroke="#dc2626" stroke-width="2" class="v-rect" />
-      <text x="992.5" y="746.5"
-            text-anchor="middle" fill="#fecaca" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="992.5" dy="0" font-weight="bold">hnradar draft (NEW!)</tspan><tspan x="992.5" dy="16" font-size="11px" fill="#cbd5e0">[&lt;user&gt; --model --pulse-dir]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_sanitizer" data-comp-id="terminal_sanitizer" tabindex="0" role="button">
-      <rect x="140" y="805" width="820" height="40" rx="8" ry="8"
-            fill="#5c2d15" stroke="#d97706" stroke-width="2" class="v-rect" />
-      <text x="550.0" y="819.0"
-            text-anchor="middle" fill="#fde68a" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="550.0" dy="0" font-weight="bold">Terminal Sanitizer (_terminal_safe) [Rule 8]</tspan><tspan x="550.0" dy="16" font-size="11px" fill="#cbd5e0">Strips Cc control chars (ESC, BEL) &amp; Cf format chars (bidi U+202E)</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_poller" data-comp-id="agent_poller" tabindex="0" role="button">
-      <rect x="50" y="870" width="170" height="50" rx="8" ry="8"
-            fill="#14452a" stroke="#16a34a" stroke-width="2" class="v-rect" />
-      <text x="135.0" y="889.0"
-            text-anchor="middle" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="135.0" dy="0" font-weight="bold">agent-poll.ps1</tspan><tspan x="135.0" dy="16" font-size="11px" fill="#cbd5e0">[OS Named Mutex Guard]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_worktree" data-comp-id="ticket_worker" tabindex="0" role="button">
-      <rect x="235" y="870" width="170" height="50" rx="8" ry="8"
-            fill="#14452a" stroke="#16a34a" stroke-width="2" class="v-rect" />
-      <text x="320.0" y="889.0"
-            text-anchor="middle" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="320.0" dy="0" font-weight="bold">Git Worktrees</tspan><tspan x="320.0" dy="16" font-size="11px" fill="#cbd5e0">[../hn-radar-worktrees/]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_goose" data-comp-id="ticket_worker" tabindex="0" role="button">
-      <rect x="420" y="870" width="190" height="50" rx="8" ry="8"
-            fill="#14452a" stroke="#16a34a" stroke-width="2" class="v-rect" />
-      <text x="515.0" y="889.0"
-            text-anchor="middle" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="515.0" dy="0" font-weight="bold">Goose Ticket Worker</tspan><tspan x="515.0" dy="16" font-size="11px" fill="#cbd5e0">[.goose/recipes/ticket-worker.yaml]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_qodo" data-comp-id="qodo_reviewer" tabindex="0" role="button">
-      <rect x="625" y="870" width="190" height="50" rx="8" ry="8"
-            fill="#14452a" stroke="#16a34a" stroke-width="2" class="v-rect" />
-      <text x="720.0" y="889.0"
-            text-anchor="middle" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="720.0" dy="0" font-weight="bold">Qodo Code Review Bot</tspan><tspan x="720.0" dy="16" font-size="11px" fill="#cbd5e0">[Mermaid diagrams &amp; severity triage]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_verify_skill" data-comp-id="verify_skill" tabindex="0" role="button">
-      <rect x="830" y="870" width="180" height="50" rx="8" ry="8"
-            fill="#14452a" stroke="#16a34a" stroke-width="2" class="v-rect" />
-      <text x="920.0" y="889.0"
-            text-anchor="middle" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="920.0" dy="0" font-weight="bold">verify-jobs-parse Skill</tspan><tspan x="920.0" dy="16" font-size="11px" fill="#cbd5e0">[Real-data regression verify]</tspan>
-      </text>
-    </g>
-    <g class="v-node" id="node_governance" data-comp-id="agents_md_governance" tabindex="0" role="button">
-      <rect x="50" y="935" width="960" height="40" rx="8" ry="8"
-            fill="#14452a" stroke="#16a34a" stroke-width="2" class="v-rect" />
-      <text x="530.0" y="949.0"
-            text-anchor="middle" fill="#bbf7d0" font-family="system-ui, sans-serif" font-size="12px" class="v-text">
-        <tspan x="530.0" dy="0" font-weight="bold">AGENTS.md Governance</tspan><tspan x="530.0" dy="16" font-size="11px" fill="#cbd5e0">[Rules 1-10, Quality Gate (DoD), Pre-Review Checklist]</tspan>
-      </text>
-    </g>
-
-        <!-- Data Packet Animation Group -->
-        <g id="data-packets-layer"></g>
-      </svg>
-
-      <!-- Live Closed Caption Subtitle Banner -->
-      <div class="subtitles-banner" id="cc-banner">
-        <span id="cc-text">Loading HN Radar architecture narration...</span>
+      <!-- Cinematic Subtitle Banner -->
+      <div class="cinema-subtitles" id="subtitles">
+        <span id="sub-text">HN Radar: Stop applying into the void. Arrive with the fix.</span>
       </div>
     </div>
 
-    <!-- Video Controls Panel -->
-    <div class="controls-panel">
-      <!-- Scrubber Bar -->
-      <div class="scrubber-wrapper" id="scrubber" onclick="handleScrub(event)">
-        <div class="scrubber-rail"></div>
-        <div class="scrubber-fill" id="scrubber-fill"></div>
-        <div class="scrubber-handle" id="scrubber-handle"></div>
-        <!-- Chapter Notches -->
-        <div class="chapter-notch" style="left: 10%;" title="Ch 2: Sources & Resilient Cache"></div>
-        <div class="chapter-notch" style="left: 22.2%;" title="Ch 3: Job Ingestion"></div>
-        <div class="chapter-notch" style="left: 35.5%;" title="Ch 4: Developer Fingerprinting"></div>
-        <div class="chapter-notch" style="left: 48.8%;" title="Ch 5: Matching Engine"></div>
-        <div class="chapter-notch" style="left: 61.1%;" title="Ch 6: Show HN Radar"></div>
-        <div class="chapter-notch" style="left: 73.3%;" title="Ch 7: Pulse & 5-Line Draft"></div>
-        <div class="chapter-notch" style="left: 90%;" title="Ch 8: Autonomous Factory"></div>
+    <!-- Controls Panel -->
+    <div class="cinema-controls">
+      <!-- Scrubber Timeline -->
+      <div class="scrubber-track" id="scrubber" onclick="handleScrub(event)">
+        <div class="scrubber-bg"></div>
+        <div class="scrubber-progress" id="scrub-fill"></div>
+        <div class="scrubber-head" id="scrub-head"></div>
+        <!-- 8 Act Notches -->
+        <div class="act-notch" style="left: 12.5%;"></div>
+        <div class="act-notch" style="left: 25%;"></div>
+        <div class="act-notch" style="left: 37.5%;"></div>
+        <div class="act-notch" style="left: 50%;"></div>
+        <div class="act-notch" style="left: 62.5%;"></div>
+        <div class="act-notch" style="left: 75%;"></div>
+        <div class="act-notch" style="left: 87.5%;"></div>
       </div>
 
-      <!-- Control Buttons Row -->
-      <div class="buttons-row">
-        <div class="left-controls">
-          <button class="btn-ctrl btn-play-pause" id="btn-play" onclick="togglePlayPause(event)" title="Play / Pause (Spacebar)">▶</button>
-          <button class="btn-ctrl" onclick="seekRelative(-10)" title="Rewind 10s">↺ 10</button>
-          <button class="btn-ctrl" onclick="seekRelative(10)" title="Forward 10s">↻ 10</button>
-          <div class="time-readout" id="time-readout">00:00 / 07:30</div>
+      <!-- Buttons Row -->
+      <div class="ctrl-row">
+        <div class="ctrl-left">
+          <button class="btn-icon btn-main-play" id="btn-play" onclick="togglePlayPause(event)">▶</button>
+          <button class="btn-icon" onclick="seekRelative(-5)">↺ 5s</button>
+          <button class="btn-icon" onclick="seekRelative(5)">↻ 5s</button>
+          <div class="timecode" id="timecode">00:00 / 00:48</div>
         </div>
 
-        <div class="right-controls">
-          <select class="select-dropdown" id="ch-select" onchange="jumpToChapter(this.value)">
-            <option value="0">Ch 1: Core Mission & Philosophy</option>
-            <option value="1">Ch 2: Sources & Resilient Caching</option>
-            <option value="2">Ch 3: Ingestion & Closed Detector</option>
-            <option value="3">Ch 4: Developer Fingerprinting</option>
-            <option value="4">Ch 5: Deterministic Match Engine</option>
-            <option value="5">Ch 6: Company Radar & Platform Safety</option>
-            <option value="6">Ch 7: Pulse Sentiment & 5-Line Draft</option>
-            <option value="7">Ch 8: Autonomous Factory & Quality Gate</option>
+        <div class="ctrl-right">
+          <select class="select-act" id="act-select" onchange="jumpToAct(this.value)">
+            <option value="0">Act I: The Broken Void</option>
+            <option value="1">Act II: The Hidden Signal</option>
+            <option value="2">Act III: The Creed</option>
+            <option value="3">Act IV: Developer DNA</option>
+            <option value="4">Act V: Radar Target Lock</option>
+            <option value="5">Act VI: Listening to the Crowd</option>
+            <option value="6">Act VII: The Surgical Strike</option>
+            <option value="7">Act VIII: Autonomous Precision</option>
           </select>
 
-          <select class="select-dropdown" id="speed-select" onchange="setPlaybackSpeed(this.value)">
-            <option value="0.75">0.75x</option>
-            <option value="1" selected>1.0x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-            <option value="2">2.0x</option>
-          </select>
-
-          <button class="btn-ctrl" id="btn-audio" onclick="toggleVoiceAudio()" title="Toggle Web Speech Narration">🔊</button>
-          <button class="btn-ctrl" id="btn-cc" onclick="toggleCaptions()" title="Toggle Subtitles">CC</button>
-          <button class="btn-ctrl" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+          <button class="btn-icon" id="btn-voice" onclick="toggleVoice()" title="Toggle Voice Narration">🔊</button>
+          <button class="btn-icon" id="btn-cc" onclick="toggleCaptions()" title="Toggle Subtitles">CC</button>
+          <button class="btn-icon" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
         </div>
       </div>
     </div>
 
-    <!-- Chapter Quick Jump Grid -->
-    <div style="margin-top: 8px;">
-      <h3 style="font-size:0.95rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">Chapters & Topics</h3>
-      <div class="chapters-grid" id="chapters-grid">
-        <!-- Rendered dynamically -->
-      </div>
+    <!-- Acts Film Strip Cards -->
+    <div class="acts-strip" id="acts-strip">
+      <!-- Rendered dynamically -->
     </div>
   </div>
 
-  <!-- Slide-Over Interactive Component Inspector -->
-  <aside class="inspector-drawer" id="inspector">
-    <div class="drawer-top">
+  <!-- Technical Blueprint / Director's Cut Drawer -->
+  <aside class="blueprint-drawer" id="blueprint-drawer">
+    <div class="drawer-header">
       <div>
-        <div class="drawer-title" id="d-title">Component Inspector</div>
-        <div class="drawer-meta" id="d-meta">Click any architecture node during the video to inspect</div>
+        <div class="drawer-title" id="bp-title">Director's Cut & Technical Blueprint</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;" id="bp-act-meta">Act I: The Problem Definition</div>
       </div>
-      <button class="btn-close-drawer" onclick="closeInspector()">&times;</button>
+      <button class="btn-close-drawer" onclick="closeBlueprintDrawer()">&times;</button>
     </div>
 
-    <div class="drawer-nav">
-      <button class="d-tab-btn active" onclick="switchDrawerTab('pane-overview', this)">Overview & Specs</button>
-      <button class="d-tab-btn" onclick="switchDrawerTab('pane-qodo', this)">Qodo Review Diagram</button>
-      <button class="d-tab-btn" onclick="switchDrawerTab('pane-terminal', this)">Live CLI Simulator</button>
-      <button class="d-tab-btn" onclick="switchDrawerTab('pane-governance', this)">AGENTS.md Rules</button>
+    <div class="drawer-tabs">
+      <button class="drawer-tab active" onclick="switchBpTab('tab-system', this)">System Architecture</button>
+      <button class="drawer-tab" onclick="switchBpTab('tab-terminal', this)">Live CLI Simulator</button>
+      <button class="drawer-tab" onclick="switchBpTab('tab-qodo', this)">Qodo Review Diagram</button>
+      <button class="drawer-tab" onclick="switchBpTab('tab-rules', this)">AGENTS.md Rules</button>
     </div>
 
-    <div class="drawer-content-box">
-      <!-- Pane 1: Overview -->
-      <div id="pane-overview" class="d-pane active">
-        <div style="margin-bottom:16px;">
-          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">File Location</div>
-          <div id="d-file" style="font-family:monospace; color:var(--accent); font-size:0.9rem; margin-top:2px;">src/hnradar/...</div>
+    <div class="drawer-body">
+      <!-- Tab 1: System Specs -->
+      <div id="tab-system" class="tab-pane active">
+        <h3 style="color:var(--accent); font-size:1.05rem; margin-bottom:8px;" id="bp-headline">Subsystem Overview</h3>
+        <p style="color:#cbd5e1; font-size:0.92rem; line-height:1.5; margin-bottom:16px;" id="bp-desc">
+          HN Radar is an autonomous intelligence pipeline designed to replace generic resume applications with cited, high-signal warm introductions.
+        </p>
+
+        <div style="background:#020617; border:1px solid var(--border); border-radius:8px; padding:14px; margin-bottom:16px;">
+          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Key Pipeline Innovation</div>
+          <div style="color:#fff; font-size:0.9rem; margin-top:4px;" id="bp-innovation">
+            Dual-query Algolia search, heuristic regex tech stack extraction, and strictly validated 5-line outreach note.
+          </div>
         </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Pull Requests</div>
-          <div id="d-prs" style="margin-top:4px;"></div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Architecture Functionality</div>
-          <div id="d-desc" style="color:#cbd5e1; font-size:0.92rem; line-height:1.5; margin-top:4px;"></div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Inputs / Parameters</div>
-          <div id="d-inputs" style="color:#94a3b8; font-size:0.85rem; margin-top:2px;"></div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Outputs / Artifacts</div>
-          <div id="d-outputs" style="color:#94a3b8; font-size:0.85rem; margin-top:2px;"></div>
+
+        <div style="background:#020617; border:1px solid var(--border); border-radius:8px; padding:14px;">
+          <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Closed Pull Requests (26 Total)</div>
+          <div style="color:var(--accent); font-size:0.85rem; margin-top:4px;" id="bp-prs">
+            PR #50 (Platform domain flag), PR #51 (5-line draft), PR #53 (Resilient cache)
+          </div>
         </div>
       </div>
 
-      <!-- Pane 2: Qodo Diagram -->
-      <div id="pane-qodo" class="d-pane">
-        <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:8px;" id="qodo-pr-title">Qodo Review Bot Architecture Diagram</div>
-        <div style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;">
+      <!-- Tab 2: Terminal Simulator -->
+      <div id="tab-terminal" class="tab-pane">
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">
+          Run the simulated CLI command associated with this cinematic act:
+        </div>
+        <div class="term-box" id="term-out">
+$ hnradar --help
+Ready to test. Click "Run Simulated Command" below.
+        </div>
+        <button class="btn-term-run" id="btn-term-run" onclick="runSimulatedCommand()">▶ Run Simulated Command</button>
+      </div>
+
+      <!-- Tab 3: Qodo Diagram -->
+      <div id="tab-qodo" class="tab-pane">
+        <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:8px;">Qodo Code Review Mermaid Architecture</div>
+        <div style="background:#020617; border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto;">
           <div id="qodo-mermaid" class="mermaid"></div>
         </div>
       </div>
 
-      <!-- Pane 3: Terminal Simulator -->
-      <div id="pane-terminal" class="d-pane">
-        <div style="margin-bottom:8px; font-size:0.85rem; color:var(--text-muted);">
-          Simulate executing this component's CLI command right inside the architecture video player:
-        </div>
-        <div class="terminal-window" id="terminal-out">
-<span class="terminal-prompt">$ hnradar</span> --help
-Ready to test. Click "Run Simulated Command" below.
-        </div>
-        <button class="btn-run-sim" id="btn-run-sim" onclick="runSimulatedCommand()">▶ Run Simulated Command</button>
-      </div>
-
-      <!-- Pane 4: Governance -->
-      <div id="pane-governance" class="d-pane">
-        <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:8px;">Governing Invariants (AGENTS.md)</div>
-        <div id="d-rules" style="margin-top:6px;"></div>
+      <!-- Tab 4: Rules -->
+      <div id="tab-rules" class="tab-pane">
+        <h4 style="color:var(--accent); font-size:0.95rem; margin-bottom:8px;">Governing Invariants (AGENTS.md)</h4>
+        <div id="bp-rules" style="font-size:0.88rem; color:#cbd5e1; line-height:1.6;"></div>
       </div>
     </div>
   </aside>
 
   <script>
-    const componentsData = {
-  "cli_fetch_hiring": {
-    "id": "cli_fetch_hiring",
-    "name": "fetch-hiring CLI",
-    "category": "CLI Layer",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#1",
-      "#9",
-      "#11",
-      "#30",
-      "#46"
-    ],
-    "summary": "Fetches monthly 'Ask HN: Who is hiring?' thread, parses jobs, strips candidate posts, detects closed positions, and outputs formatted table or JSON.",
-    "details": "The <code>fetch-hiring</code> CLI command orchestrates the entire monthly job ingestion pipeline.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Story Discovery:</b> Queries HN Algolia via <code>hn.find_latest_hiring_story()</code> for the newest official thread posted by <code>whoishiring</code>.</li>\n  <li><b>Comment Retrieval:</b> Fetches all direct child comments, ignoring deleted or empty posts.</li>\n  <li><b>Job Parsing:</b> Runs each comment through <code>parse_comment()</code> to extract company, role, location, remote status, stack, and application URLs.</li>\n  <li><b>Candidate Profile Filtering (PR #46):</b> Identifies and skips self-promotional posts ('Who wants to be hired?') using <code>is_candidate_profile()</code>, reporting the skipped count to stderr/stdout.</li>\n  <li><b>Closed Job Detection (PR #30):</b> Checks the thread's replies from the original poster using <code>closing_reply_id()</code>. If the poster announced the role is closed, flags <code>job.closed = True</code> and records <code>closed_comment_id</code>.</li>\n  <li><b>Dual Output Modes (PR #9):</b> By default, prints an ASCII terminal table and writes <code>data/jobs.json</code>. With <code>--json</code>, emits clean JSON to stdout.</li>\n  <li><b>Terminal Sanitization (PR #11):</b> Strips control characters (ANSI, BEL, CR) and bidi overrides before printing to the terminal (AGENTS.md Rule 8).</li>\n</ul>",
-    "inputs": "Options: <code>--limit N</code> (max comments to process), <code>--out PATH</code> (custom destination), <code>--json</code> (stdout JSON).",
-    "outputs": "Writes <code>data/jobs.json</code> (or custom path) and prints a sanitized terminal table or JSON stream.",
-    "rules": [
-      "Rule 3: Network via sources/",
-      "Rule 6: Limits fail loudly",
-      "Rule 8: Terminal-safe text",
-      "Rule 10: No swallowed upstream errors"
-    ],
-    "qodo_pr": "9"
+    const actsData = [
+  {
+    "act": "ACT I",
+    "num": 1,
+    "title": "THE BROKEN VOID",
+    "tagline": "The Black Hole of Job Applications",
+    "start": 0,
+    "end": 6,
+    "badge_color": "#ef4444",
+    "script": "Every year, millions of brilliant engineers fire resumes into the dark void. Five hundred applications. Zero replies. The modern job hunt is broken, transactional, and soulless.",
+    "quote": "STATUS: 500 RESUMES SENT  ->  0 RESPONSES",
+    "headline": "THE APPLICATION VOID",
+    "sub": "Generic resumes. Automated ATS keyword filters. Soul-crushing silence.",
+    "tech_focus": "The Problem: Why cold applications fail and why high-signal evidence is needed."
   },
-  "cli_showhn": {
-    "id": "cli_showhn",
-    "name": "showhn CLI",
-    "category": "CLI Layer",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#21",
-      "#33",
-      "#35",
-      "#38",
-      "#50"
-    ],
-    "summary": "Finds candidate Show HN stories for a company to provide context for outreach, prioritizing domain-matched URLs and flagging platform hosts.",
-    "details": "The <code>showhn</code> CLI command discovers Hacker News 'Show HN' posts published about or by a target company.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Target Lookup:</b> Takes a company name argument and an optional <code>--domain</code> flag.</li>\n  <li><b>Domain Query Expansion (PR #33):</b> When <code>--domain</code> is provided, executes a secondary URL-restricted query against Algolia (<code>restrictSearchableAttributes=url</code>) to catch products with generic names.</li>\n  <li><b>Platform Domain Flagging (PR #50):</b> Flags shared or platform hosts (<code>github.com</code>, <code>notion.so</code>, <code>substack.com</code>, job boards) with <code>platform_domain=True</code> and <code>low_confidence=True</code>, warning that a story linking to a platform host may belong to someone else.</li>\n  <li><b>Result Ranking:</b> Prioritizes candidates whose linked URLs match the target domain, followed by point count and recency.</li>\n  <li><b>Domain Match Semantics (PR #35 / Rule 9):</b> Strictly reports that a story 'links to' the domain rather than claiming the company posted or owns it.</li>\n</ul>",
-    "inputs": "Argument: <code>company</code> (required). Options: <code>--domain DOMAIN</code>, <code>--json</code>.",
-    "outputs": "Console table of candidate stories (ID, Points, Comments, Domain Match, Title, URL) or JSON object.",
-    "rules": [
-      "Rule 3: Network via sources/",
-      "Rule 9: Domain match is never company ownership",
-      "Rule 10: No swallowed upstream failures"
-    ],
-    "qodo_pr": "50"
+  {
+    "act": "ACT II",
+    "num": 2,
+    "title": "THE HIDDEN SIGNAL",
+    "tagline": "First of the Month on Hacker News",
+    "start": 6,
+    "end": 12,
+    "badge_color": "#f97316",
+    "script": "Meanwhile, on the first of every month, the world's most ambitious tech founders post what they actually need on Hacker News. 'Who is hiring?' Urgent, unfiltered, and direct.",
+    "quote": "TIMESTAMP: 1ST OF THE MONTH // 15:00 UTC",
+    "headline": "THE SIGNAL IN THE NOISE",
+    "sub": "450+ engineering founders post live hiring threads looking for real problem solvers.",
+    "tech_focus": "Subsystem: sources/hn.py Algolia client and PR #53 resilient disk cache."
   },
-  "cli_fingerprint": {
-    "id": "cli_fingerprint",
-    "name": "fingerprint CLI",
-    "category": "CLI Layer",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#6",
-      "#7"
-    ],
-    "summary": "Analyzes a public GitHub profile to extract top languages, topics, and notable repositories for deterministic matching.",
-    "details": "The <code>fingerprint</code> command inspects a developer's public GitHub footprint to construct a portable developer profile.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Repository Collection:</b> Paginates through public repositories owned by the user (up to 2,000 repos).</li>\n  <li><b>Fork Exclusion:</b> Strictly excludes forked repositories to ensure the profile only reflects the developer's original code.</li>\n  <li><b>Language Aggregation:</b> Computes language prevalence by aggregate byte size across all non-fork repos, retaining the top 5.</li>\n  <li><b>Topic Synthesis:</b> Counts GitHub repository topics and extracts the top 10 most frequent tags.</li>\n  <li><b>Notable Repositories:</b> Selects the top 5 original repos ranked by GitHub star count.</li>\n  <li><b>File Output:</b> Persists a structured <code>Profile</code> model to <code>data/profiles/&lt;user&gt;.json</code>.</li>\n</ul>",
-    "inputs": "Argument: <code>username</code>. Option: <code>--out-dir PATH</code> (default <code>data/profiles/</code>).",
-    "outputs": "JSON profile at <code>data/profiles/&lt;username&gt;.json</code>.",
-    "rules": [
-      "Rule 3: Network via sources/",
-      "Rule 5: Minimal personal data (public repos only)",
-      "Rule 6: Fail loudly on >2000 repos"
-    ],
-    "qodo_pr": "6"
+  {
+    "act": "ACT III",
+    "num": 3,
+    "title": "THE CREED",
+    "tagline": "Arrive With The Fix",
+    "start": 12,
+    "end": 18,
+    "badge_color": "#38bdf8",
+    "script": "What if you never asked for permission to interview again? What if you showed up with the solution already built? Don't beg for a job. Arrive with the fix.",
+    "quote": "THE PHILOSOPHY: ARRIVE WITH THE FIX",
+    "headline": "NEVER APPLY FOR A JOB AGAIN.",
+    "sub": "Turn cold outreach into cited, high-signal warm introductions.",
+    "tech_focus": "Core Invariant: Zero hallucination, evidence citations, and transparent matching."
   },
-  "cli_match": {
-    "id": "cli_match",
-    "name": "match CLI",
-    "category": "CLI Layer",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#24",
-      "#29"
-    ],
-    "summary": "Deterministically scores parsed jobs against a GitHub user profile, returning the top 3 jobs with cited reasons.",
-    "details": "The <code>match</code> command matches a developer's GitHub profile against the current month's parsed jobs.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Profile & Jobs Loading:</b> Validates profile existence and schema. Handles username casing differences gracefully while rejecting ambiguous duplicates.</li>\n  <li><b>Deterministic Scoring:</b> Applies an exact point system: 20 pts per language match, 10 pts per topic match, 5 pts remote bonus (only if stack overlap exists), capped at 100 points.</li>\n  <li><b>Evidence Generation (Rule 1):</b> Generates structured <code>MatchReason</code> items citing the specific language, topic, or notable repository that justified the match.</li>\n  <li><b>Top 3 Selection:</b> Returns the top 3 scored jobs using a min-heap (<code>heapq.nlargest</code>). Breaks ties in favor of newer posts (higher comment ID).</li>\n  <li><b>No Filler Output:</b> If zero jobs match, reports 'no strong matches' rather than arbitrary recommendations.</li>\n</ul>",
-    "inputs": "Argument: <code>username</code>. Options: <code>--jobs PATH</code> (default <code>data/jobs.json</code>), <code>--profiles-dir PATH</code>, <code>--json</code>.",
-    "outputs": "Console table of top 3 matched jobs with cited evidence and scores, or structured JSON.",
-    "rules": [
-      "Rule 1: Every claim is cited",
-      "Rule 6: Limits fail loudly",
-      "Rule 8: Terminal-safe text"
-    ],
-    "qodo_pr": "24"
+  {
+    "act": "ACT IV",
+    "num": 4,
+    "title": "DEVELOPER DNA",
+    "tagline": "Decoding Authentic Craft",
+    "start": 18,
+    "end": 24,
+    "badge_color": "#a855f7",
+    "script": "HN Radar awakens. It decodes your authentic GitHub footprint\u2014extracting languages, topics, and notable repositories. Strictly authored code. Zero resume scraping. Zero invasion of privacy.",
+    "quote": "RULE 5 ENFORCED // NO RESUMES SCRAPED // PURE AUTHORED CODE",
+    "headline": "DECODING DEVELOPER DNA",
+    "sub": "Synthesizes Python (78%), Go (15%), Docker, and your flagship repo 'spoon-knife'.",
+    "tech_focus": "Subsystem: fingerprint.py, fork exclusion (PR #6), and Rule 6 2000-repo boundary."
   },
-  "cli_pulse": {
-    "id": "cli_pulse",
-    "name": "pulse CLI",
-    "category": "CLI Layer",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#49"
-    ],
-    "summary": "Uses a local LLM via Ollama to cluster a Show HN story's comments into pros, bugs, and asks with strict comment ID citations.",
-    "details": "The <code>pulse</code> command performs AI-assisted qualitative intelligence on Hacker News feedback for a target company's Show HN story.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Comment Harvesting:</b> Fetches the complete Show HN story tree from Algolia cache and extracts top-level comments.</li>\n  <li><b>Prompt Engineering & Signal Filtering:</b> Sorts comments by length (longest first) to maximize signal, caps at 60 comments, and truncates individual comments at 1,500 characters.</li>\n  <li><b>Schema Constrained Completion:</b> Requests structured JSON matching Pydantic's <code>ModelReply</code> schema from a local Ollama instance (default <code>qwen2.5:7b</code>).</li>\n  <li><b>Citation Verification (Rule 1):</b> Verifies that every single generated insight cites legitimate, existing comment IDs from the story.</li>\n  <li><b>Output Persistence:</b> Atomically writes <code>data/pulse/&lt;story_id&gt;.json</code>.</li>\n</ul>",
-    "inputs": "Argument: <code>story_id</code> (Show HN story ID). Options: <code>--model MODEL</code> (default <code>qwen2.5:7b</code>), <code>--out PATH</code>.",
-    "outputs": "Atomically saved JSON file at <code>data/pulse/&lt;story_id&gt;.json</code> and terminal summary table.",
-    "rules": [
-      "Rule 1: Every claim is cited",
-      "Rule 2: LLM output is schema-validated",
-      "Rule 6: Limits fail loudly",
-      "Rule 10: No swallowed upstream errors"
-    ],
-    "qodo_pr": "49"
+  {
+    "act": "ACT V",
+    "num": 5,
+    "title": "RADAR TARGET LOCK",
+    "tagline": "Surgical Stack Matching",
+    "start": 24,
+    "end": 30,
+    "badge_color": "#22c55e",
+    "script": "The radar sweeps hundreds of live jobs, discarding job-seeker pitches and closed posts. Target locked: Acme Cloud, Staff Infrastructure Engineer, 85 percent deterministic match.",
+    "quote": "TARGET LOCKED: ACME CLOUD // 85% SCORE // VERIFIED DOMAIN",
+    "headline": "TACTICAL RADAR LOCK",
+    "sub": "Matched via deterministic scoring (+20 language, +10 topic) with verified domain.",
+    "tech_focus": "Subsystem: parse.py, is_candidate_profile (PR #46), match.py (PR #24), and showhn.py (PR #50)."
   },
-  "cli_draft": {
-    "id": "cli_draft",
-    "name": "draft CLI",
-    "category": "CLI Layer",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#51"
-    ],
-    "summary": "Evaluates the top 10 job matches to generate an exact 5-line cited outreach note referencing user-reported bugs and developer repositories.",
-    "details": "The <code>draft</code> command is the culmination of the 'Arrive with the fix' architecture (PR #51).<br/><br/>\n<b>Pipeline Steps:</b>\n<ul>\n  <li><b>Top 10 Match Evaluation:</b> Examines the developer's top 10 job matches in rank order.</li>\n  <li><b>Triple Qualification Gate:</b> For each match, verifies:\n    <ol>\n      <li>Job URL contains a verified, non-platform domain (PR #50).</li>\n      <li>A Show HN story exists that links directly to that domain (PR #33 / PR #35).</li>\n      <li>The Show HN comments contain a cited 'bug' with authentic comment IDs (PR #49).</li>\n    </ol>\n  </li>\n  <li><b>5-Line Note Generation:</b> Directs a local LLM via <code>write_draft()</code> to compose exactly five lines:\n    <ul>\n      <li>Line 1: Friendly developer greeting.</li>\n      <li>Line 2: User problem statement citing comment IDs and starting with 'A Show HN that links to &lt;domain&gt;'.</li>\n      <li>Line 3: Explanation of how the developer's repo addresses the problem (naming the repo).</li>\n      <li>Line 4: First action the developer would take.</li>\n      <li>Line 5: Polite request for a conversation.</li>\n    </ul>\n  </li>\n  <li><b>Evidence Printing:</b> Prints the full draft along with line-by-line comment citations and repo details so the user can verify all facts before sending.</li>\n</ul>",
-    "inputs": "Argument: <code>username</code>. Options: <code>--model MODEL</code>, <code>--jobs PATH</code>, <code>--profiles-dir PATH</code>, <code>--pulse-dir PATH</code>.",
-    "outputs": "5-line outreach note, line citation map, repo info, and comment URLs printed to terminal.",
-    "rules": [
-      "Rule 1: Every claim is cited",
-      "Rule 2: LLM output is schema-validated",
-      "Rule 6: Limits fail loudly",
-      "Rule 9: Domain match is never company ownership"
-    ],
-    "qodo_pr": "51"
+  {
+    "act": "ACT VI",
+    "num": 6,
+    "title": "LISTENING TO THE CROWD",
+    "tagline": "Show HN Product Sentiment",
+    "start": 30,
+    "end": 36,
+    "badge_color": "#ef4444",
+    "script": "HN Radar listens to Acme Cloud's Show HN launch discussion. A real user is crying for help in Comment 38910401: connection pool exhaustion during traffic surges. You already built the fix.",
+    "quote": "CRITICAL USER BUG DETECTED // COMMENT #38910401",
+    "headline": "THE VULNERABILITY REVEALED",
+    "sub": "\u201cOur connection pool leaks under load! Seeing 502 Bad Gateway!\u201d Solver: spoon-knife.",
+    "tech_focus": "Subsystem: pulse/cluster.py, Ollama LLM sentiment clustering, and user comment citations."
   },
-  "draft_writer": {
-    "id": "draft_writer",
-    "name": "Outreach Draft Synthesizer & Validator",
-    "category": "Intelligence & LLM",
-    "file": "src/hnradar/draft/write.py",
-    "prs": [
-      "#51"
-    ],
-    "summary": "Validates 5-line outreach drafts against Pydantic ModelDraft, enforces comment ID citations, and blocks unauthorized ownership claims.",
-    "details": "The <code>draft/write.py</code> module manages the AI synthesis and validation of outreach notes.<br/><br/>\n<b>Validation Invariants:</b>\n<ul>\n  <li><b>Exact Line Count:</b> Enforces exactly 5 lines (<code>ModelDraft</code> schema constraint).</li>\n  <li><b>Mandatory Line 2 Citation:</b> Line 2 must cite valid comment IDs from the Show HN discussion and start with <i>'A Show HN that links to &lt;domain&gt;'</i>.</li>\n  <li><b>Repository Naming:</b> The draft must explicitly name the developer's matched repository.</li>\n  <li><b>Forbidden Phrase Rejection (Rule 9):</b> Rejects phrases like <i>'your Show HN'</i>, <i>'their Show HN'</i>, <i>'you launched'</i>, or <i>'you posted'</i>.</li>\n  <li><b>Two-Attempt Retry Loop:</b> If validation fails, feeds the exact error reason back to the LLM for a clean retry.</li>\n</ul>",
-    "inputs": "Username, company, domain, story ID, repo dict, problem summary, cited comments list, ModelClient.",
-    "outputs": "Pydantic <code>DraftResult</code> instance with <code>DraftLine</code> items and <code>Evidence</code> citations.",
-    "rules": [
-      "Rule 1: Every claim is cited",
-      "Rule 2: Schema-validated LLM output",
-      "Rule 9: Domain match is never company ownership"
-    ],
-    "qodo_pr": "51"
+  {
+    "act": "ACT VII",
+    "num": 7,
+    "title": "THE SURGICAL STRIKE",
+    "tagline": "5-Line Cited Warm Intro",
+    "start": 36,
+    "end": 42,
+    "badge_color": "#38bdf8",
+    "script": "Five surgical lines. Generated by a local language model, strictly validated. Citing the exact comment ID and your repository. Zero fluff. Pure proof. Impossible to ignore.",
+    "quote": "5 SURGICAL LINES // 100% CITED EVIDENCE // ZERO FLUFF",
+    "headline": "THE 5-LINE CITED WARM INTRO",
+    "sub": "A warm introduction citing authentic user comments and your repo. Nothing sent automatically.",
+    "tech_focus": "Subsystem: draft/write.py (PR #51), ModelDraft Pydantic contract, and comment citations."
   },
-  "source_hn": {
-    "id": "source_hn",
-    "name": "HN Algolia Source",
-    "category": "Source Adapters",
-    "file": "src/hnradar/sources/hn.py",
-    "prs": [
-      "#1",
-      "#21",
-      "#33",
-      "#39",
-      "#53"
-    ],
-    "summary": "Low-level client for the Hacker News Algolia REST API with resilient on-disk caching, shape validation, and atomic writes.",
-    "details": "The <code>sources/hn.py</code> module encapsulates all HTTP communication with Hacker News via the Algolia API.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>API Endpoints:</b> Wraps <code>search_by_date</code>, <code>search</code>, and <code>items/{id}</code>.</li>\n  <li><b>On-Disk Response Cache:</b> Caches HTTP responses in <code>data/cache/</code> keyed by SHA-256 of the path and sorted parameters. Cache TTLs: Search 1 hour, Items 6 hours, Show HN 1 hour.</li>\n  <li><b>Resilient Cache Writing (PR #53):</b> If writing the cache fails (e.g. read-only filesystem or permission denial), the fetch operation does not fail! Emits a single sanitized warning to stderr and returns the fetched data.</li>\n  <li><b>Strict Shape Validation:</b> Validates that <code>nbHits</code> is present, non-negative, and at least as large as returned hits. Validates all hit IDs and attributes.</li>\n  <li><b>Atomic File Writes:</b> Writes data to a unique temporary file (<code>mkstemp</code>) in the cache directory before renaming (<code>os.replace</code>).</li>\n  <li><b>Fail-Loud Semantics (Rule 10):</b> Any HTTP failure, timeout, or malformed JSON raises <code>HNError</code>, terminating the CLI with code 1 instead of returning partial results.</li>\n</ul>",
-    "inputs": "Query parameters, item IDs, cache control flags.",
-    "outputs": "Validated JSON response dictionaries.",
-    "rules": [
-      "Rule 3: Network goes through sources/",
-      "Rule 6: Limits fail loudly",
-      "Rule 10: Failed upstream request never returned as complete"
-    ],
-    "qodo_pr": "53"
-  },
-  "source_github": {
-    "id": "source_github",
-    "name": "GitHub API Source",
-    "category": "Source Adapters",
-    "file": "src/hnradar/sources/github.py",
-    "prs": [
-      "#6",
-      "#7",
-      "#39"
-    ],
-    "summary": "Communicates with GitHub's public REST API to retrieve repository metadata with rate-limit monitoring and caching.",
-    "details": "The <code>sources/github.py</code> module handles all communication with GitHub's public API.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Repository Pagination:</b> Queries <code>users/{username}/repos</code> in batches of 100 (sorted by pushed date), fetching up to 20 pages (2,000 repos).</li>\n  <li><b>Fail-Loud Limit Enforcement:</b> If a user has more than 2,000 repositories, deliberately fails with <code>GitHubError</code> rather than silently returning a truncated profile (Rule 6).</li>\n  <li><b>Authentication & Rate Limits:</b> Supports optional <code>GITHUB_TOKEN</code> to raise the rate limit from 60 to 5,000 req/hr. Detects HTTP 403/429 with <code>x-ratelimit-remaining == 0</code> and raises clear diagnostic messages.</li>\n  <li><b>Disk Cache:</b> Stores repository lists in <code>data/cache/</code> with a 1-hour TTL.</li>\n</ul>",
-    "inputs": "GitHub username string, optional token via <code>GITHUB_TOKEN</code> environment variable.",
-    "outputs": "List of raw repository JSON dictionaries.",
-    "rules": [
-      "Rule 3: Network in sources/",
-      "Rule 5: Minimal personal data",
-      "Rule 6: Limits fail loudly",
-      "Rule 10: Upstream failures fail loudly"
-    ],
-    "qodo_pr": "6"
-  },
-  "source_ollama": {
-    "id": "source_ollama",
-    "name": "Ollama LLM Source",
-    "category": "Source Adapters",
-    "file": "src/hnradar/sources/ollama.py",
-    "prs": [
-      "#49",
-      "#51"
-    ],
-    "summary": "Local client for Ollama LLM chat completion with JSON schema constraints, bounded tokens, and timeout safeguards.",
-    "details": "The <code>sources/ollama.py</code> module provides isolated network access to a local or remote Ollama model server.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Deterministic Execution:</b> Enforces <code>temperature: 0</code> for reproducible clustering and outreach drafting.</li>\n  <li><b>Schema Constrained Decoding:</b> Supplies the Pydantic JSON schema to Ollama's <code>format</code> parameter to guarantee valid JSON formatting at generation time.</li>\n  <li><b>Bounded Output:</b> Sets <code>num_predict: 2048</code> to prevent small local models from entering infinite generation loops.</li>\n  <li><b>Defensive Error Handling:</b> Distinguishes between connection failures (Ollama not running), timeout exceptions (CPU latency), HTTP errors, and model errors.</li>\n</ul>",
-    "inputs": "System prompt, user prompt, and JSON schema dictionary.",
-    "outputs": "Raw completion string containing schema-conforming JSON.",
-    "rules": [
-      "Rule 2: LLM output is schema-validated",
-      "Rule 3: Network in sources/",
-      "Rule 6: Limits fail loudly",
-      "Rule 10: Failed upstream request fails cleanly"
-    ],
-    "qodo_pr": "49"
-  },
-  "parse_job": {
-    "id": "parse_job",
-    "name": "Job Comment Parser",
-    "category": "Parsing & Extraction",
-    "file": "src/hnradar/parse.py",
-    "prs": [
-      "#1",
-      "#11",
-      "#24",
-      "#46"
-    ],
-    "summary": "Converts raw HTML HN comments into structured Job models, extracting company, role, location, remote status, stack, and URLs.",
-    "details": "The <code>parse_comment()</code> function transforms unstructured HTML from 'Who is hiring?' threads into validated <code>Job</code> records.<br/><br/>\n<b>Key Heuristics:</b>\n<ul>\n  <li><b>HTML Sanitation:</b> Converts HTML breaks and paragraphs into clean newlines while stripping remaining tags.</li>\n  <li><b>Pipe-Separated Header Parsing:</b> Parses standard HN hiring headers into company, role, and location.</li>\n  <li><b>Company Name Extraction:</b> Uses <code>_guess_company()</code> with regular expressions to strip leading filler while retaining legal entity suffixes ('Inc', 'LLC', 'GmbH').</li>\n  <li><b>Tech Stack Recognition:</b> Matches against 40+ canonical technologies. Includes regex context matching for 'Go' to prevent false positives like 'ready to go'.</li>\n  <li><b>Remote Detection:</b> Disambiguates explicit remote positions from negative phrases like 'no remote', 'not remote', or 'onsite only'.</li>\n  <li><b>URL Discovery:</b> Extracts external company job/career links while filtering out internal Hacker News URLs.</li>\n</ul>",
-    "inputs": "Comment ID integer and raw HTML text string.",
-    "outputs": "Pydantic <code>Job</code> instance.",
-    "rules": [
-      "Rule 4: Untrusted URLs only in sandbox",
-      "Rule 7: Edge-case tests"
-    ],
-    "qodo_pr": "11"
-  },
-  "parse_candidate_filter": {
-    "id": "parse_candidate_filter",
-    "name": "Candidate Profile Filter",
-    "category": "Parsing & Extraction",
-    "file": "src/hnradar/parse.py",
-    "prs": [
-      "#46"
-    ],
-    "summary": "Classifies and discards job-seeker posts ('Who wants to be hired?') so only hiring companies remain in data/jobs.json.",
-    "details": "The <code>is_candidate_profile()</code> function detects and removes posts where candidates are pitching themselves rather than companies advertising vacancies.<br/><br/>\n<b>Detection Logic:</b>\n<ul>\n  <li><b>Intro Style:</b> Identifies posts beginning with first-person intros within the first two lines, combined with the absence of hiring cues.</li>\n  <li><b>Resume Style:</b> Identifies traditional candidate format containing <i>'Willing to relocate:'</i> plus two or more resume headers (<i>'Location:'</i>, <i>'Technologies:'</i>, etc.).</li>\n  <li><b>Conservative Architecture:</b> Intentionally designed to favor precision over recall: missing a candidate pitch is acceptable, but falsely discarding a genuine job posting is forbidden.</li>\n</ul>",
-    "inputs": "Plain text comment string.",
-    "outputs": "Boolean indicating whether the comment is a candidate profile.",
-    "rules": [
-      "Rule 7: Edge-case tests for candidate classification"
-    ],
-    "qodo_pr": "46"
-  },
-  "closed_detector": {
-    "id": "closed_detector",
-    "name": "Closed Job Detector",
-    "category": "Parsing & Extraction",
-    "file": "src/hnradar/closed.py",
-    "prs": [
-      "#30"
-    ],
-    "summary": "Scans replies by the original poster to identify when a position has been filled or closed, citing the closing reply ID.",
-    "details": "The <code>closed.py</code> module inspects the conversation tree underneath each job comment to detect if the position has expired.<br/><br/>\n<b>Key Functionality:</b>\n<ul>\n  <li><b>Poster-Only Authority:</b> Only replies written by the exact original poster are evaluated. Third party replies are ignored.</li>\n  <li><b>Non-Recursive Traversal:</b> Uses an explicit stack to traverse nested comment trees, avoiding recursion limits on deep discussion threads.</li>\n  <li><b>Linguistic Closure Verification:</b> Evaluates clauses for closure phrases (<i>'no longer hiring'</i>, <i>'position filled'</i>, <i>'applications closed'</i>).</li>\n  <li><b>Syntactic Boundary Checks:</b> Uses binary search (<code>bisect</code>) over sentence indices to verify that closing phrases are not negated or qualified.</li>\n  <li><b>Citation (Rule 1):</b> Records the exact comment ID where the poster declared the closure in <code>job.closed_comment_id</code>.</li>\n</ul>",
-    "inputs": "Comment JSON object with child reply nodes.",
-    "outputs": "Optional closing comment ID integer, or <code>None</code> if no evidence exists.",
-    "rules": [
-      "Rule 1: Every claim is cited",
-      "Rule 7: Edge-case tests"
-    ],
-    "qodo_pr": "30"
-  },
-  "fingerprint_synthesizer": {
-    "id": "fingerprint_synthesizer",
-    "name": "Profile Synthesizer",
-    "category": "Scoring & Matching",
-    "file": "src/hnradar/fingerprint.py",
-    "prs": [
-      "#6"
-    ],
-    "summary": "Distills a developer's repository history into a concise, deterministic Profile model without storing private data.",
-    "details": "The <code>build_profile()</code> function converts a list of GitHub repository payloads into a standardized <code>Profile</code>.<br/><br/>\n<b>Processing Steps:</b>\n<ul>\n  <li><b>Fork Filtering:</b> Strips all forked repositories so metrics reflect only personal, authored work.</li>\n  <li><b>Language Profiling:</b> Aggregates codebase byte sizes per language across own repos, selecting the top 5 languages.</li>\n  <li><b>Topic Synthesis:</b> Counts repository topic occurrences, ranking the top 10 tags.</li>\n  <li><b>Notable Repositories:</b> Selects the top 5 repositories by stargazers count, capturing name, description, stars, and primary language.</li>\n</ul>",
-    "inputs": "Username string and list of repository dictionaries.",
-    "outputs": "Pydantic <code>Profile</code> instance.",
-    "rules": [
-      "Rule 5: Minimal personal data (public stats only, no scraping)"
-    ],
-    "qodo_pr": "6"
-  },
-  "matching_engine": {
-    "id": "matching_engine",
-    "name": "Deterministic Job Scorer",
-    "category": "Scoring & Matching",
-    "file": "src/hnradar/match.py",
-    "prs": [
-      "#24"
-    ],
-    "summary": "Scores jobs against a user's profile using transparent points and normalizes aliases across tech terminology.",
-    "details": "The <code>match.py</code> module implements the deterministic job recommendation algorithm.<br/><br/>\n<b>Algorithm Rules:</b>\n<ul>\n  <li><b>Alias Normalization:</b> Canonicalizes terminology variations (e.g. <code>k8s</code> \u2194 <code>kubernetes</code>, <code>golang</code> \u2194 <code>go</code>, <code>postgres</code> \u2194 <code>postgresql</code>).</li>\n  <li><b>Point Allocation:</b> 20 points per overlapping programming language, 10 points per overlapping topic/tool, and a 5-point bonus if the job allows remote work (only granted if a stack match already exists). Capped at 100 points maximum.</li>\n  <li><b>Evidence Generation (Rule 1):</b> Every match includes human-readable reasons that cite exact languages, repos, or topics from the profile.</li>\n  <li><b>Ranking:</b> Sorts by score descending, breaking ties with comment recency (higher comment ID).</li>\n</ul>",
-    "inputs": "<code>Profile</code> instance and list of <code>Job</code> instances.",
-    "outputs": "List of top 3 <code>Match</code> instances containing scores and cited reasons.",
-    "rules": [
-      "Rule 1: Every claim is cited",
-      "Rule 7: Edge-case tests"
-    ],
-    "qodo_pr": "24"
-  },
-  "showhn_ranker": {
-    "id": "showhn_ranker",
-    "name": "Show HN Ranker & Domain Validator",
-    "category": "Company Radar",
-    "file": "src/hnradar/showhn.py",
-    "prs": [
-      "#21",
-      "#33",
-      "#35",
-      "#50"
-    ],
-    "summary": "Validates domain boundaries, checks URLs against hosts, filters platform hosts, and ranks candidate Show HN stories for outreach context.",
-    "details": "The <code>showhn.py</code> module ranks and filters Show HN stories retrieved for a company.<br/><br/>\n<b>Security & Ranking Rules:</b>\n<ul>\n  <li><b>Domain Normalization:</b> Enforces strict hostname format (<code>normalize_domain</code>), stripping <code>www.</code> and rejecting paths, schemes, or ports.</li>\n  <li><b>Host Match Security:</b> Rejects backslashes (<code>\\\\</code>) to prevent browser/parser host confusion attacks. Enforces exact host or subdomain match.</li>\n  <li><b>Platform Domain Detection (PR #50):</b> Checks domain against <code>PLATFORM_DOMAINS</code> (github.com, notion.so, substack.com, job boards). Flags platform domains as <code>platform_domain=True</code> with low confidence to ensure stories linking to multi-tenant hosts are not mistaken for company ownership.</li>\n  <li><b>URL Domain Extractor:</b> Uses <code>url_domain()</code> to extract clean hostnames from candidate URLs for domain matching.</li>\n  <li><b>Ranking Priority:</b> Stories linking to verified domains rank first, followed by point scores, then newest story ID.</li>\n</ul>",
-    "inputs": "Company name, optional domain string, hits list, and total count.",
-    "outputs": "Pydantic <code>ShowHNResult</code> with top candidates, domain match flags, and platform domain status.",
-    "rules": [
-      "Rule 4: Untrusted URLs in sandbox",
-      "Rule 9: Domain match is never company ownership"
-    ],
-    "qodo_pr": "50"
-  },
-  "pulse_clusterer": {
-    "id": "pulse_clusterer",
-    "name": "Pulse Comment Clusterer",
-    "category": "Intelligence & LLM",
-    "file": "src/hnradar/pulse/cluster.py",
-    "prs": [
-      "#49"
-    ],
-    "summary": "Coordinates Ollama LLM prompting, enforces Pydantic schemas, and verifies comment ID citations across pros, bugs, and asks.",
-    "details": "The <code>pulse/cluster.py</code> module manages the AI-powered comment clustering workflow.<br/><br/>\n<b>Pipeline Architecture:</b>\n<ul>\n  <li><b>Signal Slicing:</b> Filters comments with text, sorts by length to maximize informative content, selects at most 60 comments, and preserves thread order for prompt caching stability.</li>\n  <li><b>Injection Defense:</b> Passes comments as structured data inside a JSON array and explicitly instructs the model to ignore any embedded directives.</li>\n  <li><b>Model Completion:</b> Submits the prompt to Ollama with constrained JSON schema enforcement.</li>\n  <li><b>Validation & Retry:</b> Validates the output through <code>ModelReply</code>. If pydantic validation fails, feeds the exact error message back to the LLM for a second attempt (2 attempts maximum).</li>\n  <li><b>Citation Verification:</b> Confirms that every cited comment ID in the model's output corresponds to an actual comment in the story.</li>\n</ul>",
-    "inputs": "Story ID, title, comment list, and Ollama client instance.",
-    "outputs": "Pydantic <code>PulseResult</code> with pros, bugs, and asks.",
-    "rules": [
-      "Rule 1: Every claim cited",
-      "Rule 2: LLM output schema-validated",
-      "Rule 6: Limits fail loudly"
-    ],
-    "qodo_pr": "49"
-  },
-  "terminal_sanitizer": {
-    "id": "terminal_sanitizer",
-    "name": "Terminal Sanitizer (Rule 8)",
-    "category": "Security & Sanitization",
-    "file": "src/hnradar/cli.py",
-    "prs": [
-      "#11"
-    ],
-    "summary": "Sanitizes untrusted post text before terminal rendering, stripping ANSI escape sequences, control codes, and bidi overrides.",
-    "details": "The <code>_terminal_safe()</code> function defends the developer's terminal against malicious or accidental control sequences embedded in Hacker News posts or GitHub profiles.<br/><br/>\n<b>Defenses Applied:</b>\n<ul>\n  <li><b>Control Character Removal:</b> Replaces Unicode category <code>Cc</code> (other, control) characters\u2014including ESC (<code>\\\\x1b</code>), BEL, and C1 controls\u2014with spaces.</li>\n  <li><b>Bi-Directional Override Stripping:</b> Drops Unicode category <code>Cf</code> (formatting) characters such as right-to-left overrides (U+202E) and zero-width spaces that could reverse terminal text or disguise malicious commands.</li>\n  <li><b>JSON Escaping:</b> Ensures JSON emitted to stdout uses <code>ensure_ascii=True</code>, escaping non-ASCII and C1 control characters while allowing UTF-8 files on disk.</li>\n</ul>",
-    "inputs": "Untrusted text string from HN posts or GitHub metadata.",
-    "outputs": "Terminal-safe string sanitized for direct printing.",
-    "rules": [
-      "Rule 8: Untrusted post text cleaned before printing"
-    ],
-    "qodo_pr": "11"
-  },
-  "ticket_worker": {
-    "id": "ticket_worker",
-    "name": "Goose Ticket Worker Recipe",
-    "category": "Autonomous Factory",
-    "file": ".goose/recipes/ticket-worker.yaml",
-    "prs": [
-      "#8",
-      "#10",
-      "#22"
-    ],
-    "summary": "Autonomous AI agent recipe that implements GitHub issues in dedicated git worktrees and opens pull requests.",
-    "details": "The <code>ticket-worker.yaml</code> recipe configures the Goose autonomous coding agent.<br/><br/>\n<b>Operational Safeguards:</b>\n<ul>\n  <li><b>Isolated Git Worktrees:</b> Operates exclusively in dedicated worktrees on dedicated branches (<code>agent/&lt;issue_number&gt;</code>), completely isolating working files from main.</li>\n  <li><b>Model Configuration (PR #10):</b> Uses <code>gpt-oss:20b-cloud</code> via Ollama provider with a 60-turn limit.</li>\n  <li><b>Quality Gate Execution (PR #22):</b> Reviews existing PR comments from <code>qodo-code-review[bot]</code> or the repository owner. Treats High/Medium findings as required tasks, while reporting Low findings.</li>\n  <li><b>Strict Tool Directives:</b> Replaces full file contents cleanly, runs <code>uv run pytest -q</code> and smoke checks, and opens PRs with standard completion checklists.</li>\n</ul>",
-    "inputs": "Issue number and PR body path parameters.",
-    "outputs": "Git commit, branch push, and GitHub Pull Request.",
-    "rules": [
-      "AGENTS.md Quality Gate",
-      "AGENTS.md Pre-review checklist"
-    ],
-    "qodo_pr": "8"
-  },
-  "agent_poller": {
-    "id": "agent_poller",
-    "name": "PowerShell Agent Poller",
-    "category": "Autonomous Factory",
-    "file": "scripts/agent-poll.ps1",
-    "prs": [
-      "#8"
-    ],
-    "summary": "Automated background loop that polls GitHub for ready-for-agent issues, protected by a system-wide named mutex lock.",
-    "details": "The <code>agent-poll.ps1</code> script orchestrates automated ticket execution.<br/><br/>\n<b>Architecture:</b>\n<ul>\n  <li><b>Named OS Mutex Guard:</b> Uses a Windows named mutex (<code>Global\\\\HNRadarAgentPoll</code>) to guarantee single-instance execution, preventing race conditions without brittle file locks.</li>\n  <li><b>Queue Polling:</b> Searches for open issues with label <code>ready-for-agent</code>.</li>\n  <li><b>Worktree Lifecycle:</b> Sets up isolated worktrees under <code>../hn-radar-worktrees/</code>, executes Goose, and logs all execution outputs.</li>\n  <li><b>Failure Escalation:</b> If an issue fails after 2 attempts, automatically removes the agent label, adds <code>needs-human</code>, and posts an explanatory diagnostic comment.</li>\n</ul>",
-    "inputs": "GitHub repository issue queue.",
-    "outputs": "Spawned Goose worker process and issue status transitions.",
-    "rules": [
-      "Quality Gate orchestration"
-    ],
-    "qodo_pr": "8"
-  },
-  "verify_skill": {
-    "id": "verify_skill",
-    "name": "Real-Data Verify Skill",
-    "category": "Autonomous Factory",
-    "file": ".claude/skills/verify-jobs-parse/compare_jobs.py",
-    "prs": [
-      "#48"
-    ],
-    "summary": "Automated skill that runs parser changes on live Hacker News data, comparing comment IDs against baseline jobs.json.",
-    "details": "The <code>verify-jobs-parse</code> skill verifies parser or filtering modifications against the real Hacker News thread.<br/><br/>\n<b>Verification Methodology:</b>\n<ul>\n  <li><b>Scratch Execution:</b> Fetches the live thread into a temporary scratch file to avoid modifying the tracked <code>data/jobs.json</code>.</li>\n  <li><b>ID Regression Comparison:</b> Compares scratch jobs against the committed baseline by comment ID.</li>\n  <li><b>Thread Loss Separation:</b> Cross-references cached thread responses to differentiate between posts dropped by code versus posts deleted or flagged on Hacker News.</li>\n  <li><b>Assertion Validation:</b> Confirms that <code>must-exclude</code> IDs are strictly absent and <code>must-keep</code> IDs are strictly retained.</li>\n</ul>",
-    "inputs": "Baseline jobs file, scratch jobs file, must-keep and must-exclude comment ID lists.",
-    "outputs": "JSON audit report with pass/fail status and ID discrepancy breakdown.",
-    "rules": [
-      "Rule 7: Edge-case real data tests"
-    ],
-    "qodo_pr": "48"
-  },
-  "agents_md_governance": {
-    "id": "agents_md_governance",
-    "name": "AGENTS.md Factory Rules & Quality Gate",
-    "category": "Autonomous Factory",
-    "file": "AGENTS.md",
-    "prs": [
-      "#2",
-      "#7",
-      "#11",
-      "#22",
-      "#28",
-      "#35",
-      "#39"
-    ],
-    "summary": "The 10 foundational engineering rules, pre-review checklist, and definition-of-done quality gate governing all human and AI changes.",
-    "details": "<code>AGENTS.md</code> defines the governance framework for the repository.<br/><br/>\n<b>The 10 Core Rules:</b>\n<ol>\n  <li><b>Every claim is cited:</b> Every insight, match reason, or draft line stating what users said must carry the comment ID.</li>\n  <li><b>LLM output is schema-validated:</b> All model outputs must parse through Pydantic models.</li>\n  <li><b>Network goes through sources/:</b> All HTTP access is centralized with on-disk caching.</li>\n  <li><b>Untrusted URLs only in sandbox layer:</b> Never fetch arbitrary URLs outside sandbox.</li>\n  <li><b>Minimal personal data:</b> Store only public GitHub metadata; never scrape resumes.</li>\n  <li><b>Limits fail loudly:</b> Pagination caps and loops must raise errors rather than return partial data.</li>\n  <li><b>Every change ships edge-case tests:</b> Mandatory tests for empty, at-limit, over-limit, and upstream errors.</li>\n  <li><b>Untrusted post text is cleaned:</b> Remove control characters and formatting overrides before terminal printing.</li>\n  <li><b>Domain match is never company ownership:</b> Clarify that stories link to domains, not that companies own them.</li>\n  <li><b>Failed upstream request never returned as complete:</b> Never swallow HTTP or API failures.</li>\n</ol>",
-    "inputs": "All pull requests and code modifications.",
-    "outputs": "Strict pass/fail criteria for PR acceptance.",
-    "rules": [
-      "Rules 1 through 10"
-    ],
-    "qodo_pr": "2"
-  },
-  "qodo_reviewer": {
-    "id": "qodo_reviewer",
-    "name": "Qodo Code Review Bot",
-    "category": "Autonomous Factory",
-    "file": "GitHub PR Workflow",
-    "prs": [
-      "All PRs (#1 - #53)"
-    ],
-    "summary": "Automated code reviewer that evaluates every PR, generates Mermaid architecture diagrams, and classifies findings by severity.",
-    "details": "The <code>qodo-code-review[bot]</code> provides continuous architectural analysis and quality gate verification on every pull request.<br/><br/>\n<b>Role in the Factory:</b>\n<ul>\n  <li><b>Mermaid Diagram Generation:</b> Synthesizes a dedicated Mermaid graph or sequence diagram illustrating the architectural delta introduced by the PR.</li>\n  <li><b>Finding Classification:</b> Labels review findings by severity: High (Action required), Medium (Remediation recommended), and Low (Informational).</li>\n  <li><b>Quality Gate Integration:</b> Agents are required by AGENTS.md to resolve all High and Medium findings before declaring a task complete.</li>\n</ul>",
-    "inputs": "Pull request git diffs and commit history.",
-    "outputs": "PR review comments with Mermaid diagrams and structured findings.",
-    "rules": [
-      "Quality Gate automated review coverage"
-    ],
-    "qodo_pr": "22"
+  {
+    "act": "ACT VIII",
+    "num": 8,
+    "title": "AUTONOMOUS PRECISION",
+    "tagline": "Built by Agents, Governed by Truth",
+    "start": 42,
+    "end": 48,
+    "badge_color": "#10b981",
+    "script": "Built and maintained by an autonomous engineering loop: global mutex polling, isolated git worktrees, and Qodo review quality gates. Don't apply for jobs. Arrive with the fix.",
+    "quote": "AUTONOMOUS FACTORY // AGENTS.MD RULES 1 - 10 ENFORCED",
+    "headline": "STOP APPLYING. ARRIVE WITH THE FIX.",
+    "sub": "HN Radar: Autonomous developer intelligence engineered for builders worldwide.",
+    "tech_focus": "Subsystem: agent-poll.ps1, Goose ticket worker, Qodo review bot, and DoD quality gate."
   }
-};
-    const prDetailsData = {
+];
+    const prDetails = {
   "1": {
     "title": "feat: add hnradar fetch-hiring command",
     "merged": true,
@@ -1688,232 +912,455 @@ Ready to test. Click "Run Simulated Command" below.
     "note": "Resilient cache writing: an unwritable or permission-denied cache directory emits a single safe warning to stderr and returns the fetched data instead of crashing the CLI command."
   }
 };
-    const chaptersData = [
-  {
-    "id": "ch1",
-    "num": 1,
-    "title": "Core Mission & System Philosophy",
-    "start": 0,
-    "end": 45,
-    "viewBox": "0 0 1110 1000",
-    "highlight": [
-      "node_cli_fetch",
-      "node_cli_fingerprint",
-      "node_cli_match",
-      "node_cli_showhn",
-      "node_cli_pulse",
-      "node_cli_draft"
-    ],
-    "narration": "Welcome to HN Radar, an autonomous developer intelligence and matchmaking engine built on a single guiding philosophy: Arrive with the fix. Instead of generic resumes or cold outreach, HN Radar bridges Hacker News Who is Hiring threads and Show HN product discussions to empower developers to reach out with concrete solutions, pull requests, and verified evidence.",
-    "badge": "Philosophy: Arrive with the Fix",
-    "summary": "Introduction to HN Radar's 6 core CLI commands and the central thesis of cited, high-signal developer outreach."
-  },
-  {
-    "id": "ch2",
-    "num": 2,
-    "title": "Source Adapters & Resilient Caching",
-    "start": 45,
-    "end": 95,
-    "viewBox": "10 20 1090 280",
-    "highlight": [
-      "ext_hn",
-      "ext_gh",
-      "ext_ollama",
-      "node_source_hn",
-      "node_source_gh",
-      "node_source_ollama",
-      "node_cache_hn",
-      "node_cache_gh"
-    ],
-    "narration": "Subsystem One: The Source Adapter Layer. All network requests to Hacker News Algolia, GitHub REST, and local Ollama servers are strictly isolated inside sources/. Responses are cached on disk using atomic temporary file renaming. In PR #53, resilient caching was introduced: if the cache directory is read-only or inaccessible, HN Radar emits a safe warning to standard error and safely returns the fetched data without aborting.",
-    "badge": "PR #53: Resilient Caching (Rule 3 & 10)",
-    "summary": "Network boundaries, disk caching, and non-fatal cache write tolerance."
-  },
-  {
-    "id": "ch3",
-    "num": 3,
-    "title": "Job Ingestion, Post Filtering & Closed Detection",
-    "start": 95,
-    "end": 155,
-    "viewBox": "20 280 440 230",
-    "highlight": [
-      "node_parse_comment",
-      "node_candidate_filter",
-      "node_closed_detector",
-      "node_jobs_json",
-      "node_cli_fetch"
-    ],
-    "narration": "Subsystem Two: Job Ingestion. When running hnradar fetch-hiring, HN Radar sweeps the monthly hiring thread. Raw HTML is parsed into structured jobs using heuristics for pipe headers and tech stacks. PR #46 automatically identifies and discards candidate job-seeker pitches. PR #30 traverses replies by the original poster to detect filled positions. And PR #11 enforces Rule 8: untrusted post text is sanitized of ANSI control codes and bidirectional overrides before terminal display.",
-    "badge": "PR #46 Candidate Filter & PR #30 Closed Job Detector",
-    "summary": "Ingestion of monthly Who is Hiring threads, heuristic stack extraction, candidate pitch removal, and closed position tracking."
-  },
-  {
-    "id": "ch4",
-    "num": 4,
-    "title": "Developer Fingerprinting & Privacy Boundary",
-    "start": 155,
-    "end": 210,
-    "viewBox": "400 120 300 370",
-    "highlight": [
-      "ext_gh",
-      "node_source_gh",
-      "node_fingerprint_builder",
-      "node_profile_json",
-      "node_cli_fingerprint"
-    ],
-    "narration": "Subsystem Three: Developer Fingerprinting. Running hnradar fingerprint analyzes a user's public GitHub repositories. In accordance with Rule 5, privacy is strictly respected\u2014no private code or resumes are stored. Forked repositories are filtered out so only authored code is counted. The engine extracts the top 5 languages by byte count, top 10 topics, and top 5 notable repositories. Under Rule 6, if an account exceeds 2,000 repositories, the tool fails loudly.",
-    "badge": "PR #6 Profile Fingerprint (Rule 5 & 6)",
-    "summary": "Extracting languages, topics, and notable repositories from public GitHub data with strict fork exclusion."
-  },
-  {
-    "id": "ch5",
-    "num": 5,
-    "title": "Deterministic Scoring & Transparent Recommendations",
-    "start": 210,
-    "end": 265,
-    "viewBox": "230 380 450 220",
-    "highlight": [
-      "node_jobs_json",
-      "node_profile_json",
-      "node_match_scorer",
-      "node_cli_match"
-    ],
-    "narration": "Subsystem Four: The Matching Engine. Running hnradar match pairs the developer profile against the parsed jobs using a deterministic, transparent scoring algorithm. An alias normalizer canonicalizes terms like k8s to kubernetes and golang to go. The scoring allocates 20 points per language match, 10 points per topic match, and a 5-point remote bonus, capped at 100 points. In strict accordance with Rule 1, every match cites exact repositories and technologies.",
-    "badge": "PR #24 & #29 Deterministic Matching (Rule 1)",
-    "summary": "Point-based matching engine with alias normalizer and mandatory evidence citations."
-  },
-  {
-    "id": "ch6",
-    "num": 6,
-    "title": "Company Radar & Platform Domain Safety",
-    "start": 265,
-    "end": 320,
-    "viewBox": "670 280 250 290",
-    "highlight": [
-      "node_showhn_ranker",
-      "node_cli_showhn"
-    ],
-    "narration": "Subsystem Five: Company Radar. Running hnradar showhn searches Hacker News for product announcements related to the hiring company. PR #33 introduced URL-restricted search to find stories by domain. In PR #50 and Rule 9, platform domains like github.io, notion.so, and substack.com are flagged as low confidence because stories linking to multi-tenant hosts often belong to someone else, not the company.",
-    "badge": "PR #50: Platform Domain Risk Flagging (Rule 9)",
-    "summary": "Show HN story discovery, URL-restricted query expansion, and multi-tenant platform domain warnings."
-  },
-  {
-    "id": "ch7",
-    "num": 7,
-    "title": "Pulse Sentiment & The 5-Line Outreach Draft",
-    "start": 320,
-    "end": 395,
-    "viewBox": "540 380 420 320",
-    "highlight": [
-      "node_pulse_clusterer",
-      "node_pulse_json",
-      "node_draft_writer",
-      "node_cli_pulse",
-      "node_cli_draft"
-    ],
-    "narration": "Subsystem Six: The Outreach Synthesis Engine. First, hnradar pulse clusters Show HN discussion into pros, bugs, and asks using a local Ollama model with Pydantic schema validation and mandatory comment citations. Then, the crown jewel: PR #51 introduced hnradar draft. It evaluates your top 10 matches, requires a non-platform domain with a domain-linked Show HN, and extracts an authentic user-reported bug. The local LLM composes an exact 5-line outreach note pairing the bug with your repository. The CLI prints the note and displays full line-by-line comment citations. Nothing is sent automatically.",
-    "badge": "PR #51: 5-Line Outreach Draft (Rule 1, 2 & 9)",
-    "summary": "Local LLM sentiment clustering and automated 5-line outreach note generation with comment-level proof."
-  },
-  {
-    "id": "ch8",
-    "num": 8,
-    "title": "Autonomous Engineering Factory & Quality Gate",
-    "start": 395,
-    "end": 450,
-    "viewBox": "10 690 1090 300",
-    "highlight": [
-      "node_poller",
-      "node_worktree",
-      "node_goose",
-      "node_qodo",
-      "node_verify_skill",
-      "node_governance"
-    ],
-    "narration": "Subsystem Seven: The Autonomous Engineering Factory. HN Radar is maintained by an automated development loop. agent-poll.ps1 uses a Windows named OS mutex Global\\HNRadarAgentPoll to guard single-instance polling. Goose ticket workers execute recipes in isolated git worktrees. The verify-jobs-parse skill tests parser changes against live HN threads. And Qodo Code Review Bot inspects every pull request, generating Mermaid architecture diagrams and enforcing the Definition of Done quality gate where High and Medium findings must be resolved before merge.",
-    "badge": "Autonomous Factory: Mutex Poller, Goose & Qodo",
-    "summary": "Continuous autonomous ticket execution, worktree isolation, regression testing, and Qodo review quality gates."
-  }
-];
 
-    const TOTAL_DURATION = 450; // 7m 30s
+    const TOTAL_DURATION = 48; // 48 seconds cinematic short
     let currentTime = 0;
     let isPlaying = false;
-    let isMuted = false;
+    let voiceEnabled = true;
+    let soundEnabled = true;
     let showCaptions = true;
-    let playbackSpeed = 1.0;
-    let activeChapterIdx = 0;
-    let exploreMode = false;
-    let activeInspectorComp = null;
+    let currentActIdx = 0;
     let playTimer = null;
-    let speechSynth = window.speechSynthesis;
-    let currentUtterance = null;
-    let speechEnabled = true;
+    let animReq = null;
+
+    // Web Audio API Ambient Soundtrack Synthesizer
+    let audioCtx = null;
+    let bassOsc = null;
+    let padOsc = null;
+    let gainNode = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gainNode.connect(audioCtx.destination);
+
+        // Sub bass drone
+        bassOsc = audioCtx.createOscillator();
+        bassOsc.type = 'sawtooth';
+        bassOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(140, audioCtx.currentTime);
+        bassOsc.connect(filter);
+        filter.connect(gainNode);
+        bassOsc.start();
+
+        // Shimmer pad
+        padOsc = audioCtx.createOscillator();
+        padOsc.type = 'sine';
+        padOsc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        const padGain = audioCtx.createGain();
+        padGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        padOsc.connect(padGain);
+        padGain.connect(gainNode);
+        padOsc.start();
+      } catch (e) {
+        console.warn('Web Audio not supported');
+      }
+    }
+
+    function toggleAudioScore() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btn-soundtrack');
+      if (soundEnabled) {
+        btn.innerHTML = '<span>🎵</span> Soundtrack: ON';
+        btn.style.color = 'var(--accent)';
+        if (gainNode) gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      } else {
+        btn.innerHTML = '<span>🔇</span> Soundtrack: OFF';
+        btn.style.color = 'var(--text-muted)';
+        if (gainNode) gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      }
+    }
 
     mermaid.initialize({
       startOnLoad: false,
       theme: 'dark',
-      securityLevel: 'loose',
-      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+      securityLevel: 'loose'
     });
 
-    // Render Chapters Grid
-    const chGrid = document.getElementById('chapters-grid');
-    chaptersData.forEach((ch, idx) => {
+    // Build Film Strip
+    const strip = document.getElementById('acts-strip');
+    actsData.forEach((act, idx) => {
       const card = document.createElement('div');
-      card.className = 'ch-card' + (idx === 0 ? ' active' : '');
-      card.id = 'ch-card-' + idx;
-      card.onclick = () => jumpToChapter(idx);
+      card.className = 'act-card' + (idx === 0 ? ' active' : '');
+      card.id = 'act-card-' + idx;
+      card.onclick = () => jumpToAct(idx);
       card.innerHTML = `
-        <div class="ch-card-header">
-          <span>CHAPTER ${ch.num}</span>
-          <span>${formatTime(ch.start)}</span>
+        <div class="act-header">
+          <span style="color:${act.badge_color}">${act.act}</span>
+          <span>00:${String(act.start).padStart(2, '0')}</span>
         </div>
-        <div class="ch-card-title">${ch.title}</div>
-        <div class="ch-card-desc">${ch.summary}</div>
+        <div class="act-title">${act.title}</div>
+        <div class="act-tagline">${act.tagline}</div>
       `;
-      chGrid.appendChild(card);
+      strip.appendChild(card);
     });
 
-    // Format seconds to MM:SS
-    function formatTime(s) {
-      const mins = Math.floor(s / 60);
-      const secs = Math.floor(s % 60);
-      return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+    // Canvas Renderer
+    const canvas = document.getElementById('film-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function renderFilmFrame() {
+      const actIdx = Math.min(Math.floor(currentTime / 6), 7);
+      const act = actsData[actIdx];
+      const actTime = currentTime % 6;
+      const actProgress = actTime / 6;
+
+      ctx.fillStyle = '#050811';
+      ctx.fillRect(0, 0, 1920, 1080);
+
+      // Starfield / subtle cosmic dust
+      ctx.fillStyle = '#1e293b';
+      for (let i = 0; i < 90; i++) {
+        const sx = (i * 211 + currentTime * 20) % 1920;
+        const sy = (i * 359) % 1080;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Top & Bottom Letterbox (2.39:1 aspect ratio film borders)
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 1920, 85);
+      ctx.fillRect(0, 995, 1920, 85);
+
+      // Top Letterbox HUD
+      ctx.font = 'bold 20px monospace';
+      ctx.fillStyle = act.badge_color;
+      ctx.fillText(act.act + ' // ' + act.title, 60, 50);
+
+      const mins = Math.floor(currentTime / 60);
+      const secs = Math.floor(currentTime % 60);
+      const frames = Math.floor((currentTime % 1) * 24);
+      ctx.fillStyle = '#64748b';
+      ctx.fillText(`TC 00:${String(secs).padStart(2,'0')}:${String(frames).padStart(2,'0')} // 24 FPS`, 1580, 50);
+
+      // Center Stage Rendering per Act
+      if (actIdx === 0) {
+        // Act I: The Void
+        ctx.font = 'bold 22px system-ui';
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText(act.quote, 960 - ctx.measureText(act.quote).width/2, 220);
+
+        // Falling resume silhouettes
+        for (let r = 0; r < 5; r++) {
+          const rx = 400 + r * 280 + Math.sin(actProgress * 3 + r) * 25;
+          const ry = 300 + ((actProgress * 360 + r * 60) % 320);
+          ctx.strokeStyle = '#475569';
+          ctx.lineWidth = 2;
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(rx, ry, 130, 170);
+          ctx.strokeRect(rx, ry, 130, 170);
+        }
+
+        ctx.font = 'bold 54px system-ui';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(act.headline, 960 - ctx.measureText(act.headline).width/2, 700);
+
+        ctx.font = '24px system-ui';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText(act.sub, 960 - ctx.measureText(act.sub).width/2, 760);
+
+      } else if (actIdx === 1) {
+        // Act II: The Signal (Hacker News Beacon)
+        const cx = 960, cy = 420;
+        for (let rad of [90, 160, 240, 320]) {
+          ctx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(cx, cy, rad + (actProgress * 50) % 70, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath();
+        ctx.roundRect(cx - 80, cy - 80, 160, 160, 16);
+        ctx.fill();
+
+        ctx.font = 'bold 84px system-ui';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('Y', cx - 28, cy + 30);
+
+        ctx.font = 'bold 52px system-ui';
+        ctx.fillText(act.headline, 960 - ctx.measureText(act.headline).width/2, 710);
+
+        ctx.font = '24px system-ui';
+        ctx.fillStyle = '#fed7aa';
+        ctx.fillText(act.sub, 960 - ctx.measureText(act.sub).width/2, 770);
+
+      } else if (actIdx === 2) {
+        // Act III: The Creed
+        const flareY = 440;
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(100, flareY);
+        ctx.lineTo(1820, flareY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#0284c7';
+        ctx.beginPath();
+        ctx.ellipse(960, flareY, 320, 25, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = 'bold 52px system-ui';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(act.headline, 960 - ctx.measureText(act.headline).width/2, 360);
+
+        ctx.font = 'bold 78px system-ui';
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('ARRIVE WITH THE FIX.', 960 - ctx.measureText('ARRIVE WITH THE FIX.').width/2, 530);
+
+        ctx.font = '26px system-ui';
+        ctx.fillStyle = '#bae6fd';
+        ctx.fillText(act.sub, 960 - ctx.measureText(act.sub).width/2, 620);
+
+      } else if (actIdx === 3) {
+        // Act IV: Developer DNA Scanner
+        const cx = 500, cy = 460;
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 180, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const ang = actProgress * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(ang) * 180, cy + Math.sin(ang) * 180);
+        ctx.stroke();
+
+        ctx.font = 'bold 32px system-ui';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('@alex-dev', cx - ctx.measureText('@alex-dev').width/2, cy + 10);
+
+        // Right side DNA Card
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(820, 260, 800, 420, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 22px monospace';
+        ctx.fillStyle = '#c084fc';
+        ctx.fillText('PUBLIC GITHUB DNA (RULE 5 & 6)', 860, 310);
+
+        ctx.font = '22px system-ui';
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillText('• Languages: Python 78% (1.4MB), Go 15%, Rust 7%', 860, 370);
+        ctx.fillText('• Flagship Repo: spoon-knife (Adaptive Pooling)', 860, 430);
+        ctx.fillText('• Strict Fork Exclusion: Evaluates only authored code', 860, 490);
+        ctx.fillText('• Zero Resume Scraping: Zero private data invasion', 860, 550);
+        ctx.fillText('• Loud Limit: Fails loudly if repos exceed 2,000', 860, 610);
+
+      } else if (actIdx === 4) {
+        // Act V: Tactical Radar Lock
+        const rcx = 520, rcy = 460, rr = 200;
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(rcx, rcy, rr, 0, Math.PI * 2);
+        ctx.arc(rcx, rcy, rr/2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const sw = actProgress * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(rcx, rcy);
+        ctx.lineTo(rcx + Math.cos(sw) * rr, rcy + Math.sin(sw) * rr);
+        ctx.stroke();
+
+        // Target Lock crosshairs
+        const tx = rcx + 90, ty = rcy - 50;
+        ctx.strokeStyle = '#facc15';
+        ctx.strokeRect(tx - 24, ty - 24, 48, 48);
+
+        // Dossier Card
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.roundRect(840, 240, 780, 440, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 22px monospace';
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText('TARGET LOCKED: ACME CLOUD', 880, 290);
+
+        ctx.font = 'bold 32px system-ui';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('Staff Infrastructure Engineer', 880, 340);
+
+        ctx.font = '22px system-ui';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('• Match Score: 85 / 100 (Language +20, Topic +10)', 880, 410);
+        ctx.fillText('• Tech Overlap: Python, FastAPI, Docker, AsyncIO', 880, 470);
+        ctx.fillText('• Verified Domain: acmecloud.com (PR #50 Safe)', 880, 530);
+        ctx.fillText('• Rule 1: Every match cites exact repo evidence', 880, 590);
+
+      } else if (actIdx === 5) {
+        // Act VI: The Vulnerability (Show HN)
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(240, 220, 1440, 480, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 32px system-ui';
+        ctx.fillStyle = '#f97316';
+        ctx.fillText('SHOW HN PRODUCT RADAR: ACME CLOUD', 280, 280);
+
+        ctx.fillStyle = '#251216';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(280, 320, 1360, 150, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 22px monospace';
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText('CRITICAL USER PAIN DETECTED // COMMENT #38910401', 310, 360);
+
+        ctx.font = '24px system-ui';
+        ctx.fillStyle = '#fecaca';
+        ctx.fillText('“Our connection pool leaks sockets under high traffic surges. Seeing 502 Bad Gateway!”', 310, 420);
+
+        ctx.fillStyle = '#0b1d33';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.roundRect(280, 500, 1360, 150, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 22px monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('SOLVER REPOSITORY DETECTED: spoon-knife', 310, 540);
+
+        ctx.font = '24px system-ui';
+        ctx.fillStyle = '#bae6fd';
+        ctx.fillText('Your adaptive semaphore pool directly mitigates this exact failure mode.', 310, 600);
+
+      } else if (actIdx === 6) {
+        // Act VII: The Surgical Strike (5-Line Warm Intro)
+        ctx.fillStyle = '#091526';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(240, 200, 1440, 520, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 24px monospace';
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('THE SURGICAL 5-LINE WARM INTRO (PR #51)', 280, 250);
+
+        const lines = [
+          "1. Hi Acme Cloud team, I'm Alex, a backend engineer specializing in high-throughput APIs.",
+          "2. A Show HN that links to acmecloud.com had users reporting connection pool exhaustion [38910401].",
+          "3. My repository spoon-knife implements an adaptive semaphore pool mitigating this failure mode.",
+          "4. I'd start by profiling your async connection lifecycles under simulated peak traffic load.",
+          "5. Would you be open to a 15-minute chat next week to discuss your infrastructure?"
+        ];
+
+        ctx.font = '20px monospace';
+        ctx.fillStyle = '#f8fafc';
+        lines.forEach((l, i) => {
+          ctx.fillText(l, 280, 310 + i * 55);
+        });
+
+        ctx.fillStyle = '#020617';
+        ctx.beginPath();
+        ctx.roundRect(280, 590, 1360, 90, 8);
+        ctx.fill();
+
+        ctx.font = '18px monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('PROOF CITATIONS: Line 2 cites Comment 38910401 • Line 3 cites repo spoon-knife • Nothing sent automatically.', 310, 645);
+
+      } else if (actIdx === 7) {
+        // Act VIII: Autonomous Engine Climax
+        ctx.font = 'bold 74px system-ui';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('HN RADAR', 960 - ctx.measureText('HN RADAR').width/2, 280);
+
+        ctx.font = 'bold 44px system-ui';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('STOP APPLYING. ARRIVE WITH THE FIX.', 960 - ctx.measureText('STOP APPLYING. ARRIVE WITH THE FIX.').width/2, 360);
+
+        const pillars = [
+          ['Global Mutex Poller', 'Guards single-instance polling'],
+          ['Isolated Worktrees', 'Goose agents develop safely'],
+          ['Qodo Code Review', 'DoD quality gate & diagrams'],
+          ['10 Invariant Rules', 'Zero hallucination & citations']
+        ];
+
+        pillars.forEach((p, idx) => {
+          const px = 200 + idx * 390;
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(px, 460, 360, 180, 10);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.font = 'bold 22px system-ui';
+          ctx.fillStyle = '#4ade80';
+          ctx.fillText(p[0], px + 20, 510);
+
+          ctx.font = '16px system-ui';
+          ctx.fillStyle = '#cbd5e1';
+          ctx.fillText(p[1], px + 20, 560);
+        });
+      }
+
+      // Bottom Subtitles & Progress Line
+      const pct = (currentTime / TOTAL_DURATION) * 100;
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(0, 1074, 1920 * (currentTime / TOTAL_DURATION), 6);
     }
 
     // Playback loop
     function startPlayback() {
       if (isPlaying) return;
+      initAudio();
       isPlaying = true;
       document.getElementById('btn-play').textContent = '⏸';
-      document.getElementById('center-play-btn').classList.remove('visible');
-      document.getElementById('status-dot').classList.remove('paused');
-      document.getElementById('status-text').textContent = 'PLAYING [' + playbackSpeed + 'x]';
-      document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('speaking'));
+      document.getElementById('center-play').classList.remove('visible');
 
-      speakCurrentChapter();
+      speakCurrentAct();
 
       const intervalMs = 250;
       playTimer = setInterval(() => {
-        currentTime += (intervalMs / 1000) * playbackSpeed;
+        currentTime += (intervalMs / 1000);
         if (currentTime >= TOTAL_DURATION) {
           pausePlayback();
           currentTime = TOTAL_DURATION;
         }
-        updatePlayerUI();
+        updateUI();
       }, intervalMs);
+
+      function loop() {
+        renderFilmFrame();
+        if (isPlaying) animReq = requestAnimationFrame(loop);
+      }
+      loop();
     }
 
     function pausePlayback() {
       isPlaying = false;
       clearInterval(playTimer);
-      if (speechSynth) speechSynth.cancel();
+      if (animReq) cancelAnimationFrame(animReq);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
       document.getElementById('btn-play').textContent = '▶';
-      document.getElementById('center-play-btn').classList.add('visible');
-      document.getElementById('status-dot').classList.add('paused');
-      document.getElementById('status-text').textContent = 'PAUSED';
-      document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('speaking'));
+      document.getElementById('center-play').classList.add('visible');
     }
 
     function togglePlayPause(e) {
@@ -1928,10 +1375,11 @@ Ready to test. Click "Run Simulated Command" below.
 
     function seekTo(targetTime) {
       currentTime = Math.max(0, Math.min(TOTAL_DURATION, targetTime));
-      updatePlayerUI();
+      updateUI();
+      renderFilmFrame();
       if (isPlaying) {
-        if (speechSynth) speechSynth.cancel();
-        speakCurrentChapter();
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        speakCurrentAct();
       }
     }
 
@@ -1941,45 +1389,68 @@ Ready to test. Click "Run Simulated Command" below.
       seekTo(pos * TOTAL_DURATION);
     }
 
-    function jumpToChapter(idx) {
+    function jumpToAct(idx) {
       idx = parseInt(idx);
-      activeChapterIdx = idx;
-      seekTo(chaptersData[idx].start);
+      currentActIdx = idx;
+      seekTo(actsData[idx].start);
     }
 
-    function setPlaybackSpeed(s) {
-      playbackSpeed = parseFloat(s);
-      if (isPlaying) {
-        clearInterval(playTimer);
-        const intervalMs = 250;
-        playTimer = setInterval(() => {
-          currentTime += (intervalMs / 1000) * playbackSpeed;
-          if (currentTime >= TOTAL_DURATION) {
-            pausePlayback();
-            currentTime = TOTAL_DURATION;
-          }
-          updatePlayerUI();
-        }, intervalMs);
+    function restartFilm() {
+      seekTo(0);
+      startPlayback();
+    }
+
+    function updateUI() {
+      const pct = (currentTime / TOTAL_DURATION) * 100;
+      document.getElementById('scrub-fill').style.width = pct + '%';
+      document.getElementById('scrub-head').style.left = pct + '%';
+
+      const s = Math.floor(currentTime);
+      document.getElementById('timecode').textContent = `00:${String(s).padStart(2,'0')} / 00:48`;
+
+      const newActIdx = Math.min(Math.floor(currentTime / 6), 7);
+      if (newActIdx !== currentActIdx) {
+        currentActIdx = newActIdx;
+        if (isPlaying) speakCurrentAct();
       }
+
+      const act = actsData[currentActIdx];
+      document.getElementById('act-select').value = currentActIdx;
+      document.getElementById('sub-text').innerHTML = `<strong>${act.act}: ${act.title}</strong> — ${act.script}`;
+
+      document.querySelectorAll('.act-card').forEach((c, i) => {
+        if (i === currentActIdx) c.classList.add('active');
+        else c.classList.remove('active');
+      });
     }
 
-    function toggleVoiceAudio() {
-      speechEnabled = !speechEnabled;
-      const btn = document.getElementById('btn-audio');
-      if (speechEnabled) {
+    function speakCurrentAct() {
+      if (!voiceEnabled || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const act = actsData[currentActIdx];
+      const utter = new SpeechSynthesisUtterance(act.script);
+      utter.rate = 1.0;
+      utter.pitch = 0.95;
+      window.speechSynthesis.speak(utter);
+    }
+
+    function toggleVoice() {
+      voiceEnabled = !voiceEnabled;
+      const btn = document.getElementById('btn-voice');
+      if (voiceEnabled) {
         btn.textContent = '🔊';
         btn.style.color = 'var(--accent)';
-        if (isPlaying) speakCurrentChapter();
+        if (isPlaying) speakCurrentAct();
       } else {
         btn.textContent = '🔇';
-        btn.style.color = '#ef4444';
-        if (speechSynth) speechSynth.cancel();
+        btn.style.color = 'var(--red)';
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
       }
     }
 
     function toggleCaptions() {
       showCaptions = !showCaptions;
-      const cc = document.getElementById('cc-banner');
+      const cc = document.getElementById('subtitles');
       const btn = document.getElementById('btn-cc');
       if (showCaptions) {
         cc.classList.remove('hidden');
@@ -1990,269 +1461,94 @@ Ready to test. Click "Run Simulated Command" below.
       }
     }
 
-    function toggleExploreMode() {
-      exploreMode = !exploreMode;
-      const btn = document.getElementById('btn-mode');
-      const svg = document.getElementById('stage-svg');
-      if (exploreMode) {
-        pausePlayback();
-        btn.classList.add('active');
-        btn.innerHTML = '🎬 Exit Explore';
-        svg.setAttribute('viewBox', '0 0 1110 1000');
-        document.querySelectorAll('.v-node').forEach(n => {
-          n.classList.remove('dimmed');
-          n.classList.remove('active-scene');
-        });
-        document.getElementById('pill-ch-title').textContent = 'Free Exploration Mode (Click any node)';
-      } else {
-        btn.classList.remove('active');
-        btn.innerHTML = '<span>🔍</span> Free Explore Mode';
-        updatePlayerUI();
-      }
-    }
-
     function toggleFullscreen() {
-      const elem = document.querySelector('.player-wrapper');
-      if (!document.fullscreenElement) {
-        elem.requestFullscreen().catch(err => alert(err.message));
-      } else {
-        document.exitFullscreen();
-      }
+      const vp = document.getElementById('viewport');
+      if (!document.fullscreenElement) vp.requestFullscreen();
+      else document.exitFullscreen();
     }
 
-    // Update Player UI & Viewport State
-    function updatePlayerUI() {
-      // Scrubber
-      const pct = (currentTime / TOTAL_DURATION) * 100;
-      document.getElementById('scrubber-fill').style.width = pct + '%';
-      document.getElementById('scrubber-handle').style.left = pct + '%';
-      document.getElementById('time-readout').textContent = formatTime(currentTime) + ' / ' + formatTime(TOTAL_DURATION);
-
-      if (exploreMode) return;
-
-      // Find active chapter
-      let currentChIdx = 0;
-      for (let i = chaptersData.length - 1; i >= 0; i--) {
-        if (currentTime >= chaptersData[i].start) {
-          currentChIdx = i;
-          break;
-        }
-      }
-
-      if (currentChIdx !== activeChapterIdx) {
-        activeChapterIdx = currentChIdx;
-        if (isPlaying) speakCurrentChapter();
-      }
-
-      const ch = chaptersData[activeChapterIdx];
-      document.getElementById('pill-ch-num').textContent = 'CH ' + ch.num;
-      document.getElementById('pill-ch-title').textContent = ch.title;
-      document.getElementById('ch-select').value = activeChapterIdx;
-      document.getElementById('cc-text').innerHTML = ch.narration;
-
-      // Update Chapter Cards active state
-      document.querySelectorAll('.ch-card').forEach((c, idx) => {
-        if (idx === activeChapterIdx) c.classList.add('active');
-        else c.classList.remove('active');
-      });
-
-      // ViewBox Smooth Camera Zoom
-      const svg = document.getElementById('stage-svg');
-      if (svg.getAttribute('viewBox') !== ch.viewBox) {
-        svg.setAttribute('viewBox', ch.viewBox);
-      }
-
-      // Highlight active components and dim others
-      document.querySelectorAll('.v-node').forEach(node => {
-        const nodeId = node.id;
-        if (ch.highlight.includes(nodeId)) {
-          node.classList.add('active-scene');
-          node.classList.remove('dimmed');
-        } else {
-          node.classList.remove('active-scene');
-          node.classList.add('dimmed');
-        }
-      });
-    }
-
-    // Web Speech API Narration
-    function speakCurrentChapter() {
-      if (!speechEnabled || !window.speechSynthesis) return;
-      speechSynth.cancel();
-      const ch = chaptersData[activeChapterIdx];
-      const utter = new SpeechSynthesisUtterance(ch.narration);
-      utter.rate = playbackSpeed;
-      utter.pitch = 1.0;
-      utter.onend = () => {
-        document.querySelectorAll('.wave-bar').forEach(b => b.classList.remove('speaking'));
-      };
-      currentUtterance = utter;
-      speechSynth.speak(utter);
-    }
-
-    // Component Inspector Drawer
-    function openComponentInspector(compId) {
+    // Director's Cut / Blueprint Drawer
+    function openBlueprintDrawer(e) {
+      if (e) e.stopPropagation();
       pausePlayback();
-      const comp = componentsData[compId];
-      if (!comp) return;
+      const act = actsData[currentActIdx];
+      document.getElementById('bp-title').textContent = act.act + ': ' + act.title;
+      document.getElementById('bp-act-meta').textContent = act.tagline + ' (Timestamp: 00:' + String(act.start).padStart(2,'0') + ')';
+      document.getElementById('bp-headline').textContent = act.headline;
+      document.getElementById('bp-desc').textContent = act.tech_focus;
 
-      activeInspectorComp = comp;
-
-      document.querySelectorAll('.v-node').forEach(n => {
-        if (n.getAttribute('data-comp-id') === compId) n.classList.add('selected-inspector');
-        else n.classList.remove('selected-inspector');
-      });
-
-      document.getElementById('d-title').textContent = comp.name;
-      document.getElementById('d-meta').textContent = comp.category;
-      document.getElementById('d-file').textContent = comp.file;
-      document.getElementById('d-desc').innerHTML = comp.details || comp.summary;
-      document.getElementById('d-inputs').innerHTML = comp.inputs;
-      document.getElementById('d-outputs').innerHTML = comp.outputs;
-
-      // PRs
-      const prDiv = document.getElementById('d-prs');
-      prDiv.innerHTML = '';
-      comp.prs.forEach(p => {
-        const span = document.createElement('span');
-        span.className = 'rule-tag';
-        span.style.background = '#1e3a8a';
-        span.style.borderColor = '#2563eb';
-        span.textContent = p;
-        prDiv.appendChild(span);
-      });
-
-      // Rules
-      const rulesDiv = document.getElementById('d-rules');
-      rulesDiv.innerHTML = '';
-      comp.rules.forEach(r => {
-        const span = document.createElement('span');
-        span.className = 'rule-tag';
-        span.textContent = r;
-        rulesDiv.appendChild(span);
-      });
-
-      // Qodo Mermaid
-      const qodoNum = comp.qodo_pr;
-      const prObj = prDetailsData[qodoNum];
+      // Update Qodo Mermaid diagram
+      const prKeys = Object.keys(prDetails);
+      const prObj = prDetails[prKeys[currentActIdx % prKeys.length]];
       if (prObj && prObj.diagram) {
-        document.getElementById('qodo-pr-title').textContent = 'Qodo PR #' + qodoNum + ' — ' + prObj.title;
         const mDiv = document.getElementById('qodo-mermaid');
         mDiv.removeAttribute('data-processed');
         mDiv.innerHTML = prObj.diagram;
         mermaid.init(undefined, mDiv);
       }
 
-      // Terminal setup
-      setupTerminalForComponent(compId);
+      // Setup Terminal
+      setupTerminalForAct(currentActIdx);
 
-      document.getElementById('inspector').classList.add('open');
+      // Rules
+      document.getElementById('bp-rules').innerHTML = `
+        <div style="margin-bottom:8px;"><strong>Rule 1 (Evidence):</strong> Never assert a match without citing repository names.</div>
+        <div style="margin-bottom:8px;"><strong>Rule 5 (Privacy):</strong> Inspect only public GitHub metadata; no resume parsing.</div>
+        <div style="margin-bottom:8px;"><strong>Rule 9 (Domain Safety):</strong> Platform domains must be flagged low confidence.</div>
+        <div><strong>Rule 10 (Resilience):</strong> Unwritable disk cache never crashes a successful fetch.</div>
+      `;
+
+      document.getElementById('blueprint-drawer').classList.add('open');
     }
 
-    function closeInspector() {
-      document.getElementById('inspector').classList.remove('open');
-      document.querySelectorAll('.v-node').forEach(n => n.classList.remove('selected-inspector'));
+    function closeBlueprintDrawer() {
+      document.getElementById('blueprint-drawer').classList.remove('open');
     }
 
-    function switchDrawerTab(paneId, btn) {
-      document.querySelectorAll('.d-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.d-pane').forEach(p => p.classList.remove('active'));
+    function switchBpTab(tabId, btn) {
+      document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById(paneId).classList.add('active');
+      document.getElementById(tabId).classList.add('active');
     }
 
-    // Terminal Simulator Logic
-    function setupTerminalForComponent(compId) {
-      const term = document.getElementById('terminal-out');
-      const btn = document.getElementById('btn-run-sim');
-      if (compId === 'cli_fetch_hiring') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> fetch-hiring --limit 5\nReady to simulate ingestion.';
-        btn.textContent = '▶ Run: hnradar fetch-hiring';
-      } else if (compId === 'cli_draft' || compId === 'draft_writer') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> draft alex-dev\nReady to evaluate top 10 matches and compose 5-line outreach note.';
+    function setupTerminalForAct(idx) {
+      const term = document.getElementById('term-out');
+      const btn = document.getElementById('btn-term-run');
+      if (idx === 6) {
+        term.innerHTML = '<span style="color:#4ade80;">$ hnradar</span> draft alex-dev\nReady to generate 5-line outreach note.';
         btn.textContent = '▶ Run: hnradar draft alex-dev';
-      } else if (compId === 'cli_pulse' || compId === 'pulse_clusterer') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> pulse 38910245\nReady to cluster Show HN comments into pros, bugs, and asks.';
-        btn.textContent = '▶ Run: hnradar pulse 38910245';
-      } else if (compId === 'cli_match' || compId === 'matching_engine') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> match alex-dev\nReady to score jobs with cited reasons.';
+      } else if (idx === 4) {
+        term.innerHTML = '<span style="color:#4ade80;">$ hnradar</span> match alex-dev\nReady to score jobs against developer DNA.';
         btn.textContent = '▶ Run: hnradar match alex-dev';
-      } else if (compId === 'cli_showhn' || compId === 'showhn_ranker') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> showhn "Acme Cloud" --domain acmecloud.com\nReady to test domain search & platform filter.';
-        btn.textContent = '▶ Run: hnradar showhn';
+      } else if (idx === 3) {
+        term.innerHTML = '<span style="color:#4ade80;">$ hnradar</span> fingerprint alex-dev\nReady to extract GitHub languages and topics.';
+        btn.textContent = '▶ Run: hnradar fingerprint alex-dev';
       } else {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> --help\nComponent ready.';
-        btn.textContent = '▶ Run Component Test';
+        term.innerHTML = '<span style="color:#4ade80;">$ hnradar</span> fetch-hiring --limit 5\nReady to parse monthly hiring posts.';
+        btn.textContent = '▶ Run: hnradar fetch-hiring';
       }
     }
 
     function runSimulatedCommand() {
-      const compId = activeInspectorComp ? activeInspectorComp.id : 'cli_fetch_hiring';
-      const term = document.getElementById('terminal-out');
-
-      if (compId === 'cli_draft' || compId === 'draft_writer') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> draft alex-dev\n' +
-          'Evaluating top 10 matches for alex-dev...\n' +
-          '  [1/10] Acme Cloud: verified domain (acmecloud.com), non-platform ✔\n' +
-          '  Show HN found: #38910245 ("Show HN: Acme Cloud – Serverless Sandboxes") ✔\n' +
-          '  Extracting cited bug from comments... Comment 38910401 ✔\n' +
-          '  Composing 5-line outreach note via local Ollama (qwen2.5:7b)...\n' +
-          '  Pydantic validation passed (ModelDraft: 5 lines, cited bug, repo named) ✔\n\n' +
-          '\x1b[1;36mDraft for Acme Cloud (qwen2.5:7b), using your repo spoon-knife:\x1b[0m\n' +
-          'Hi Acme Cloud team, I\'m Alex, a backend engineer specializing in high-throughput APIs.\n' +
-          'A Show HN that links to acmecloud.com had users reporting connection pool exhaustion during traffic surges.\n' +
-          'My repository spoon-knife implements an adaptive semaphore pool that mitigates this exact failure mode.\n' +
-          'I\'d start by profiling your async connection lifecycles under simulated peak load.\n' +
-          'Would you be open to a 15-minute chat next week to discuss your backend infrastructure?\n\n' +
-          'Evidence (read it before you send anything; nothing is sent):\n' +
-          'line 2 cites comment 38910401\n' +
-          'repo spoon-knife | Python | Adaptive connection pooling library\n' +
-          'Show HN: https://news.ycombinator.com/item?id=38910245 (links to acmecloud.com)';
-      } else if (compId === 'cli_fetch_hiring') {
-        term.innerHTML = '<span class="terminal-prompt">$ hnradar</span> fetch-hiring --limit 5\n' +
-          'Querying Algolia: search_by_date tags=story,author_whoishiring...\n' +
-          'Found story: 42109811 ("Ask HN: Who is hiring? (November 2026)")\n' +
-          'Fetching comments from Algolia cache...\n' +
-          'Parsed Comment 42109812: Stripe | Staff Infrastructure Engineer | SF / Remote | Python, Go, K8s\n' +
-          'Skipped 1 candidate profile (Who wants to be hired?)\n' +
-          'Saved 4 jobs to data/jobs.json (Cache write resilient: PR #53)\n' +
-          'Execution finished safely with exit code 0.';
-      } else {
-        term.innerHTML += '\nSimulated command execution complete (Exit code 0).';
-      }
+      const term = document.getElementById('term-out');
+      term.innerHTML += '\nExecuting command against local cache...\n' +
+        '  [✔] Validated inputs and privacy boundaries (Rule 5)\n' +
+        '  [✔] Extracted authentic evidence citations (Rule 1)\n' +
+        '  [✔] Completed safely with exit code 0.';
     }
 
-    function handleStageClick(e) {
-      const node = e.target.closest('.v-node');
-      if (node) {
-        const compId = node.getAttribute('data-comp-id');
-        openComponentInspector(compId);
-      }
-    }
-
-    // Keyboard Shortcuts
+    // Spacebar shortcut
     window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.code === 'Space') {
         e.preventDefault();
         togglePlayPause();
-      } else if (e.code === 'ArrowLeft') {
-        seekRelative(-5);
-      } else if (e.code === 'ArrowRight') {
-        seekRelative(5);
-      } else if (e.key === 'm' || e.key === 'M') {
-        toggleVoiceAudio();
-      } else if (e.key === 'c' || e.key === 'C') {
-        toggleCaptions();
-      } else if (e.key === 'f' || e.key === 'F') {
-        toggleFullscreen();
-      } else if (e.key === 'e' || e.key === 'E') {
-        toggleExploreMode();
       }
     });
 
-    // Initial setup
-    updatePlayerUI();
+    // Initial render
+    updateUI();
+    renderFilmFrame();
   </script>
 </body>
 </html>
